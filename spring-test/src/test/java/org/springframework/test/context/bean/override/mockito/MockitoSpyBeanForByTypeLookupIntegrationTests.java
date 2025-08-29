@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.test.context.bean.override.mockito;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -28,6 +27,7 @@ import org.springframework.test.context.bean.override.example.CustomQualifier;
 import org.springframework.test.context.bean.override.example.ExampleService;
 import org.springframework.test.context.bean.override.example.RealExampleService;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.mockito.MockitoAssertions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
@@ -59,7 +59,7 @@ public class MockitoSpyBeanForByTypeLookupIntegrationTests {
 	@Test
 	void overrideIsFoundByType(ApplicationContext ctx) {
 		assertThat(this.anyNameForService)
-				.satisfies(o -> assertThat(Mockito.mockingDetails(o).isSpy()).as("isSpy").isTrue())
+				.satisfies(MockitoAssertions::assertIsSpy)
 				.isSameAs(ctx.getBean("example"))
 				.isSameAs(ctx.getBean(ExampleService.class));
 
@@ -71,7 +71,7 @@ public class MockitoSpyBeanForByTypeLookupIntegrationTests {
 	@Test
 	void overrideIsFoundByTypeAndDisambiguatedByQualifier(ApplicationContext ctx) {
 		assertThat(this.ambiguous)
-				.satisfies(o -> assertThat(Mockito.mockingDetails(o).isSpy()).as("isSpy").isTrue())
+				.satisfies(MockitoAssertions::assertIsSpy)
 				.isSameAs(ctx.getBean("ambiguous2"));
 
 		assertThatException()
@@ -88,7 +88,7 @@ public class MockitoSpyBeanForByTypeLookupIntegrationTests {
 	@Test
 	void overrideIsFoundByTypeAndDisambiguatedByMetaQualifier(ApplicationContext ctx) {
 		assertThat(this.ambiguousMeta)
-				.satisfies(o -> assertThat(Mockito.mockingDetails(o).isSpy()).as("isSpy").isTrue())
+				.satisfies(MockitoAssertions::assertIsSpy)
 				.isSameAs(ctx.getBean("ambiguous1"));
 
 		assertThatException()

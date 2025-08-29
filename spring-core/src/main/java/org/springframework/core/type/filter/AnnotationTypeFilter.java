@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ package org.springframework.core.type.filter;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.classreading.MetadataReader;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -102,19 +103,16 @@ public class AnnotationTypeFilter extends AbstractTypeHierarchyTraversingFilter 
 	}
 
 	@Override
-	@Nullable
-	protected Boolean matchSuperClass(String superClassName) {
+	protected @Nullable Boolean matchSuperClass(String superClassName) {
 		return hasAnnotation(superClassName);
 	}
 
 	@Override
-	@Nullable
-	protected Boolean matchInterface(String interfaceName) {
+	protected @Nullable Boolean matchInterface(String interfaceName) {
 		return hasAnnotation(interfaceName);
 	}
 
-	@Nullable
-	protected Boolean hasAnnotation(String typeName) {
+	protected @Nullable Boolean hasAnnotation(String typeName) {
 		if (Object.class.getName().equals(typeName)) {
 			return false;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 package org.springframework.beans.factory.aot;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aot.generate.GeneratedMethod;
 import org.springframework.aot.generate.GeneratedMethods;
@@ -37,7 +40,6 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.javapoet.AnnotationSpec;
 import org.springframework.javapoet.CodeBlock;
-import org.springframework.lang.Nullable;
 
 /**
  * Code generator {@link Delegate} for common bean definition property values.
@@ -45,7 +47,7 @@ import org.springframework.lang.Nullable;
  * @author Stephane Nicoll
  * @since 6.1.2
  */
-abstract class BeanDefinitionPropertyValueCodeGeneratorDelegates {
+public abstract class BeanDefinitionPropertyValueCodeGeneratorDelegates {
 
 	/**
 	 * A list of {@link Delegate} implementations for the following common bean
@@ -70,6 +72,26 @@ abstract class BeanDefinitionPropertyValueCodeGeneratorDelegates {
 			new BeanReferenceDelegate(),
 			new TypedStringValueDelegate()
 	);
+
+
+	/**
+	 * Create a {@link ValueCodeGenerator} instance with both these
+	 * {@link #INSTANCES delegate} and the {@link ValueCodeGeneratorDelegates#INSTANCES
+	 * core delegates}.
+	 * @param generatedMethods the {@link GeneratedMethods} to use
+	 * @param customDelegates additional delegates that should be considered first
+	 * @return a configured value code generator
+	 * @since 7.0
+	 * @see ValueCodeGenerator#add(List)
+	 */
+	public static ValueCodeGenerator createValueCodeGenerator(
+			GeneratedMethods generatedMethods, List<Delegate> customDelegates) {
+		List<Delegate> allDelegates = new ArrayList<>();
+		allDelegates.addAll(customDelegates);
+		allDelegates.addAll(INSTANCES);
+		allDelegates.addAll(ValueCodeGeneratorDelegates.INSTANCES);
+		return ValueCodeGenerator.with(allDelegates).scoped(generatedMethods);
+	}
 
 
 	/**
@@ -102,8 +124,7 @@ abstract class BeanDefinitionPropertyValueCodeGeneratorDelegates {
 		private static final CodeBlock EMPTY_RESULT = CodeBlock.of("$T.ofEntries()", ManagedMap.class);
 
 		@Override
-		@Nullable
-		public CodeBlock generateCode(ValueCodeGenerator valueCodeGenerator, Object value) {
+		public @Nullable CodeBlock generateCode(ValueCodeGenerator valueCodeGenerator, Object value) {
 			if (value instanceof ManagedMap<?, ?> managedMap) {
 				return generateManagedMapCode(valueCodeGenerator, managedMap);
 			}
@@ -139,8 +160,7 @@ abstract class BeanDefinitionPropertyValueCodeGeneratorDelegates {
 	private static class LinkedHashMapDelegate extends MapDelegate {
 
 		@Override
-		@Nullable
-		protected CodeBlock generateMapCode(ValueCodeGenerator valueCodeGenerator, Map<?, ?> map) {
+		protected @Nullable CodeBlock generateMapCode(ValueCodeGenerator valueCodeGenerator, Map<?, ?> map) {
 			GeneratedMethods generatedMethods = valueCodeGenerator.getGeneratedMethods();
 			if (map instanceof LinkedHashMap<?, ?> && generatedMethods != null) {
 				return generateLinkedHashMapCode(valueCodeGenerator, generatedMethods, map);
@@ -156,6 +176,8 @@ abstract class BeanDefinitionPropertyValueCodeGeneratorDelegates {
 						.builder(SuppressWarnings.class)
 						.addMember("value", "{\"rawtypes\", \"unchecked\"}")
 						.build());
+				method.addModifiers(javax.lang.model.element.Modifier.PRIVATE,
+						javax.lang.model.element.Modifier.STATIC);
 				method.returns(Map.class);
 				method.addStatement("$T map = new $T($L)", Map.class,
 						LinkedHashMap.class, map.size());
@@ -175,8 +197,7 @@ abstract class BeanDefinitionPropertyValueCodeGeneratorDelegates {
 	private static class BeanReferenceDelegate implements Delegate {
 
 		@Override
-		@Nullable
-		public CodeBlock generateCode(ValueCodeGenerator valueCodeGenerator, Object value) {
+		public @Nullable CodeBlock generateCode(ValueCodeGenerator valueCodeGenerator, Object value) {
 			if (value instanceof RuntimeBeanReference runtimeBeanReference &&
 					runtimeBeanReference.getBeanType() != null) {
 				return CodeBlock.of("new $T($T.class)", RuntimeBeanReference.class,
@@ -197,8 +218,7 @@ abstract class BeanDefinitionPropertyValueCodeGeneratorDelegates {
 	private static class TypedStringValueDelegate implements Delegate {
 
 		@Override
-		@Nullable
-		public CodeBlock generateCode(ValueCodeGenerator valueCodeGenerator, Object value) {
+		public @Nullable CodeBlock generateCode(ValueCodeGenerator valueCodeGenerator, Object value) {
 			if (value instanceof TypedStringValue typedStringValue) {
 				return generateTypeStringValueCode(valueCodeGenerator, typedStringValue);
 			}

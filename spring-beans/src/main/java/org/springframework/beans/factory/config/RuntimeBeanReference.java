@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.beans.factory.config;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -33,13 +34,11 @@ public class RuntimeBeanReference implements BeanReference {
 
 	private final String beanName;
 
-	@Nullable
-	private final Class<?> beanType;
+	private final @Nullable Class<?> beanType;
 
 	private final boolean toParent;
 
-	@Nullable
-	private Object source;
+	private @Nullable Object source;
 
 
 	/**
@@ -88,6 +87,33 @@ public class RuntimeBeanReference implements BeanReference {
 		this.toParent = toParent;
 	}
 
+	/**
+	 * Create a new RuntimeBeanReference to a bean of the given type.
+	 * @param beanName name of the target bean
+	 * @param beanType type of the target bean
+	 * @since 7.0
+	 */
+	public RuntimeBeanReference(String beanName, Class<?> beanType) {
+		this(beanName, beanType, false);
+	}
+
+	/**
+	 * Create a new RuntimeBeanReference to a bean of the given type,
+	 * with the option to mark it as reference to a bean in the parent factory.
+	 * @param beanName name of the target bean
+	 * @param beanType type of the target bean
+	 * @param toParent whether this is an explicit reference to a bean in the
+	 * parent factory
+	 * @since 7.0
+	 */
+	public RuntimeBeanReference(String beanName, Class<?> beanType, boolean toParent) {
+		Assert.hasText(beanName, "'beanName' must not be empty");
+		Assert.notNull(beanType, "'beanType' must not be null");
+		this.beanName = beanName;
+		this.beanType = beanType;
+		this.toParent = toParent;
+	}
+
 
 	/**
 	 * Return the requested bean name, or the fully-qualified type name
@@ -103,8 +129,7 @@ public class RuntimeBeanReference implements BeanReference {
 	 * Return the requested bean type if resolution by type is demanded.
 	 * @since 5.2
 	 */
-	@Nullable
-	public Class<?> getBeanType() {
+	public @Nullable Class<?> getBeanType() {
 		return this.beanType;
 	}
 
@@ -124,8 +149,7 @@ public class RuntimeBeanReference implements BeanReference {
 	}
 
 	@Override
-	@Nullable
-	public Object getSource() {
+	public @Nullable Object getSource() {
 		return this.source;
 	}
 

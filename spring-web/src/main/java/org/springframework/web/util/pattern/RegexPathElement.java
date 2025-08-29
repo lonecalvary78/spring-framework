@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,11 +143,6 @@ class RegexPathElement extends PathElement {
 					// If pattern is capturing variables there must be some actual data to bind to them
 					matches = (pathIndex + 1 >= matchingContext.pathLength) &&
 							(this.variableNames.isEmpty() || !textToMatch.isEmpty());
-					if (!matches && matchingContext.isMatchOptionalTrailingSeparator()) {
-						matches = (this.variableNames.isEmpty() || !textToMatch.isEmpty()) &&
-								(pathIndex + 2 >= matchingContext.pathLength) &&
-								matchingContext.isSeparator(pathIndex + 1);
-					}
 				}
 			}
 			else {

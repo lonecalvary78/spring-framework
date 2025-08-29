@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.generate.AccessControl;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.aot.generate.MethodReference;
@@ -40,7 +42,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.javapoet.ClassName;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.ParameterizedTypeName;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.function.SingletonSupplier;
@@ -123,7 +124,7 @@ class DefaultBeanRegistrationCodeFragments implements BeanRegistrationCodeFragme
 
 		CodeBlock.Builder code = CodeBlock.builder();
 		RootBeanDefinition mbd = this.registeredBean.getMergedBeanDefinition();
-		Class<?> beanClass = (mbd.hasBeanClass() ? mbd.getBeanClass() : null);
+		Class<?> beanClass = (mbd.hasBeanClass() ? ClassUtils.getUserClass(mbd.getBeanClass()) : null);
 		CodeBlock beanClassCode = generateBeanClassCode(
 				beanRegistrationCode.getClassName().packageName(),
 				(beanClass != null ? beanClass : beanType.toClass()));
@@ -176,8 +177,7 @@ class DefaultBeanRegistrationCodeFragments implements BeanRegistrationCodeFragme
 				.generateCode(beanDefinition);
 	}
 
-	@Nullable
-	protected CodeBlock generateValueCode(GenerationContext generationContext, String name, Object value) {
+	protected @Nullable CodeBlock generateValueCode(GenerationContext generationContext, String name, Object value) {
 		RegisteredBean innerRegisteredBean = getInnerRegisteredBean(value);
 		if (innerRegisteredBean != null) {
 			BeanDefinitionMethodGenerator methodGenerator = this.beanDefinitionMethodGeneratorFactory
@@ -190,8 +190,7 @@ class DefaultBeanRegistrationCodeFragments implements BeanRegistrationCodeFragme
 		return null;
 	}
 
-	@Nullable
-	private RegisteredBean getInnerRegisteredBean(Object value) {
+	private @Nullable RegisteredBean getInnerRegisteredBean(Object value) {
 		if (value instanceof BeanDefinitionHolder beanDefinitionHolder) {
 			return RegisteredBean.ofInnerBean(this.registeredBean, beanDefinitionHolder);
 		}
@@ -246,7 +245,7 @@ class DefaultBeanRegistrationCodeFragments implements BeanRegistrationCodeFragme
 	}
 
 	private boolean hasInstanceSupplier() {
-		return this.registeredBean.getMergedBeanDefinition().getInstanceSupplier() != null;
+		return (this.registeredBean.getMergedBeanDefinition().getInstanceSupplier() != null);
 	}
 
 }

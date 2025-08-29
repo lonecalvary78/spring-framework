@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.reactive.HandlerMapping;
@@ -104,8 +104,7 @@ public abstract class HandlerResultHandlerSupport implements Ordered {
 	 * Get a {@code ReactiveAdapter} for the top-level return value type.
 	 * @return the matching adapter, or {@code null} if none
 	 */
-	@Nullable
-	protected ReactiveAdapter getAdapter(HandlerResult result) {
+	protected @Nullable ReactiveAdapter getAdapter(HandlerResult result) {
 		return getAdapterRegistry().getAdapter(result.getReturnType().resolve(), result.getReturnValue());
 	}
 
@@ -116,8 +115,7 @@ public abstract class HandlerResultHandlerSupport implements Ordered {
 	 * @param producibleTypesSupplier the media types producible for the request
 	 * @return the selected media type, or {@code null} if none
 	 */
-	@Nullable
-	protected MediaType selectMediaType(ServerWebExchange exchange, Supplier<List<MediaType>> producibleTypesSupplier) {
+	protected @Nullable MediaType selectMediaType(ServerWebExchange exchange, Supplier<List<MediaType>> producibleTypesSupplier) {
 		return selectMediaType(exchange, producibleTypesSupplier, getAcceptableTypes(exchange));
 	}
 
@@ -125,8 +123,7 @@ public abstract class HandlerResultHandlerSupport implements Ordered {
 	 * Variant of {@link #selectMediaType(ServerWebExchange, Supplier)} with a
 	 * given list of requested (acceptable) media types.
 	 */
-	@Nullable
-	protected MediaType selectMediaType(
+	protected @Nullable MediaType selectMediaType(
 			ServerWebExchange exchange, Supplier<List<MediaType>> producibleTypesSupplier,
 			List<MediaType> acceptableTypes) {
 

@@ -1,7 +1,8 @@
 [[spring-testing-annotation-beanoverriding-testbean]]
 = `@TestBean`
 
-`@TestBean` is used on a field in a test class to override a specific bean in the test's
+{spring-framework-api}/test/context/bean/override/convention/TestBean.html[`@TestBean`]
+is used on a non-static field in a test class to override a specific bean in the test's
 `ApplicationContext` with an instance provided by a factory method.
 
 The associated factory method name is derived from the annotated field's name, or the
@@ -30,6 +31,27 @@ same bean in several tests, make sure to name the field consistently to avoid cr
 unnecessary contexts.
 ====
 
+[WARNING]
+====
+Using `@TestBean` in conjunction with `@ContextHierarchy` can lead to undesirable results
+since each `@TestBean` will be applied to all context hierarchy levels by default. To
+ensure that a particular `@TestBean` is applied to a single context hierarchy level, set
+the `contextName` attribute to match a configured `@ContextConfiguration` name – for
+example, `@TestBean(contextName = "app-config")`.
+
+See
+xref:testing/testcontext-framework/ctx-management/hierarchies.adoc#testcontext-ctx-management-ctx-hierarchies-with-bean-overrides[context
+hierarchies with bean overrides] for further details and examples.
+====
+
+[NOTE]
+====
+There are no restrictions on the visibility of `@TestBean` fields or factory methods.
+
+Such fields and methods can therefore be `public`, `protected`, package-private (default
+visibility), or `private` depending on the needs or coding practices of the project.
+====
+
 The following example shows how to use the default behavior of the `@TestBean` annotation:
 
 [tabs]
@@ -40,11 +62,11 @@ Java::
 ----
 	class OverrideBeanTests {
 		@TestBean // <1>
-		private CustomService customService;
+		CustomService customService;
 
 		// test case body...
 
-		private static CustomService customService() { // <2>
+		static CustomService customService() { // <2>
 			return new MyFakeCustomService();
 		}
 	}
@@ -68,11 +90,11 @@ Java::
 ----
 	class OverrideBeanTests {
 		@TestBean(name = "service", methodName = "createCustomService") // <1>
-		private CustomService customService;
+		CustomService customService;
 
 		// test case body...
 
-		private static CustomService createCustomService() { // <2>
+		static CustomService createCustomService() { // <2>
 			return new MyFakeCustomService();
 		}
 	}
@@ -84,8 +106,10 @@ Java::
 
 [TIP]
 ====
-Spring searches for the factory method to invoke in the test class, in the test class
-hierarchy, and in the enclosing class hierarchy for a `@Nested` test class.
+To locate the factory method to invoke, Spring searches in the class in which the
+`@TestBean` field is declared, in one of its superclasses, or in any implemented
+interfaces. If the `@TestBean` field is declared in a `@Nested` test class, the enclosing
+class hierarchy will also be searched.
 
 Alternatively, a factory method in an external class can be referenced via its
 fully-qualified method name following the syntax `<fully-qualified class name>#<method name>`

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.aopalliance.intercept;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Intercepts calls on an interface on its way to the target. These
@@ -55,7 +54,6 @@ public interface MethodInterceptor extends Interceptor {
 	 * @throws Throwable if the interceptors or the target object
 	 * throws an exception
 	 */
-	@Nullable
-	Object invoke(@Nonnull MethodInvocation invocation) throws Throwable;
+	@Nullable Object invoke(MethodInvocation invocation) throws Throwable;
 
 }

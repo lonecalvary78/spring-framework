@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package org.springframework.messaging.handler.invocation;
 
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -154,8 +154,7 @@ class InvocableHandlerMethodTests {
 			.withMessageContaining("Illegal argument");
 	}
 
-	@Nullable
-	private Object invoke(Object handler, Method method, Object... providedArgs) throws Exception {
+	private @Nullable Object invoke(Object handler, Method method, Object... providedArgs) throws Exception {
 		InvocableHandlerMethod handlerMethod = new InvocableHandlerMethod(handler, method);
 		handlerMethod.setMessageMethodArgumentResolvers(this.resolvers);
 		return handlerMethod.invoke(this.message, providedArgs);

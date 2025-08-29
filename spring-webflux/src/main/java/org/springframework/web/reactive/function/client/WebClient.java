@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ import java.util.function.Predicate;
 
 import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.context.Context;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ReactiveAdapterRegistry;
@@ -45,6 +45,8 @@ import org.springframework.http.client.reactive.ClientHttpRequest;
 import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.http.codec.ClientCodecConfigurer;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ApiVersionFormatter;
+import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -251,6 +253,24 @@ public interface WebClient {
 		Builder defaultCookies(Consumer<MultiValueMap<String, String>> cookiesConsumer);
 
 		/**
+		 * Global option to specify an API version to add to every request,
+		 * if not already set.
+		 * @param version the version to use
+		 * @return this builder
+		 * @since 7.0
+		 */
+		Builder defaultApiVersion(Object version);
+
+		/**
+		 * Configure an {@link ApiVersionInserter} to abstract how an API version
+		 * specified via {@link RequestHeadersSpec#apiVersion(Object)}
+		 * is inserted into the request.
+		 * @param apiVersionInserter the inserter to use
+		 * @since 7.0
+		 */
+		Builder apiVersionInserter(ApiVersionInserter apiVersionInserter);
+
+		/**
 		 * Provide a consumer to customize every request being built.
 		 * @param defaultRequest the consumer to use for modifying requests
 		 * @since 5.1
@@ -320,16 +340,6 @@ public interface WebClient {
 		Builder exchangeStrategies(ExchangeStrategies strategies);
 
 		/**
-		 * Customize the strategies configured via
-		 * {@link #exchangeStrategies(ExchangeStrategies)}. This method is
-		 * designed for use in scenarios where multiple parties wish to update
-		 * the {@code ExchangeStrategies}.
-		 * @deprecated as of 5.1.13 in favor of {@link #codecs(Consumer)}
-		 */
-		@Deprecated
-		Builder exchangeStrategies(Consumer<ExchangeStrategies.Builder> configurer);
-
-		/**
 		 * Provide an {@link ExchangeFunction} pre-configured with
 		 * {@link ClientHttpConnector} and {@link ExchangeStrategies}.
 		 * <p>This is an alternative to, and effectively overrides
@@ -391,7 +401,7 @@ public interface WebClient {
 		 * If a {@link UriBuilderFactory} was configured for the client (for example,
 		 * with a base URI) it will be used to expand the URI template.
 		 */
-		S uri(String uri, Object... uriVariables);
+		S uri(String uri, @Nullable Object... uriVariables);
 
 		/**
 		 * Specify the URI for the request using a URI template and URI variables.
@@ -486,6 +496,17 @@ public interface WebClient {
 		S headers(Consumer<HttpHeaders> headersConsumer);
 
 		/**
+		 * Set an API version for the request. The version is inserted into the
+		 * request by the {@link Builder#apiVersionInserter(ApiVersionInserter)
+		 * configured} {@code ApiVersionInserter}.
+		 * @param version the API version of the request; this can be a String or
+		 * some Object that can be formatted the inserter, e.g. through an
+		 * {@link ApiVersionFormatter}.
+		 * @since 7.0
+		 */
+		S apiVersion(Object version);
+
+		/**
 		 * Set the attribute with the given name to the given value.
 		 * @param name the name of the attribute to add
 		 * @param value the value of the attribute to add
@@ -500,17 +521,6 @@ public interface WebClient {
 		 * @return this builder
 		 */
 		S attributes(Consumer<Map<String, Object>> attributesConsumer);
-
-		/**
-		 * Provide a function to populate the Reactor {@code Context}.
-		 * @param contextModifier the function to modify the context with
-		 * @since 5.3.1
-		 * @deprecated in 5.3.2 to be removed soon after; this method cannot
-		 * provide context to downstream (nested or subsequent) requests and is
-		 * of limited value.
-		 */
-		@Deprecated
-		S context(Function<Context, Context> contextModifier);
 
 		/**
 		 * Callback for access to the {@link ClientHttpRequest} that in turn
@@ -605,44 +615,6 @@ public interface WebClient {
 		 * @since 5.3
 		 */
 		<V> Flux<V> exchangeToFlux(Function<ClientResponse, ? extends Flux<V>> responseHandler);
-
-		/**
-		 * Perform the HTTP request and return a {@link ClientResponse} with the
-		 * response status and headers. You can then use methods of the response
-		 * to consume the body:
-		 * <p><pre>
-		 * Mono&lt;Person&gt; mono = client.get()
-		 *     .uri("/persons/1")
-		 *     .accept(MediaType.APPLICATION_JSON)
-		 *     .exchange()
-		 *     .flatMap(response -&gt; response.bodyToMono(Person.class));
-		 *
-		 * Flux&lt;Person&gt; flux = client.get()
-		 *     .uri("/persons")
-		 *     .accept(MediaType.APPLICATION_STREAM_JSON)
-		 *     .exchange()
-		 *     .flatMapMany(response -&gt; response.bodyToFlux(Person.class));
-		 * </pre>
-		 * <p><strong>NOTE:</strong> Unlike {@link #retrieve()}, when using
-		 * {@code exchange()}, it is the responsibility of the application to
-		 * consume any response content regardless of the scenario (success,
-		 * error, unexpected data, etc). Not doing so can cause a memory leak.
-		 * See {@link ClientResponse} for a list of all the available options
-		 * for consuming the body. Generally prefer using {@link #retrieve()}
-		 * unless you have a good reason to use {@code exchange()} which does
-		 * allow to check the response status and headers before deciding how or
-		 * if to consume the response.
-		 * @return a {@code Mono} for the response
-		 * @see #retrieve()
-		 * @deprecated since 5.3 due to the possibility to leak memory and/or
-		 * connections; please, use {@link #exchangeToMono(Function)},
-		 * {@link #exchangeToFlux(Function)}; consider also using
-		 * {@link #retrieve()} which provides access to the response status
-		 * and headers via {@link ResponseEntity} along with error status
-		 * handling.
-		 */
-		@Deprecated
-		Mono<ClientResponse> exchange();
 	}
 
 
@@ -788,15 +760,6 @@ public interface WebClient {
 		 * @see org.springframework.web.reactive.function.BodyInserters
 		 */
 		RequestHeadersSpec<?> body(BodyInserter<?, ? super ClientHttpRequest> inserter);
-
-		/**
-		 * Shortcut for {@link #body(BodyInserter)} with a
-		 * {@linkplain BodyInserters#fromValue value inserter}.
-		 * As of 5.2 this method delegates to {@link #bodyValue(Object)}.
-		 * @deprecated as of Spring Framework 5.2 in favor of {@link #bodyValue(Object)}
-		 */
-		@Deprecated
-		RequestHeadersSpec<?> syncBody(Object body);
 	}
 
 
@@ -876,7 +839,7 @@ public interface WebClient {
 		<T> Flux<T> bodyToFlux(Class<T> elementClass);
 
 		/**
-		 * Variant of {@link #bodyToMono(Class)} with a {@link ParameterizedTypeReference}.
+		 * Variant of {@link #bodyToFlux(Class)} with a {@link ParameterizedTypeReference}.
 		 * @param elementTypeRef the type of element to decode to
 		 * @param <T> the body element type
 		 * @return the decoded body
@@ -896,7 +859,7 @@ public interface WebClient {
 		<T> Mono<ResponseEntity<T>> toEntity(Class<T> bodyClass);
 
 		/**
-		 * Variant of {@link #bodyToMono(Class)} with a {@link ParameterizedTypeReference}.
+		 * Variant of {@link #toEntity(Class)} with a {@link ParameterizedTypeReference}.
 		 * @param bodyTypeReference the expected response body type
 		 * @param <T> the response body type
 		 * @return the {@code ResponseEntity} with the decoded body
@@ -918,7 +881,7 @@ public interface WebClient {
 		<T> Mono<ResponseEntity<List<T>>> toEntityList(Class<T> elementClass);
 
 		/**
-		 * Variant of {@link #toEntity(Class)} with a {@link ParameterizedTypeReference}.
+		 * Variant of {@link #toEntityList(Class)} with a {@link ParameterizedTypeReference}.
 		 * @param elementTypeRef the type of element to decode the target Flux to
 		 * @param <T> the body element type
 		 * @return the {@code ResponseEntity}

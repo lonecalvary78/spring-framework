@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -174,8 +174,7 @@ public abstract class DataSourceUtils {
 	 * @see Connection#setTransactionIsolation
 	 * @see Connection#setReadOnly
 	 */
-	@Nullable
-	public static Integer prepareConnectionForTransaction(Connection con, @Nullable TransactionDefinition definition)
+	public static @Nullable Integer prepareConnectionForTransaction(Connection con, @Nullable TransactionDefinition definition)
 			throws SQLException {
 
 		Assert.notNull(con, "No Connection specified");
@@ -264,10 +263,9 @@ public abstract class DataSourceUtils {
 	 * regarding read-only flag and isolation level.
 	 * @param con the Connection to reset
 	 * @param previousIsolationLevel the isolation level to restore, if any
-	 * @deprecated as of 5.1.11, in favor of
-	 * {@link #resetConnectionAfterTransaction(Connection, Integer, boolean)}
+	 * @deprecated in favor of {@link #resetConnectionAfterTransaction(Connection, Integer, boolean)}
 	 */
-	@Deprecated
+	@Deprecated(since = "5.1.11")
 	public static void resetConnectionAfterTransaction(Connection con, @Nullable Integer previousIsolationLevel) {
 		Assert.notNull(con, "No Connection specified");
 		try {
@@ -439,7 +437,11 @@ public abstract class DataSourceUtils {
 	public static Connection getTargetConnection(Connection con) {
 		Connection conToUse = con;
 		while (conToUse instanceof ConnectionProxy connectionProxy) {
-			conToUse = connectionProxy.getTargetConnection();
+			Connection targetCon = connectionProxy.getTargetConnection();
+			if (targetCon == conToUse) {
+				break;
+			}
+			conToUse = targetCon;
 		}
 		return conToUse;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.web.servlet.i18n;
 
 import java.util.TimeZone;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.web.servlet.LocaleContextResolver;
 
 /**
@@ -34,8 +35,7 @@ import org.springframework.web.servlet.LocaleContextResolver;
  */
 public abstract class AbstractLocaleContextResolver extends AbstractLocaleResolver implements LocaleContextResolver {
 
-	@Nullable
-	private TimeZone defaultTimeZone;
+	private @Nullable TimeZone defaultTimeZone;
 
 
 	/**
@@ -50,8 +50,7 @@ public abstract class AbstractLocaleContextResolver extends AbstractLocaleResolv
 	 * Get the default {@link TimeZone} that this resolver is supposed to fall
 	 * back to, if any.
 	 */
-	@Nullable
-	public TimeZone getDefaultTimeZone() {
+	public @Nullable TimeZone getDefaultTimeZone() {
 		return this.defaultTimeZone;
 	}
 

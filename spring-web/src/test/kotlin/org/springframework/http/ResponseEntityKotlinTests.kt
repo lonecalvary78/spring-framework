@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ class ResponseEntityKotlinTests {
 		val responseEntity = ResponseEntity.ofNullable(entity)
 		assertThat(responseEntity).isNotNull()
 		assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
-		assertThat(responseEntity.body as Int).isEqualTo(entity)
+		assertThat(responseEntity.body).isEqualTo(entity)
 	}
 
 	@Test

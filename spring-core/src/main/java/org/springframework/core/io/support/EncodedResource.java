@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -47,11 +48,9 @@ public class EncodedResource implements InputStreamSource {
 
 	private final Resource resource;
 
-	@Nullable
-	private final String encoding;
+	private final @Nullable String encoding;
 
-	@Nullable
-	private final Charset charset;
+	private final @Nullable Charset charset;
 
 
 	/**
@@ -103,8 +102,7 @@ public class EncodedResource implements InputStreamSource {
 	 * Return the encoding to use for reading from the {@linkplain #getResource() resource},
 	 * or {@code null} if none specified.
 	 */
-	@Nullable
-	public final String getEncoding() {
+	public final @Nullable String getEncoding() {
 		return this.encoding;
 	}
 
@@ -112,8 +110,7 @@ public class EncodedResource implements InputStreamSource {
 	 * Return the {@code Charset} to use for reading from the {@linkplain #getResource() resource},
 	 * or {@code null} if none specified.
 	 */
-	@Nullable
-	public final Charset getCharset() {
+	public final @Nullable Charset getCharset() {
 		return this.charset;
 	}
 

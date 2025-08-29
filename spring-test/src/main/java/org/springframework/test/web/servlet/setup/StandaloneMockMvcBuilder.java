@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
@@ -35,12 +36,13 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.mock.web.MockServletContext;
+import org.springframework.util.PathMatcher;
 import org.springframework.util.PropertyPlaceholderHelper;
 import org.springframework.util.PropertyPlaceholderHelper.PlaceholderResolver;
 import org.springframework.util.StringValueResolver;
 import org.springframework.validation.Validator;
+import org.springframework.web.accept.ApiVersionStrategy;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
@@ -91,8 +93,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 
 	private final List<Object> controllers;
 
-	@Nullable
-	private List<Object> controllerAdvice;
+	private @Nullable List<Object> controllerAdvice;
 
 	private List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
 
@@ -102,40 +103,29 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 
 	private final List<MappedInterceptor> mappedInterceptors = new ArrayList<>();
 
-	@Nullable
-	private Validator validator;
+	private @Nullable Validator validator;
 
-	@Nullable
-	private ContentNegotiationManager contentNegotiationManager;
+	private @Nullable ContentNegotiationManager contentNegotiationManager;
 
-	@Nullable
-	private FormattingConversionService conversionService;
+	private @Nullable FormattingConversionService conversionService;
 
-	@Nullable
-	private List<HandlerExceptionResolver> handlerExceptionResolvers;
+	private @Nullable ApiVersionStrategy versionStrategy;
 
-	@Nullable
-	private Long asyncRequestTimeout;
+	private @Nullable List<HandlerExceptionResolver> handlerExceptionResolvers;
 
-	@Nullable
-	private List<ViewResolver> viewResolvers;
+	private @Nullable Long asyncRequestTimeout;
+
+	private @Nullable List<ViewResolver> viewResolvers;
 
 	private LocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
 
-	@Nullable
-	private FlashMapManager flashMapManager;
+	private @Nullable FlashMapManager flashMapManager;
 
 	private boolean preferPathMatcher = false;
 
-	@Nullable
-	private PathPatternParser patternParser;
+	private @Nullable PathPatternParser patternParser;
 
-	private boolean useSuffixPatternMatch = false;
-
-	private boolean useTrailingSlashPatternMatch = false;
-
-	@Nullable
-	private Boolean removeSemicolonContent;
+	private @Nullable Boolean removeSemicolonContent;
 
 	private final Map<String, String> placeholderValues = new HashMap<>();
 
@@ -203,6 +193,15 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	}
 
 	/**
+	 * Set the {@link ApiVersionStrategy} to use when mapping requests.
+	 * @since 7.0
+	 */
+	public StandaloneMockMvcBuilder setApiVersionStrategy(@Nullable ApiVersionStrategy versionStrategy) {
+		this.versionStrategy = versionStrategy;
+		return this;
+	}
+
+	/**
 	 * Add interceptors mapped to all incoming requests.
 	 */
 	public StandaloneMockMvcBuilder addInterceptors(HandlerInterceptor... interceptors) {
@@ -214,7 +213,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	 * Add interceptors mapped to a set of path patterns.
 	 */
 	public StandaloneMockMvcBuilder addMappedInterceptors(
-			@Nullable String[] pathPatterns, HandlerInterceptor... interceptors) {
+			String @Nullable [] pathPatterns, HandlerInterceptor... interceptors) {
 
 		for (HandlerInterceptor interceptor : interceptors) {
 			this.mappedInterceptors.add(new MappedInterceptor(pathPatterns, null, interceptor));
@@ -311,9 +310,9 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	}
 
 	/**
-	 * Enable URL path matching with parsed
-	 * {@link org.springframework.web.util.pattern.PathPattern PathPatterns}
-	 * instead of String pattern matching with a {@link org.springframework.util.PathMatcher}.
+	 * Configure the parser to use for
+	 * {@link org.springframework.web.util.pattern.PathPattern PathPatterns}.
+	 * <p>By default, this is a default instance of {@link PathPatternParser}.
 	 * @param parser the parser to use
 	 * @since 5.3
 	 */
@@ -324,37 +323,14 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	}
 
 	/**
-	 * Whether to use suffix pattern match (".*") when matching patterns to
-	 * requests. If enabled a method mapped to "/users" also matches to "/users.*".
-	 * <p>The default value is {@code false}.
-	 * @deprecated as of 5.2.4. See class-level note in
-	 * {@link RequestMappingHandlerMapping} on the deprecation of path extension
-	 * config options.
-	 */
-	@Deprecated
-	public StandaloneMockMvcBuilder setUseSuffixPatternMatch(boolean useSuffixPatternMatch) {
-		this.useSuffixPatternMatch = useSuffixPatternMatch;
-		this.preferPathMatcher |= useSuffixPatternMatch;
-		return this;
-	}
-
-	/**
-	 * Whether to match to URLs irrespective of the presence of a trailing slash.
-	 * If enabled a method mapped to "/users" also matches to "/users/".
-	 * @deprecated as of 6.0, see
-	 * {@link PathPatternParser#setMatchOptionalTrailingSeparator(boolean)}
-	 */
-	@Deprecated(since = "6.0")
-	public StandaloneMockMvcBuilder setUseTrailingSlashPatternMatch(boolean useTrailingSlashPatternMatch) {
-		this.useTrailingSlashPatternMatch = useTrailingSlashPatternMatch;
-		return this;
-	}
-
-	/**
 	 * Set if ";" (semicolon) content should be stripped from the request URI. The value,
 	 * if provided, is in turn set on
 	 * {@link org.springframework.web.util.UrlPathHelper#setRemoveSemicolonContent(boolean)}.
+	 * @deprecated use of {@link PathMatcher} and {@link UrlPathHelper} is deprecated
+	 * for use at runtime in web modules in favor of parsed patterns with
+	 * {@link PathPatternParser}.
 	 */
+	@Deprecated(since = "7.0", forRemoval = true)
 	public StandaloneMockMvcBuilder setRemoveSemicolonContent(boolean removeSemicolonContent) {
 		this.removeSemicolonContent = removeSemicolonContent;
 		return this;
@@ -431,8 +407,6 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 
 		wac.addBeans(initViewResolvers(wac));
 		wac.addBean(DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME, this.localeResolver);
-		wac.addBean(DispatcherServlet.THEME_RESOLVER_BEAN_NAME,
-				new org.springframework.web.servlet.theme.FixedThemeResolver());
 		wac.addBean(DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME,
 				new DefaultRequestToViewNameTranslator());
 
@@ -469,7 +443,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	/** Using the MVC Java configuration as the starting point for the "standalone" setup. */
 	private class StandaloneConfiguration extends WebMvcConfigurationSupport {
 
-		@SuppressWarnings("deprecation")
+		@SuppressWarnings("removal")
 		public RequestMappingHandlerMapping getHandlerMapping(
 				FormattingConversionService mvcConversionService,
 				ResourceUrlProvider mvcResourceUrlProvider) {
@@ -478,7 +452,6 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 			handlerMapping.setEmbeddedValueResolver(new StaticStringValueResolver(placeholderValues));
 			if (patternParser == null && preferPathMatcher) {
 				handlerMapping.setPatternParser(null);
-				handlerMapping.setUseSuffixPatternMatch(useSuffixPatternMatch);
 				if (removeSemicolonContent != null) {
 					UrlPathHelper pathHelper = new UrlPathHelper();
 					pathHelper.setRemoveSemicolonContent(removeSemicolonContent);
@@ -488,13 +461,16 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 			else if (patternParser != null) {
 				handlerMapping.setPatternParser(patternParser);
 			}
-			handlerMapping.setUseTrailingSlashMatch(useTrailingSlashPatternMatch);
+			if (versionStrategy != null) {
+				handlerMapping.setApiVersionStrategy(versionStrategy);
+			}
 			handlerMapping.setOrder(0);
 			handlerMapping.setInterceptors(getInterceptors(mvcConversionService, mvcResourceUrlProvider));
 			return handlerMapping;
 		}
 
 		@Override
+		@SuppressWarnings("removal")
 		protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 			converters.addAll(messageConverters);
 		}

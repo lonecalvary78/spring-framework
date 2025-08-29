@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.lang.Nullable;
 import org.springframework.test.annotation.DirtiesContext.HierarchyMode;
 import org.springframework.test.context.MergedContextConfiguration;
 import org.springframework.util.Assert;
@@ -72,6 +72,13 @@ public class DefaultContextCache implements ContextCache {
 	 */
 	private final Map<MergedContextConfiguration, Set<MergedContextConfiguration>> hierarchyMap =
 			new ConcurrentHashMap<>(32);
+
+	/**
+	 * Map of context keys to active test classes (i.e., test classes that are actively
+	 * using the corresponding {@link ApplicationContext}).
+	 * @since 7.0
+	 */
+	private final Map<MergedContextConfiguration, Set<Class<?>>> contextUsageMap = new ConcurrentHashMap<>(32);
 
 	/**
 	 * Map of context keys to context load failure counts.
@@ -121,8 +128,7 @@ public class DefaultContextCache implements ContextCache {
 	}
 
 	@Override
-	@Nullable
-	public ApplicationContext get(MergedContextConfiguration key) {
+	public @Nullable ApplicationContext get(MergedContextConfiguration key) {
 		Assert.notNull(key, "Key must not be null");
 		ApplicationContext context = this.contextMap.get(key);
 		if (context == null) {
@@ -130,8 +136,20 @@ public class DefaultContextCache implements ContextCache {
 		}
 		else {
 			this.hitCount.incrementAndGet();
+			restartContextIfNecessary(context);
 		}
 		return context;
+	}
+
+	private void restartContextIfNecessary(ApplicationContext context) {
+		// Recurse up the context hierarchy first.
+		ApplicationContext parent = context.getParent();
+		if (parent != null) {
+			restartContextIfNecessary(parent);
+		}
+		if (context instanceof ConfigurableApplicationContext cac && !cac.isRunning()) {
+			cac.restart();
+		}
 	}
 
 	@Override
@@ -148,6 +166,41 @@ public class DefaultContextCache implements ContextCache {
 			child = parent;
 			parent = child.getParent();
 		}
+	}
+
+	@Override
+	public void registerContextUsage(MergedContextConfiguration mergedConfig, Class<?> testClass) {
+		// Recurse up the context hierarchy first.
+		MergedContextConfiguration parent = mergedConfig.getParent();
+		if (parent != null) {
+			registerContextUsage(parent, testClass);
+		}
+		getActiveTestClasses(mergedConfig).add(testClass);
+	}
+
+	@Override
+	public void unregisterContextUsage(MergedContextConfiguration mergedConfig, Class<?> testClass) {
+		ApplicationContext context = this.contextMap.get(mergedConfig);
+		Assert.state(context != null, "ApplicationContext must not be null for: " + mergedConfig);
+
+		Set<Class<?>> activeTestClasses = getActiveTestClasses(mergedConfig);
+		activeTestClasses.remove(testClass);
+		if (activeTestClasses.isEmpty()) {
+			if (context instanceof ConfigurableApplicationContext cac && cac.isRunning()) {
+				cac.pause();
+			}
+			this.contextUsageMap.remove(mergedConfig);
+		}
+
+		// Recurse up the context hierarchy last.
+		MergedContextConfiguration parent = mergedConfig.getParent();
+		if (parent != null) {
+			unregisterContextUsage(parent, testClass);
+		}
+	}
+
+	private Set<Class<?>> getActiveTestClasses(MergedContextConfiguration mergedConfig) {
+		return this.contextUsageMap.computeIfAbsent(mergedConfig, mcc -> new HashSet<>());
 	}
 
 	@Override
@@ -200,6 +253,7 @@ public class DefaultContextCache implements ContextCache {
 		// Physically remove and close leaf nodes first (i.e., on the way back up the
 		// stack as opposed to prior to the recursive call).
 		ApplicationContext context = this.contextMap.remove(key);
+		this.contextUsageMap.remove(key);
 		if (context instanceof ConfigurableApplicationContext cac) {
 			cac.close();
 		}
@@ -227,6 +281,11 @@ public class DefaultContextCache implements ContextCache {
 	 */
 	public int getMaxSize() {
 		return this.maxSize;
+	}
+
+	@Override
+	public int getContextUsageCount() {
+		return this.contextUsageMap.size();
 	}
 
 	@Override
@@ -259,6 +318,7 @@ public class DefaultContextCache implements ContextCache {
 		synchronized (this.contextMap) {
 			this.contextMap.clear();
 			this.hierarchyMap.clear();
+			this.contextUsageMap.clear();
 		}
 	}
 
@@ -289,6 +349,7 @@ public class DefaultContextCache implements ContextCache {
 		return new ToStringCreator(this)
 				.append("size", size())
 				.append("maxSize", getMaxSize())
+				.append("contextUsageCount", getContextUsageCount())
 				.append("parentContextCount", getParentContextCount())
 				.append("hitCount", getHitCount())
 				.append("missCount", getMissCount())

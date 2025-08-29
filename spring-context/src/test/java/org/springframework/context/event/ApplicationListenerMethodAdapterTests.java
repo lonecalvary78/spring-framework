@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -213,8 +213,8 @@ class ApplicationListenerMethodAdapterTests extends AbstractApplicationEventList
 
 	@Test
 	void invokeListenerWithWrongGenericPayload() {
-		Method method = ReflectionUtils.findMethod
-				(SampleEvents.class, "handleGenericStringPayload", EntityWrapper.class);
+		Method method = ReflectionUtils.findMethod(
+				SampleEvents.class, "handleGenericStringPayload", EntityWrapper.class);
 		EntityWrapper<Integer> payload = new EntityWrapper<>(123);
 		invokeListener(method, new PayloadApplicationEvent<>(this, payload));
 		verify(this.sampleEvents, times(0)).handleGenericStringPayload(any());

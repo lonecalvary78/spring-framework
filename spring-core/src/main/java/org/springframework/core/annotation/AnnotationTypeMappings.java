@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.lang.Contract;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 /**
@@ -34,9 +36,9 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * meta-annotations to ultimately provide a quick way to map the attributes of
  * a root {@link Annotation}.
  *
- * <p>Supports convention based merging of meta-annotations as well as implicit
- * and explicit {@link AliasFor @AliasFor} aliases. Also provides information
- * about mirrored attributes.
+ * <p>Supports merging of meta-annotations as well as implicit and explicit
+ * {@link AliasFor @AliasFor} aliases. Also provides information about mirrored
+ * attributes.
  *
  * <p>This class is designed to be cached so that meta-annotations only need to
  * be searched once, regardless of how many times they are actually used.
@@ -86,7 +88,7 @@ final class AnnotationTypeMappings {
 	}
 
 	private void addMetaAnnotationsToQueue(Deque<AnnotationTypeMapping> queue, AnnotationTypeMapping source) {
-		Annotation[] metaAnnotations = AnnotationsScanner.getDeclaredAnnotations(source.getAnnotationType(), false);
+		@Nullable Annotation[] metaAnnotations = AnnotationsScanner.getDeclaredAnnotations(source.getAnnotationType(), false);
 		for (Annotation metaAnnotation : metaAnnotations) {
 			if (!isMappable(source, metaAnnotation)) {
 				continue;
@@ -126,6 +128,7 @@ final class AnnotationTypeMappings {
 		}
 	}
 
+	@Contract("_, null -> false")
 	private boolean isMappable(AnnotationTypeMapping source, @Nullable Annotation metaAnnotation) {
 		return (metaAnnotation != null && !this.filter.matches(metaAnnotation) &&
 				!AnnotationFilter.PLAIN.matches(source.getAnnotationType()) &&

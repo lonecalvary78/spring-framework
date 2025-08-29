@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,13 @@ import java.util.function.Consumer;
 
 import kotlin.jvm.JvmClassMappingKt;
 import kotlin.reflect.KClass;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -100,7 +100,7 @@ public class BindingReflectionHintsRegistrar {
 						typeHint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS,
 								MemberCategory.INVOKE_PUBLIC_METHODS);
 					}
-					typeHint.withMembers(MemberCategory.DECLARED_FIELDS,
+					typeHint.withMembers(MemberCategory.ACCESS_DECLARED_FIELDS,
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
 					for (Method method : clazz.getMethods()) {
 						String methodName = method.getName();
@@ -108,8 +108,8 @@ public class BindingReflectionHintsRegistrar {
 							registerPropertyHints(hints, seen, method, 0);
 						}
 						else if ((methodName.startsWith("get") && method.getParameterCount() == 0 && method.getReturnType() != void.class) ||
-								(methodName.startsWith("is") && method.getParameterCount() == 0
-										&& ClassUtils.resolvePrimitiveIfNecessary(method.getReturnType()) == Boolean.class)) {
+								(methodName.startsWith("is") && method.getParameterCount() == 0 &&
+										ClassUtils.resolvePrimitiveIfNecessary(method.getReturnType()) == Boolean.class)) {
 							registerPropertyHints(hints, seen, method, -1);
 						}
 					}
@@ -120,8 +120,6 @@ public class BindingReflectionHintsRegistrar {
 				if (KotlinDetector.isKotlinType(clazz)) {
 					KotlinDelegate.registerComponentHints(hints, clazz);
 					registerKotlinSerializationHints(hints, clazz);
-					// For Kotlin reflection
-					typeHint.withMembers(MemberCategory.INTROSPECT_DECLARED_METHODS);
 				}
 			});
 		}
@@ -150,7 +148,8 @@ public class BindingReflectionHintsRegistrar {
 		String companionClassName = clazz.getCanonicalName() + KOTLIN_COMPANION_SUFFIX;
 		if (ClassUtils.isPresent(companionClassName, null)) {
 			Class<?> companionClass = ClassUtils.resolveClassName(companionClassName, null);
-			Method serializerMethod = ClassUtils.getMethodIfAvailable(companionClass, "serializer");
+			Method serializerMethod = ClassUtils.getMethodIfAvailable(companionClass, "serializer",
+					(Class<?>[]) null);
 			if (serializerMethod != null) {
 				hints.registerMethod(serializerMethod, ExecutableMode.INVOKE);
 			}

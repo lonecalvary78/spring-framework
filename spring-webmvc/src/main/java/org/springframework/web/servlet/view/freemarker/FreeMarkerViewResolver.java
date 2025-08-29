@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.web.servlet.view.freemarker;
 import java.util.Locale;
 
 import freemarker.template.Configuration;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.AbstractTemplateViewResolver;
@@ -105,8 +105,7 @@ public class FreeMarkerViewResolver extends AbstractTemplateViewResolver {
 	 * @see #postProcessView(FreeMarkerView)
 	 */
 	@Override
-	@Nullable
-	protected View loadView(String viewName, Locale locale) throws Exception {
+	protected @Nullable View loadView(String viewName, Locale locale) throws Exception {
 		View view = super.loadView(viewName, locale);
 		if (view instanceof FreeMarkerView freeMarkerView) {
 			postProcessView(freeMarkerView);

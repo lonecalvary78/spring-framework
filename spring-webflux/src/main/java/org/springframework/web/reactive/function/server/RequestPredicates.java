@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -47,13 +48,14 @@ import org.springframework.http.codec.multipart.Part;
 import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.cors.reactive.CorsUtils;
+import org.springframework.web.reactive.HandlerMapping;
+import org.springframework.web.reactive.accept.ApiVersionStrategy;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
@@ -183,6 +185,25 @@ public abstract class RequestPredicates {
 	}
 
 	/**
+	 * {@code RequestPredicate} to match to the request API version extracted
+	 * from and parsed with the configured {@link ApiVersionStrategy}.
+	 * <p>The version may be one of the following:
+	 * <ul>
+	 * <li>Fixed version ("1.2") -- match this version only.
+	 * <li>Baseline version ("1.2+") -- match this and subsequent versions.
+	 * </ul>
+	 * <p>A baseline version allows n endpoint route to continue to work in
+	 * subsequent versions if it remains compatible until an incompatible change
+	 * eventually leads to the creation of a new route.
+	 * @param version the version to use
+	 * @return the created predicate instance
+	 * @since 7.0
+	 */
+	public static RequestPredicate version(Object version) {
+		return new ApiVersionPredicate(version);
+	}
+
+	/**
 	 * Return a {@code RequestPredicate} that matches if request's HTTP method is {@code GET}
 	 * and the given {@code pattern} matches against the request path.
 	 * @param pattern the path pattern to match against
@@ -270,7 +291,12 @@ public abstract class RequestPredicates {
 	 * Return a {@code RequestPredicate} that matches if the request's path has the given extension.
 	 * @param extension the path extension to match against, ignoring case
 	 * @return a predicate that matches if the request's path has the given file extension
+	 * @deprecated without replacement to discourage use of path extensions for request
+	 * mapping and for content negotiation (with similar deprecations and removals already
+	 * applied to annotated controllers). For further context, please read issue
+	 * <a href="https://github.com/spring-projects/spring-framework/issues/24179">#24179</a>
 	 */
+	@Deprecated(since = "7.0", forRemoval = true)
 	public static RequestPredicate pathExtension(String extension) {
 		Assert.notNull(extension, "'extension' must not be null");
 		return new PathExtensionPredicate(extension);
@@ -282,7 +308,12 @@ public abstract class RequestPredicates {
 	 * @param extensionPredicate the predicate to test against the request path extension
 	 * @return a predicate that matches if the given predicate matches against the request's path
 	 * file extension
+	 * @deprecated without replacement to discourage use of path extensions for request
+	 * mapping and for content negotiation (with similar deprecations and removals already
+	 * applied to annotated controllers). For further context, please read issue
+	 * <a href="https://github.com/spring-projects/spring-framework/issues/24179">#24179</a>
 	 */
+	@Deprecated(since = "7.0", forRemoval = true)
 	public static RequestPredicate pathExtension(Predicate<String> extensionPredicate) {
 		return new PathExtensionPredicate(extensionPredicate);
 	}
@@ -354,7 +385,12 @@ public abstract class RequestPredicates {
 		 * Receive notification of a path extension predicate.
 		 * @param extension the path extension that makes up the predicate
 		 * @see RequestPredicates#pathExtension(String)
+		 * @deprecated without replacement to discourage use of path extensions for request
+		 * mapping and for content negotiation (with similar deprecations and removals already
+		 * applied to annotated controllers). For further context, please read issue
+		 * <a href="https://github.com/spring-projects/spring-framework/issues/24179">#24179</a>
 		 */
+		@Deprecated(since = "7.0", forRemoval = true)
 		void pathExtension(String extension);
 
 		/**
@@ -374,6 +410,14 @@ public abstract class RequestPredicates {
 		 * @see RequestPredicates#queryParam(String, String)
 		 */
 		void queryParam(String name, String value);
+
+		/**
+		 * Receive notification of an API version predicate. The version could
+		 * be fixed ("1.2") or baseline ("1.2+").
+		 * @param version the configured version
+		 * @since 7.0
+		 */
+		void version(String version);
 
 		/**
 		 * Receive first notification of a logical AND predicate.
@@ -481,8 +525,8 @@ public abstract class RequestPredicates {
 
 			private final boolean value;
 
-			@Nullable
-			private final Consumer<Map<String, Object>> modifyAttributes;
+
+			private final @Nullable Consumer<Map<String, Object>> modifyAttributes;
 
 
 			private Result(boolean value, @Nullable Consumer<Map<String, Object>> modifyAttributes) {
@@ -816,12 +860,75 @@ public abstract class RequestPredicates {
 	}
 
 
+	private static class ApiVersionPredicate implements RequestPredicate {
+
+		private final String version;
+
+		private final boolean baselineVersion;
+
+		private @Nullable Comparable<?> parsedVersion;
+
+		public ApiVersionPredicate(Object version) {
+			if (version instanceof String s) {
+				this.baselineVersion = s.endsWith("+");
+				this.version = initVersion(s, this.baselineVersion);
+			}
+			else {
+				this.baselineVersion = false;
+				this.version = version.toString();
+				this.parsedVersion = (Comparable<?>) version;
+			}
+		}
+
+		private static String initVersion(String version, boolean baselineVersion) {
+			return (baselineVersion ? version.substring(0, version.length() - 1) : version);
+		}
+
+		@Override
+		public boolean test(ServerRequest request) {
+			if (this.parsedVersion == null) {
+				ApiVersionStrategy strategy = request.apiVersionStrategy();
+				Assert.state(strategy != null, "No ApiVersionStrategy to parse version with");
+				this.parsedVersion = strategy.parseVersion(this.version);
+			}
+
+			Comparable<?> requestVersion =
+					(Comparable<?>) request.attribute(HandlerMapping.API_VERSION_ATTRIBUTE).orElse(null);
+
+			if (requestVersion == null) {
+				traceMatch("Version", this.version, null, true);
+				return true;
+			}
+
+			int result = compareVersions(this.parsedVersion, requestVersion);
+			boolean match = (this.baselineVersion ? result <= 0 : result == 0);
+			traceMatch("Version", this.version, requestVersion, match);
+			return match;
+		}
+
+		@SuppressWarnings("unchecked")
+		private <V extends Comparable<V>> int compareVersions(Object v1, Object v2) {
+			return ((V) v1).compareTo((V) v2);
+		}
+
+		@Override
+		public void accept(Visitor visitor) {
+			visitor.version(this.version + (this.baselineVersion ? "+" : ""));
+		}
+
+		@Override
+		public String toString() {
+			return this.version;
+		}
+	}
+
+
+	@Deprecated(since = "7.0", forRemoval = true)
 	private static class PathExtensionPredicate implements RequestPredicate {
 
 		private final Predicate<String> extensionPredicate;
 
-		@Nullable
-		private final String extension;
+		private final @Nullable String extension;
 
 		public PathExtensionPredicate(Predicate<String> extensionPredicate) {
 			Assert.notNull(extensionPredicate, "Predicate must not be null");
@@ -870,8 +977,7 @@ public abstract class RequestPredicates {
 
 		private final Predicate<String> valuePredicate;
 
-		@Nullable
-		private final String value;
+		private final @Nullable String value;
 
 		public QueryParamPredicate(String name, Predicate<String> valuePredicate) {
 			Assert.notNull(name, "Name must not be null");
@@ -1131,12 +1237,6 @@ public abstract class RequestPredicates {
 		}
 
 		@Override
-		@Deprecated
-		public String methodName() {
-			return this.delegate.methodName();
-		}
-
-		@Override
 		public URI uri() {
 			return this.delegate.uri();
 		}
@@ -1149,12 +1249,6 @@ public abstract class RequestPredicates {
 		@Override
 		public String path() {
 			return this.delegate.path();
-		}
-
-		@Override
-		@Deprecated
-		public PathContainer pathContainer() {
-			return this.delegate.pathContainer();
 		}
 
 		@Override
@@ -1185,6 +1279,11 @@ public abstract class RequestPredicates {
 		@Override
 		public List<HttpMessageReader<?>> messageReaders() {
 			return this.delegate.messageReaders();
+		}
+
+		@Override
+		public @Nullable ApiVersionStrategy apiVersionStrategy() {
+			return this.delegate.apiVersionStrategy();
 		}
 
 		@Override
@@ -1400,12 +1499,6 @@ public abstract class RequestPredicates {
 		@Override
 		public String path() {
 			return this.requestPath.pathWithinApplication().value();
-		}
-
-		@Override
-		@Deprecated
-		public PathContainer pathContainer() {
-			return this.requestPath;
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ package org.springframework.test.context.jdbc;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.style.DefaultToStringStyler;
 import org.springframework.core.style.SimpleValueStyler;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.TestContextAnnotationUtils;
 import org.springframework.test.context.jdbc.SqlConfig.ErrorMode;
 import org.springframework.test.context.jdbc.SqlConfig.TransactionMode;

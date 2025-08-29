@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.http.HttpInputMessage;
@@ -56,11 +57,11 @@ import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.AbstractGenericHttpMessageConverter;
+import org.springframework.http.converter.AbstractJacksonHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StreamUtils;
@@ -78,7 +79,10 @@ import org.springframework.util.TypeUtils;
  * @author Sam Brannen
  * @since 4.1
  * @see MappingJackson2HttpMessageConverter
+ * @deprecated since 7.0 in favor of {@link AbstractJacksonHttpMessageConverter}
  */
+@Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public abstract class AbstractJackson2HttpMessageConverter extends AbstractGenericHttpMessageConverter<Object> {
 
 	private static final Map<String, JsonEncoding> ENCODINGS;
@@ -94,14 +98,11 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 
 	protected ObjectMapper defaultObjectMapper;
 
-	@Nullable
-	private Map<Class<?>, Map<MediaType, ObjectMapper>> objectMapperRegistrations;
+	private @Nullable Map<Class<?>, Map<MediaType, ObjectMapper>> objectMapperRegistrations;
 
-	@Nullable
-	private Boolean prettyPrint;
+	private @Nullable Boolean prettyPrint;
 
-	@Nullable
-	private final PrettyPrinter ssePrettyPrinter;
+	private final @Nullable PrettyPrinter ssePrettyPrinter;
 
 
 	protected AbstractJackson2HttpMessageConverter(ObjectMapper objectMapper) {
@@ -184,7 +185,6 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 	 * or empty if in case of no registrations for the given class.
 	 * @since 5.3.4
 	 */
-	@Nullable
 	public Map<MediaType, ObjectMapper> getObjectMappersForType(Class<?> clazz) {
 		for (Map.Entry<Class<?>, Map<MediaType, ObjectMapper>> entry : getObjectMapperRegistrations().entrySet()) {
 			if (entry.getKey().isAssignableFrom(clazz)) {
@@ -297,8 +297,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 	 * if the handling for the given Class has been customized through
 	 * {@link #registerObjectMappersForType(Class, Consumer)}.
 	 */
-	@Nullable
-	private ObjectMapper selectObjectMapper(Class<?> targetType, @Nullable MediaType targetMediaType) {
+	private @Nullable ObjectMapper selectObjectMapper(Class<?> targetType, @Nullable MediaType targetMediaType) {
 		if (targetMediaType == null || CollectionUtils.isEmpty(this.objectMapperRegistrations)) {
 			return this.defaultObjectMapper;
 		}
@@ -555,8 +554,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 	}
 
 	@Override
-	@Nullable
-	protected MediaType getDefaultContentType(Object object) throws IOException {
+	protected @Nullable MediaType getDefaultContentType(Object object) throws IOException {
 		if (object instanceof MappingJacksonValue mappingJacksonValue) {
 			object = mappingJacksonValue.getValue();
 		}
@@ -564,8 +562,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 	}
 
 	@Override
-	@Nullable
-	protected Long getContentLength(Object object, @Nullable MediaType contentType) throws IOException {
+	protected @Nullable Long getContentLength(Object object, @Nullable MediaType contentType) throws IOException {
 		if (object instanceof MappingJacksonValue mappingJacksonValue) {
 			object = mappingJacksonValue.getValue();
 		}

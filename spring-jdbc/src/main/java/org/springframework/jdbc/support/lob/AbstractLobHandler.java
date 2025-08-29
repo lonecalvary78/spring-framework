@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.io.Reader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Abstract base class for {@link LobHandler} implementations.
@@ -39,26 +39,22 @@ import org.springframework.lang.Nullable;
 public abstract class AbstractLobHandler implements LobHandler {
 
 	@Override
-	@Nullable
-	public byte[] getBlobAsBytes(ResultSet rs, String columnName) throws SQLException {
+	public byte @Nullable [] getBlobAsBytes(ResultSet rs, String columnName) throws SQLException {
 		return getBlobAsBytes(rs, rs.findColumn(columnName));
 	}
 
 	@Override
-	@Nullable
-	public InputStream getBlobAsBinaryStream(ResultSet rs, String columnName) throws SQLException {
+	public @Nullable InputStream getBlobAsBinaryStream(ResultSet rs, String columnName) throws SQLException {
 		return getBlobAsBinaryStream(rs, rs.findColumn(columnName));
 	}
 
 	@Override
-	@Nullable
-	public String getClobAsString(ResultSet rs, String columnName) throws SQLException {
+	public @Nullable String getClobAsString(ResultSet rs, String columnName) throws SQLException {
 		return getClobAsString(rs, rs.findColumn(columnName));
 	}
 
 	@Override
-	@Nullable
-	public InputStream getClobAsAsciiStream(ResultSet rs, String columnName) throws SQLException {
+	public @Nullable InputStream getClobAsAsciiStream(ResultSet rs, String columnName) throws SQLException {
 		return getClobAsAsciiStream(rs, rs.findColumn(columnName));
 	}
 

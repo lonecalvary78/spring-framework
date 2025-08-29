@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -64,8 +64,7 @@ public abstract class AbstractClientHttpRequest implements ClientHttpRequest {
 
 	private final List<Supplier<? extends Publisher<Void>>> commitActions = new ArrayList<>(4);
 
-	@Nullable
-	private HttpHeaders readOnlyHeaders;
+	private @Nullable HttpHeaders readOnlyHeaders;
 
 
 	public AbstractClientHttpRequest() {

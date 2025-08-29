@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import io.rsocket.loadbalance.LoadbalanceTarget;
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -37,7 +38,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.codec.Decoder;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 import org.springframework.util.MimeType;
 
@@ -64,8 +64,7 @@ public interface RSocketRequester extends Disposable {
 	 * or via one of the (deprecated) connect methods on the
 	 * {@code RSocketRequester} builder, or otherwise return {@code null}.
 	 */
-	@Nullable
-	RSocket rsocket();
+	@Nullable RSocket rsocket();
 
 	/**
 	 * Return the data {@code MimeType} selected for the underlying RSocket
@@ -311,9 +310,9 @@ public interface RSocketRequester extends Disposable {
 		 * @param port the server port
 		 * @return an {@code RSocketRequester} for the connection
 		 * @see TcpClientTransport
-		 * @deprecated as of 5.3 in favor of {@link #tcp(String, int)}
+		 * @deprecated in favor of {@link #tcp(String, int)}
 		 */
-		@Deprecated
+		@Deprecated(since = "5.3")
 		Mono<RSocketRequester> connectTcp(String host, int port);
 
 		/**
@@ -321,18 +320,18 @@ public interface RSocketRequester extends Disposable {
 		 * @param uri the RSocket server endpoint URI
 		 * @return an {@code RSocketRequester} for the connection
 		 * @see WebsocketClientTransport
-		 * @deprecated as of 5.3 in favor of {@link #websocket(URI)}
+		 * @deprecated in favor of {@link #websocket(URI)}
 		 */
-		@Deprecated
+		@Deprecated(since = "5.3")
 		Mono<RSocketRequester> connectWebSocket(URI uri);
 
 		/**
 		 * Connect to the server with the given {@code ClientTransport}.
 		 * @param transport the client transport to use
 		 * @return an {@code RSocketRequester} for the connection
-		 * @deprecated as of 5.3 in favor of {@link #transport(ClientTransport)}
+		 * @deprecated in favor of {@link #transport(ClientTransport)}
 		 */
-		@Deprecated
+		@Deprecated(since = "5.3")
 		Mono<RSocketRequester> connect(ClientTransport transport);
 
 	}

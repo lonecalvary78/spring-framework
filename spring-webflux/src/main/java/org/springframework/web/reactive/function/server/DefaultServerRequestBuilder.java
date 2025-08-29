@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -48,12 +49,12 @@ import org.springframework.http.codec.multipart.Part;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.accept.ApiVersionStrategy;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
 import org.springframework.web.util.UriUtils;
@@ -69,14 +70,15 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
+	private final @Nullable ApiVersionStrategy versionStrategy;
+
 	private final ServerWebExchange exchange;
 
 	private HttpMethod method;
 
 	private URI uri;
 
-	@Nullable
-	private String contextPath;
+	private @Nullable String contextPath;
 
 	private final HttpHeaders headers = new HttpHeaders();
 
@@ -90,6 +92,7 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 	DefaultServerRequestBuilder(ServerRequest other) {
 		Assert.notNull(other, "ServerRequest must not be null");
 		this.messageReaders = other.messageReaders();
+		this.versionStrategy = other.apiVersionStrategy();
 		this.exchange = other.exchange();
 		this.method = other.method();
 		this.uri = other.uri();
@@ -196,7 +199,7 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 				this.method, this.uri, this.contextPath, this.headers, this.cookies, this.body, this.attributes);
 		ServerWebExchange exchange = new DelegatingServerWebExchange(
 				serverHttpRequest, this.attributes, this.exchange, this.messageReaders);
-		return new DefaultServerRequest(exchange, this.messageReaders);
+		return new DefaultServerRequest(exchange, this.messageReaders, this.versionStrategy);
 	}
 
 
@@ -358,8 +361,7 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 							.cache();
 				}
 			}
-			catch (InvalidMediaTypeException ex) {
-				// Ignore
+			catch (InvalidMediaTypeException ignored) {
 			}
 			return EMPTY_FORM_DATA;
 		}
@@ -380,8 +382,7 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 							.cache();
 				}
 			}
-			catch (InvalidMediaTypeException ex) {
-				// Ignore
+			catch (InvalidMediaTypeException ignored) {
 			}
 			return EMPTY_MULTIPART_DATA;
 		}
@@ -428,9 +429,8 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 			return this.delegate.getLocaleContext();
 		}
 
-		@Nullable
 		@Override
-		public ApplicationContext getApplicationContext() {
+		public @Nullable ApplicationContext getApplicationContext() {
 			return this.delegate.getApplicationContext();
 		}
 

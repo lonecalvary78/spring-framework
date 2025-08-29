@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.cache.interceptor;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Abstract the invocation of a cache operation.
@@ -38,8 +38,7 @@ public interface CacheOperationInvoker {
 	 * @return the result of the operation
 	 * @throws ThrowableWrapper if an error occurred while invoking the operation
 	 */
-	@Nullable
-	Object invoke() throws ThrowableWrapper;
+	@Nullable Object invoke() throws ThrowableWrapper;
 
 
 	/**

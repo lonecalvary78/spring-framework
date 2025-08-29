@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import jakarta.servlet.FilterRegistration.Dynamic;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRegistration;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.core.Conventions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -144,8 +144,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	 * @see DispatcherServlet#setContextInitializers
 	 * @see #getRootApplicationContextInitializers()
 	 */
-	@Nullable
-	protected ApplicationContextInitializer<?>[] getServletApplicationContextInitializers() {
+	protected ApplicationContextInitializer<?> @Nullable [] getServletApplicationContextInitializers() {
 		return null;
 	}
 
@@ -161,8 +160,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	 * @return an array of filters or {@code null}
 	 * @see #registerServletFilter(ServletContext, Filter)
 	 */
-	@Nullable
-	protected Filter[] getServletFilters() {
+	protected Filter @Nullable [] getServletFilters() {
 		return null;
 	}
 

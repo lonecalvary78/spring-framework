@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -38,13 +39,12 @@ import org.springframework.http.HttpRange;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.multipart.Part;
-import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.reactive.accept.ApiVersionStrategy;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -88,12 +88,6 @@ public class ServerRequestWrapper implements ServerRequest {
 	}
 
 	@Override
-	@Deprecated
-	public String methodName() {
-		return this.delegate.methodName();
-	}
-
-	@Override
 	public URI uri() {
 		return this.delegate.uri();
 	}
@@ -106,12 +100,6 @@ public class ServerRequestWrapper implements ServerRequest {
 	@Override
 	public String path() {
 		return this.delegate.path();
-	}
-
-	@Override
-	@Deprecated
-	public PathContainer pathContainer() {
-		return this.delegate.pathContainer();
 	}
 
 	@Override
@@ -142,6 +130,11 @@ public class ServerRequestWrapper implements ServerRequest {
 	@Override
 	public List<HttpMessageReader<?>> messageReaders() {
 		return this.delegate.messageReaders();
+	}
+
+	@Override
+	public @Nullable ApiVersionStrategy apiVersionStrategy() {
+		return this.delegate.apiVersionStrategy();
 	}
 
 	@Override
@@ -284,8 +277,7 @@ public class ServerRequestWrapper implements ServerRequest {
 		}
 
 		@Override
-		@Nullable
-		public InetSocketAddress host() {
+		public @Nullable InetSocketAddress host() {
 			return this.headers.host();
 		}
 

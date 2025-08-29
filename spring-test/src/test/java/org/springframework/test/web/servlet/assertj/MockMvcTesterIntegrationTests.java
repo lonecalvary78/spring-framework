@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.context.WebApplicationContext;
@@ -321,8 +322,8 @@ public class MockMvcTesterIntegrationTests {
 		}
 
 		private Consumer<HttpHeaders> textContent(String charset) {
-			return headers -> assertThat(headers).containsEntry(
-					"Content-Type", List.of("text/plain;charset=%s".formatted(charset)));
+			return headers -> assertThat(headers.hasHeaderValues("Content-Type", List.of("text/plain;charset=%s".formatted(charset))))
+					.as("hasHeaderValues").isTrue();
 		}
 	}
 
@@ -597,6 +598,13 @@ public class MockMvcTesterIntegrationTests {
 		}
 
 		@Test
+		void assertErrorMessageWithUnresolvedException() {
+			assertThatExceptionOfType(AssertionError.class)
+					.isThrownBy(() -> assertThat(mvc.get().uri("/error/message")).hasErrorMessage("invalid"))
+					.withMessageContainingAll("[Servlet error message]", "invalid", "expected error message");
+		}
+
+		@Test
 		void assertRequestWithUnresolvedException() {
 			testAssertionFailureWithUnresolvableException(
 					result -> assertThat(result).request());
@@ -798,6 +806,13 @@ public class MockMvcTesterIntegrationTests {
 		public String validation(@PathVariable @Size(max = 4) String id) {
 			return "Hello " + id;
 		}
+
+		@GetMapping("/error/message")
+		@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "expected error message")
+		public void errorMessage() {
+
+		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.AbstractFileResolvingResource;
 import org.springframework.core.io.ContextResource;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
@@ -122,8 +122,7 @@ public class ServletContextResource extends AbstractFileResolvingResource implem
 			try {
 				is.close();
 			}
-			catch (IOException ex) {
-				// ignore
+			catch (IOException ignored) {
 			}
 			return true;
 		}
@@ -219,8 +218,7 @@ public class ServletContextResource extends AbstractFileResolvingResource implem
 	 * @see org.springframework.util.StringUtils#getFilename(String)
 	 */
 	@Override
-	@Nullable
-	public String getFilename() {
+	public @Nullable String getFilename() {
 		return StringUtils.getFilename(this.path);
 	}
 

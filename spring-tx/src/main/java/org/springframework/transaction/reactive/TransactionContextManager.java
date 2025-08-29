@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,6 @@ import org.springframework.transaction.NoTransactionException;
  */
 public abstract class TransactionContextManager {
 
-	private static final NoTransactionInContextException NO_TRANSACTION_IN_CONTEXT_EXCEPTION =
-			new NoTransactionInContextException();
-
 	private TransactionContextManager() {
 	}
 
@@ -63,7 +60,7 @@ public abstract class TransactionContextManager {
 					return Mono.just(holder.currentContext());
 				}
 			}
-			return Mono.error(NO_TRANSACTION_IN_CONTEXT_EXCEPTION);
+			return Mono.error(new NoTransactionInContextException());
 		});
 	}
 

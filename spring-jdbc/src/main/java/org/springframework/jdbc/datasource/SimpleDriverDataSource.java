@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@ import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -54,8 +55,7 @@ import org.springframework.util.Assert;
  */
 public class SimpleDriverDataSource extends AbstractDriverBasedDataSource {
 
-	@Nullable
-	private Driver driver;
+	private @Nullable Driver driver;
 
 
 	/**
@@ -127,8 +127,7 @@ public class SimpleDriverDataSource extends AbstractDriverBasedDataSource {
 	/**
 	 * Return the JDBC Driver instance to use.
 	 */
-	@Nullable
-	public Driver getDriver() {
+	public @Nullable Driver getDriver() {
 		return this.driver;
 	}
 

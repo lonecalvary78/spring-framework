@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 
 import org.springframework.core.io.buffer.DataBuffer;
@@ -27,7 +28,6 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.RequestPath;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 
@@ -97,20 +97,17 @@ public class ServerHttpRequestDecorator implements ServerHttpRequest {
 	}
 
 	@Override
-	@Nullable
-	public InetSocketAddress getLocalAddress() {
+	public @Nullable InetSocketAddress getLocalAddress() {
 		return getDelegate().getLocalAddress();
 	}
 
 	@Override
-	@Nullable
-	public InetSocketAddress getRemoteAddress() {
+	public @Nullable InetSocketAddress getRemoteAddress() {
 		return getDelegate().getRemoteAddress();
 	}
 
 	@Override
-	@Nullable
-	public SslInfo getSslInfo() {
+	public @Nullable SslInfo getSslInfo() {
 		return getDelegate().getSslInfo();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -47,7 +48,6 @@ import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.ZeroCopyHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.MimeTypeUtils;
 
 /**
@@ -188,8 +188,7 @@ public class ResourceHttpMessageWriter implements HttpMessageWriter<Resource> {
 		}
 	}
 
-	@Nullable
-	private static Mono<Void> zeroCopy(Resource resource, @Nullable ResourceRegion region,
+	private static @Nullable Mono<Void> zeroCopy(Resource resource, @Nullable ResourceRegion region,
 			ReactiveHttpOutputMessage message, Map<String, Object> hints) {
 
 		if (message instanceof ZeroCopyHttpOutputMessage zeroCopyHttpOutputMessage && resource.isFile()) {

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
-<module name="com.puppycrawl.tools.checkstyle.Checker">
+<module name="Checker">
 
 	<!-- Suppressions -->
 	<module name="SuppressionFilter">
@@ -11,32 +11,14 @@
 	<module name="io.spring.javaformat.checkstyle.check.SpringHeaderCheck">
 		<property name="fileExtensions" value="java"/>
 		<property name="headerType" value="apache2"/>
-		<property name="headerCopyrightPattern" value="20\d\d-20\d\d"/>
+		<property name="headerCopyrightPattern" value="20\d\d-present"/>
 		<property name="packageInfoHeaderType" value="none"/>
 	</module>
 	<module name="com.puppycrawl.tools.checkstyle.checks.NewlineAtEndOfFileCheck"/>
 	<module name="JavadocPackage" /><!-- package-info.java -->
 
 	<!-- TreeWalker Checks -->
-	<module name="com.puppycrawl.tools.checkstyle.TreeWalker">
-
-		<!-- Package-level null-safety annotations -->
-		<module name="RegexpSinglelineJavaCheck">
-			<property name="id" value="packageLevelNonNullApiAnnotation"/>
-			<property name="format" value="@NonNullApi"/>
-			<property name="minimum" value="1"/>
-			<property name="maximum" value="1"/>
-			<property name="message" value="package-info.java is missing required null-safety annotation @NonNullApi."/>
-			<property name="ignoreComments" value="true"/>
-		</module>
-		<module name="RegexpSinglelineJavaCheck">
-			<property name="id" value="packageLevelNonNullFieldsAnnotation"/>
-			<property name="format" value="@NonNullFields"/>
-			<property name="minimum" value="1"/>
-			<property name="maximum" value="1"/>
-			<property name="message" value="package-info.java is missing required null-safety annotation @NonNullFields."/>
-			<property name="ignoreComments" value="true"/>
-		</module>
+	<module name="TreeWalker">
 
 		<!-- Annotations -->
 		<module name="com.puppycrawl.tools.checkstyle.checks.annotation.AnnotationUseStyleCheck">
@@ -44,9 +26,8 @@
 		</module>
 		<module name="com.puppycrawl.tools.checkstyle.checks.annotation.MissingOverrideCheck"/>
 		<module name="com.puppycrawl.tools.checkstyle.checks.annotation.PackageAnnotationCheck"/>
-		<module name="com.puppycrawl.tools.checkstyle.checks.annotation.AnnotationLocationCheck">
-			<property name="allowSamelineSingleParameterlessAnnotation" value="false"/>
-		</module>
+		<module name="com.puppycrawl.tools.checkstyle.checks.annotation.AnnotationLocationCheck"/>
+		<module name="io.spring.javaformat.checkstyle.check.SpringDeprecatedCheck" />
 
 		<!-- Block Checks -->
 		<module name="com.puppycrawl.tools.checkstyle.checks.blocks.EmptyBlockCheck">
@@ -58,6 +39,9 @@
 		</module>
 		<module name="com.puppycrawl.tools.checkstyle.checks.blocks.NeedBracesCheck"/>
 		<module name="com.puppycrawl.tools.checkstyle.checks.blocks.AvoidNestedBlocksCheck"/>
+		<module name="com.puppycrawl.tools.checkstyle.checks.blocks.EmptyCatchBlockCheck">
+			<property name="exceptionVariableName" value="expected|ignore"/>
+		</module>
 
 		<!-- Class Design -->
 		<module name="com.puppycrawl.tools.checkstyle.checks.design.FinalClassCheck"/>
@@ -109,11 +93,9 @@
 		<module name="com.puppycrawl.tools.checkstyle.checks.coding.OneStatementPerLineCheck"/>
 
 		<!-- Imports -->
-		<module name="com.puppycrawl.tools.checkstyle.checks.imports.AvoidStarImportCheck"/>
-		<module name="com.puppycrawl.tools.checkstyle.checks.imports.RedundantImportCheck"/>
-		<module name="com.puppycrawl.tools.checkstyle.checks.imports.UnusedImportsCheck">
-			<property name="processJavadoc" value="true"/>
-		</module>
+		<module name="AvoidStarImport"/>
+		<module name="UnusedImports"/>
+		<module name="RedundantImport"/>
 		<module name="com.puppycrawl.tools.checkstyle.checks.imports.ImportOrderCheck">
 			<property name="groups" value="java,javax,*,org.springframework"/>
 			<property name="ordered" value="true"/>
@@ -122,10 +104,20 @@
 			<property name="sortStaticImportsAlphabetically" value="true"/>
 		</module>
 		<module name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
-			<property name="id" value="bannedImports"/>
+			<property name="id" value="bannedReactorImports"/>
 			<property name="regexp" value="true"/>
-			<property name="illegalClasses"
-				value="^reactor\.core\.support\.Assert,^org\.slf4j\.LoggerFactory,^(?!org\.springframework).*(NonNull|Nonnull|NonNullApi|NonNullFields|Nullable)$"/>
+			<property name="illegalClasses" value="^reactor\.core\.support\.Assert"/>
+		</module>
+		<module name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
+			<property name="id" value="bannedSlf4jImports"/>
+			<property name="regexp" value="true"/>
+			<property name="illegalClasses" value="^org\.slf4j\.LoggerFactory"/>
+		</module>
+		<module name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
+			<property name="id" value="bannedNullabilityImports"/>
+			<property name="regexp" value="true"/>
+			<!-- Rejects all NonNull, Nonnull, and Nullable types that are NOT in the org.jspecify.annotations package. -->
+			<property name="illegalClasses" value="^(?!org\.jspecify\.annotations).*(Non[Nn]ull|Nullable)$"/>
 		</module>
 		<module name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
 			<property name="id" value="bannedJUnit3Imports"/>
@@ -152,11 +144,6 @@
 			<property name="id" value="bannedHamcrestImports"/>
 			<property name="regexp" value="true"/>
 			<property name="illegalClasses" value="^org\.hamcrest\..+"/>
-		</module>
-		<module name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
-			<property name="id" value="bannedJetbrainsAnnotationsImports"/>
-			<property name="regexp" value="true"/>
-			<property name="illegalClasses" value="^org\.jetbrains\.annotations\..+"/>
 		</module>
 
 		<!-- Javadoc Comments -->
@@ -191,6 +178,7 @@
 		<module name="com.puppycrawl.tools.checkstyle.checks.modifier.ModifierOrderCheck"/>
 
 		<!-- Whitespace -->
+		<module name="com.puppycrawl.tools.checkstyle.checks.whitespace.MethodParamPadCheck"/>
 		<module name="com.puppycrawl.tools.checkstyle.checks.whitespace.SingleSpaceSeparatorCheck"/>
 
 		<!-- Miscellaneous -->
@@ -215,6 +203,14 @@
 			<property name="message" value="Trailing whitespace"/>
 		</module>
 		<module name="com.puppycrawl.tools.checkstyle.checks.regexp.RegexpSinglelineJavaCheck">
+			<!-- https://github.com/spring-projects/spring-framework/wiki/Code-Style#line-wrapping-->
+			<property name="id" value="separatorSymbolLocation"/>
+			<property name="format" value="^\s+?([,?:]|(\+(?!\+))|&amp;&amp;|\|\|)"/>
+			<property name="message"
+				value="Separator symbols ('','', ''+'', ''?'', '':'', ''&amp;&amp;'', ''||'') must be declared at the end of the previous line."/>
+			<property name="ignoreComments" value="true"/>
+		</module>
+		<module name="com.puppycrawl.tools.checkstyle.checks.regexp.RegexpSinglelineJavaCheck">
 			<property name="id" value="atSinceVersionConvention"/>
 			<property name="format" value="\@since \d+\.\d+\.0"/>
 			<property name="maximum" value="0"/>
@@ -227,22 +223,6 @@
 			<property name="maximum" value="0"/>
 			<property name="format" value="(Boolean|Character|Byte|Short|Integer|Long|Float|Double|Void)\.TYPE"/>
 			<property name="message" value="Please use class literals for primitives and void -- for example, int.class instead of Integer.TYPE."/>
-			<property name="ignoreComments" value="true"/>
-		</module>
-		<module name="com.puppycrawl.tools.checkstyle.checks.regexp.RegexpSinglelineJavaCheck">
-			<property name="id" value="toLowerCaseWithoutLocale"/>
-			<property name="format" value="\.toLowerCase\(\)"/>
-			<property name="maximum" value="0"/>
-			<property name="message"
-					  value="String.toLowerCase() should be String.toLowerCase(Locale.ROOT)"/>
-			<property name="ignoreComments" value="true"/>
-		</module>
-		<module name="com.puppycrawl.tools.checkstyle.checks.regexp.RegexpSinglelineJavaCheck">
-			<property name="id" value="toUpperCaseWithoutLocale"/>
-			<property name="format" value="\.toUpperCase\(\)"/>
-			<property name="maximum" value="0"/>
-			<property name="message"
-					  value="String.toUpperCase() should be String.toUpperCase(Locale.ROOT)"/>
 			<property name="ignoreComments" value="true"/>
 		</module>
 		<module name="com.puppycrawl.tools.checkstyle.checks.regexp.RegexpSinglelineJavaCheck">
@@ -260,13 +240,6 @@
 				value="assertThatExceptionOfType\((NullPointerException|IllegalArgumentException|IOException|IllegalStateException)\.class\)"/>
 			<property name="message"
 				value="Please use specialized AssertJ assertThat*Exception method."/>
-			<property name="ignoreComments" value="true"/>
-		</module>
-		<module name="com.puppycrawl.tools.checkstyle.checks.regexp.RegexpSinglelineJavaCheck">
-			<property name="id" value="bddMockito"/>
-			<property name="maximum" value="0"/>
-			<property name="format" value="org\.mockito\.Mockito\.(when|doThrow|doAnswer)"/>
-			<property name="message" value="Please use BDDMockito."/>
 			<property name="ignoreComments" value="true"/>
 		</module>
 		<module name="com.puppycrawl.tools.checkstyle.checks.regexp.RegexpSinglelineJavaCheck">

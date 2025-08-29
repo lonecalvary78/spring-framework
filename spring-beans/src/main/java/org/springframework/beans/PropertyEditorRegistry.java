@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.beans;
 
 import java.beans.PropertyEditor;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Encapsulates methods for registering JavaBeans {@link PropertyEditor PropertyEditors}.
@@ -76,7 +76,6 @@ public interface PropertyEditorRegistry {
 	 * {@code null} if looking for an editor for all properties of the given type
 	 * @return the registered editor, or {@code null} if none
 	 */
-	@Nullable
-	PropertyEditor findCustomEditor(@Nullable Class<?> requiredType, @Nullable String propertyPath);
+	@Nullable PropertyEditor findCustomEditor(@Nullable Class<?> requiredType, @Nullable String propertyPath);
 
 }

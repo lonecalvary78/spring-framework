@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ package org.springframework.jms.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.util.Assert;
@@ -37,20 +38,15 @@ import org.springframework.util.Assert;
  */
 public class JmsListenerEndpointRegistrar implements BeanFactoryAware, InitializingBean {
 
-	@Nullable
-	private JmsListenerEndpointRegistry endpointRegistry;
+	private @Nullable JmsListenerEndpointRegistry endpointRegistry;
 
-	@Nullable
-	private MessageHandlerMethodFactory messageHandlerMethodFactory;
+	private @Nullable MessageHandlerMethodFactory messageHandlerMethodFactory;
 
-	@Nullable
-	private JmsListenerContainerFactory<?> containerFactory;
+	private @Nullable JmsListenerContainerFactory<?> containerFactory;
 
-	@Nullable
-	private String containerFactoryBeanName;
+	private @Nullable String containerFactoryBeanName;
 
-	@Nullable
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	private final List<JmsListenerEndpointDescriptor> endpointDescriptors = new ArrayList<>();
 
@@ -68,8 +64,7 @@ public class JmsListenerEndpointRegistrar implements BeanFactoryAware, Initializ
 	 * Return the {@link JmsListenerEndpointRegistry} instance for this
 	 * registrar, may be {@code null}.
 	 */
-	@Nullable
-	public JmsListenerEndpointRegistry getEndpointRegistry() {
+	public @Nullable JmsListenerEndpointRegistry getEndpointRegistry() {
 		return this.endpointRegistry;
 	}
 
@@ -88,8 +83,7 @@ public class JmsListenerEndpointRegistrar implements BeanFactoryAware, Initializ
 	/**
 	 * Return the custom {@link MessageHandlerMethodFactory} to use, if any.
 	 */
-	@Nullable
-	public MessageHandlerMethodFactory getMessageHandlerMethodFactory() {
+	public @Nullable MessageHandlerMethodFactory getMessageHandlerMethodFactory() {
 		return this.messageHandlerMethodFactory;
 	}
 
@@ -197,8 +191,7 @@ public class JmsListenerEndpointRegistrar implements BeanFactoryAware, Initializ
 
 		public final JmsListenerEndpoint endpoint;
 
-		@Nullable
-		public final JmsListenerContainerFactory<?> containerFactory;
+		public final @Nullable JmsListenerContainerFactory<?> containerFactory;
 
 		public JmsListenerEndpointDescriptor(JmsListenerEndpoint endpoint,
 				@Nullable JmsListenerContainerFactory<?> containerFactory) {

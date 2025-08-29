@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,26 @@
 
 package org.springframework.test.context.bean.override.mockito;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.mockito.Mockito;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Beans created using Mockito.
+ * Container for {@link MockitoBean @MockitoBean} annotations which allows
+ * {@code @MockitoBean} to be used as a {@linkplain java.lang.annotation.Repeatable
+ * repeatable annotation} at the type level &mdash; for example, on test classes
+ * or interfaces implemented by test classes.
  *
- * @author Andy Wilkinson
  * @author Sam Brannen
- * @since 6.2
+ * @since 6.2.2
  */
-class MockitoBeans {
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface MockitoBeans {
 
-	private final List<Object> beans = new ArrayList<>();
-
-
-	void add(Object bean) {
-		this.beans.add(bean);
-	}
-
-	void resetAll() {
-		this.beans.forEach(Mockito::reset);
-	}
+	MockitoBean[] value();
 
 }

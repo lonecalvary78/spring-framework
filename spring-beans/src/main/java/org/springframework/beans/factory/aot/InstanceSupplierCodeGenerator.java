@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import kotlin.jvm.JvmClassMappingKt;
 import kotlin.reflect.KClass;
 import kotlin.reflect.KFunction;
 import kotlin.reflect.KParameter;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aot.generate.AccessControl;
 import org.springframework.aot.generate.AccessControl.Visibility;
@@ -54,7 +55,6 @@ import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.CodeBlock.Builder;
 import org.springframework.javapoet.MethodSpec;
 import org.springframework.javapoet.ParameterizedTypeName;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.function.ThrowingSupplier;
 
@@ -115,6 +115,7 @@ public class InstanceSupplierCodeGenerator {
 		this.allowDirectSupplierShortcut = allowDirectSupplierShortcut;
 	}
 
+
 	/**
 	 * Generate the instance supplier code.
 	 * @param registeredBean the bean to handle
@@ -156,91 +157,95 @@ public class InstanceSupplierCodeGenerator {
 	}
 
 	private CodeBlock generateCodeForConstructor(RegisteredBean registeredBean, Constructor<?> constructor) {
-		String beanName = registeredBean.getBeanName();
-		Class<?> beanClass = registeredBean.getBeanClass();
+		ConstructorDescriptor descriptor = new ConstructorDescriptor(
+				registeredBean.getBeanName(), constructor, registeredBean.getBeanClass());
 
-		if (KotlinDetector.isKotlinReflectPresent() && KotlinDelegate.hasConstructorWithOptionalParameter(beanClass)) {
-			return generateCodeForInaccessibleConstructor(beanName, constructor,
-					hints -> hints.registerType(beanClass, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
+		Class<?> publicType = descriptor.publicType();
+		if (KotlinDetector.isKotlinType(publicType) && KotlinDelegate.hasConstructorWithOptionalParameter(publicType)) {
+			return generateCodeForInaccessibleConstructor(descriptor,
+					hints -> hints.registerType(publicType, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
 		}
 
-		if (!isVisible(constructor, constructor.getDeclaringClass())) {
-			return generateCodeForInaccessibleConstructor(beanName, constructor,
+		if (!isVisible(constructor, constructor.getDeclaringClass()) ||
+				registeredBean.getMergedBeanDefinition().hasMethodOverrides()) {
+			return generateCodeForInaccessibleConstructor(descriptor,
 					hints -> hints.registerConstructor(constructor, ExecutableMode.INVOKE));
 		}
-		return generateCodeForAccessibleConstructor(beanName, constructor);
+		return generateCodeForAccessibleConstructor(descriptor);
 	}
 
-	private CodeBlock generateCodeForAccessibleConstructor(String beanName, Constructor<?> constructor) {
-		this.generationContext.getRuntimeHints().reflection().registerConstructor(
-				constructor, ExecutableMode.INTROSPECT);
+	private CodeBlock generateCodeForAccessibleConstructor(ConstructorDescriptor descriptor) {
+		Constructor<?> constructor = descriptor.constructor();
+		this.generationContext.getRuntimeHints().reflection().registerType(constructor.getDeclaringClass());
 
 		if (constructor.getParameterCount() == 0) {
 			if (!this.allowDirectSupplierShortcut) {
-				return CodeBlock.of("$T.using($T::new)", InstanceSupplier.class, constructor.getDeclaringClass());
+				return CodeBlock.of("$T.using($T::new)", InstanceSupplier.class, descriptor.actualType());
 			}
 			if (!isThrowingCheckedException(constructor)) {
-				return CodeBlock.of("$T::new", constructor.getDeclaringClass());
+				return CodeBlock.of("$T::new", descriptor.actualType());
 			}
-			return CodeBlock.of("$T.of($T::new)", ThrowingSupplier.class, constructor.getDeclaringClass());
+			return CodeBlock.of("$T.of($T::new)", ThrowingSupplier.class, descriptor.actualType());
 		}
 
 		GeneratedMethod generatedMethod = generateGetInstanceSupplierMethod(method ->
-				buildGetInstanceMethodForConstructor(method, beanName, constructor, PRIVATE_STATIC));
+				buildGetInstanceMethodForConstructor(method, descriptor, PRIVATE_STATIC));
 		return generateReturnStatement(generatedMethod);
 	}
 
-	private CodeBlock generateCodeForInaccessibleConstructor(String beanName,
-			Constructor<?> constructor, Consumer<ReflectionHints> hints) {
+	private CodeBlock generateCodeForInaccessibleConstructor(ConstructorDescriptor descriptor,
+			Consumer<ReflectionHints> hints) {
 
+		Constructor<?> constructor = descriptor.constructor();
 		CodeWarnings codeWarnings = new CodeWarnings();
 		codeWarnings.detectDeprecation(constructor.getDeclaringClass(), constructor)
 				.detectDeprecation(Arrays.stream(constructor.getParameters()).map(Parameter::getType));
 		hints.accept(this.generationContext.getRuntimeHints().reflection());
 
 		GeneratedMethod generatedMethod = generateGetInstanceSupplierMethod(method -> {
-			method.addJavadoc("Get the bean instance supplier for '$L'.", beanName);
+			method.addJavadoc("Get the bean instance supplier for '$L'.", descriptor.beanName());
 			method.addModifiers(PRIVATE_STATIC);
 			codeWarnings.suppress(method);
-			method.returns(ParameterizedTypeName.get(BeanInstanceSupplier.class, constructor.getDeclaringClass()));
-			method.addStatement(generateResolverForConstructor(constructor));
+			method.returns(ParameterizedTypeName.get(BeanInstanceSupplier.class, descriptor.publicType()));
+			method.addStatement(generateResolverForConstructor(descriptor));
 		});
 
 		return generateReturnStatement(generatedMethod);
 	}
 
-	private void buildGetInstanceMethodForConstructor(MethodSpec.Builder method, String beanName,
-			Constructor<?> constructor, javax.lang.model.element.Modifier... modifiers) {
+	private void buildGetInstanceMethodForConstructor(MethodSpec.Builder method, ConstructorDescriptor descriptor,
+			javax.lang.model.element.Modifier... modifiers) {
 
-		Class<?> declaringClass = constructor.getDeclaringClass();
+		Constructor<?> constructor = descriptor.constructor();
+		Class<?> publicType = descriptor.publicType();
+		Class<?> actualType = descriptor.actualType();
 
 		CodeWarnings codeWarnings = new CodeWarnings();
-		codeWarnings.detectDeprecation(declaringClass, constructor)
+		codeWarnings.detectDeprecation(actualType, constructor)
 				.detectDeprecation(Arrays.stream(constructor.getParameters()).map(Parameter::getType));
-		method.addJavadoc("Get the bean instance supplier for '$L'.", beanName);
+		method.addJavadoc("Get the bean instance supplier for '$L'.", descriptor.beanName());
 		method.addModifiers(modifiers);
 		codeWarnings.suppress(method);
-		method.returns(ParameterizedTypeName.get(BeanInstanceSupplier.class, declaringClass));
+		method.returns(ParameterizedTypeName.get(BeanInstanceSupplier.class, publicType));
 
 		CodeBlock.Builder code = CodeBlock.builder();
-		code.add(generateResolverForConstructor(constructor));
+		code.add(generateResolverForConstructor(descriptor));
 		boolean hasArguments = constructor.getParameterCount() > 0;
-		boolean onInnerClass = ClassUtils.isInnerClass(declaringClass);
+		boolean onInnerClass = ClassUtils.isInnerClass(actualType);
 
 		CodeBlock arguments = hasArguments ?
-				new AutowiredArgumentsCodeGenerator(declaringClass, constructor)
-						.generateCode(constructor.getParameterTypes(), (onInnerClass ? 1 : 0))
-				: NO_ARGS;
+				new AutowiredArgumentsCodeGenerator(actualType, constructor)
+						.generateCode(constructor.getParameterTypes(), (onInnerClass ? 1 : 0)) : NO_ARGS;
 
-		CodeBlock newInstance = generateNewInstanceCodeForConstructor(declaringClass, arguments);
+		CodeBlock newInstance = generateNewInstanceCodeForConstructor(actualType, arguments);
 		code.add(generateWithGeneratorCode(hasArguments, newInstance));
 		method.addStatement(code.build());
 	}
 
-	private CodeBlock generateResolverForConstructor(Constructor<?> constructor) {
-		CodeBlock parameterTypes = generateParameterTypesCode(constructor.getParameterTypes());
+	private CodeBlock generateResolverForConstructor(ConstructorDescriptor descriptor) {
+		CodeBlock parameterTypes = generateParameterTypesCode(descriptor.constructor().getParameterTypes());
 		return CodeBlock.of("return $T.<$T>forConstructor($L)", BeanInstanceSupplier.class,
-				constructor.getDeclaringClass(), parameterTypes);
+				descriptor.publicType(), parameterTypes);
 	}
 
 	private CodeBlock generateNewInstanceCodeForConstructor(Class<?> declaringClass, CodeBlock args) {
@@ -265,7 +270,7 @@ public class InstanceSupplierCodeGenerator {
 	private CodeBlock generateCodeForAccessibleFactoryMethod(String beanName,
 			Method factoryMethod, Class<?> targetClass, @Nullable String factoryBeanName) {
 
-		this.generationContext.getRuntimeHints().reflection().registerMethod(factoryMethod, ExecutableMode.INTROSPECT);
+		this.generationContext.getRuntimeHints().reflection().registerType(factoryMethod.getDeclaringClass());
 
 		if (factoryBeanName == null && factoryMethod.getParameterCount() == 0) {
 			Class<?> suppliedType = ClassUtils.resolvePrimitiveIfNecessary(factoryMethod.getReturnType());
@@ -320,8 +325,7 @@ public class InstanceSupplierCodeGenerator {
 		boolean hasArguments = factoryMethod.getParameterCount() > 0;
 		CodeBlock arguments = hasArguments ?
 				new AutowiredArgumentsCodeGenerator(ClassUtils.getUserClass(targetClass), factoryMethod)
-						.generateCode(factoryMethod.getParameterTypes())
-				: NO_ARGS;
+						.generateCode(factoryMethod.getParameterTypes()) : NO_ARGS;
 
 		CodeBlock newInstance = generateNewInstanceCodeForMethod(
 				factoryBeanName, ClassUtils.getUserClass(targetClass), factoryMethodName, arguments);
@@ -404,13 +408,11 @@ public class InstanceSupplierCodeGenerator {
 	private static class KotlinDelegate {
 
 		public static boolean hasConstructorWithOptionalParameter(Class<?> beanClass) {
-			if (KotlinDetector.isKotlinType(beanClass)) {
-				KClass<?> kClass = JvmClassMappingKt.getKotlinClass(beanClass);
-				for (KFunction<?> constructor : kClass.getConstructors()) {
-					for (KParameter parameter : constructor.getParameters()) {
-						if (parameter.isOptional()) {
-							return true;
-						}
+			KClass<?> kClass = JvmClassMappingKt.getKotlinClass(beanClass);
+			for (KFunction<?> constructor : kClass.getConstructors()) {
+				for (KParameter parameter : constructor.getParameters()) {
+					if (parameter.isOptional()) {
+						return true;
 					}
 				}
 			}
@@ -435,6 +437,14 @@ public class InstanceSupplierCodeGenerator {
 			if (proxyType != null && Proxy.isProxyClass(proxyType)) {
 				runtimeHints.proxies().registerJdkProxy(proxyType.getInterfaces());
 			}
+		}
+	}
+
+
+	record ConstructorDescriptor(String beanName, Constructor<?> constructor, Class<?> publicType) {
+
+		Class<?> actualType() {
+			return this.constructor.getDeclaringClass();
 		}
 	}
 

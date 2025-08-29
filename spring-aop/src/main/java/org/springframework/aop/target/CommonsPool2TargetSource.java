@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -81,8 +81,7 @@ public class CommonsPool2TargetSource extends AbstractPoolingTargetSource implem
 	/**
 	 * The Apache Commons {@code ObjectPool} used to pool target objects.
 	 */
-	@Nullable
-	private ObjectPool pool;
+	private @Nullable ObjectPool pool;
 
 
 	/**

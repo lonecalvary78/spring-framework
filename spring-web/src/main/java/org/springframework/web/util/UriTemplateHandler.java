@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.web.util;
 import java.net.URI;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Defines methods for expanding a URI template with variables.
  *
@@ -34,7 +36,7 @@ public interface UriTemplateHandler {
 	 * @param uriVariables variable values
 	 * @return the created URI instance
 	 */
-	URI expand(String uriTemplate, Map<String, ?> uriVariables);
+	URI expand(String uriTemplate, Map<String, ? extends @Nullable Object> uriVariables);
 
 	/**
 	 * Expand the given URI template with an array of URI variables.
@@ -42,6 +44,6 @@ public interface UriTemplateHandler {
 	 * @param uriVariables variable values
 	 * @return the created URI instance
 	 */
-	URI expand(String uriTemplate, Object... uriVariables);
+	URI expand(String uriTemplate, @Nullable Object... uriVariables);
 
 }

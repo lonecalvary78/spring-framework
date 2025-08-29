@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,13 +49,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_NDJSON;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
-import static org.springframework.http.codec.json.Jackson2CodecSupport.JSON_VIEW_HINT;
 
 /**
+ * Tests for {@link Jackson2JsonEncoder}.
  * @author Sebastien Deleuze
  */
+@SuppressWarnings("removal")
 class Jackson2JsonEncoderTests extends AbstractEncoderTests<Jackson2JsonEncoder> {
 
 	public Jackson2JsonEncoderTests() {
@@ -64,12 +64,10 @@ class Jackson2JsonEncoderTests extends AbstractEncoderTests<Jackson2JsonEncoder>
 
 	@Override
 	@Test
-	@SuppressWarnings("deprecation")
 	public void canEncode() {
 		ResolvableType pojoType = ResolvableType.forClass(Pojo.class);
 		assertThat(this.encoder.canEncode(pojoType, APPLICATION_JSON)).isTrue();
 		assertThat(this.encoder.canEncode(pojoType, APPLICATION_NDJSON)).isTrue();
-		assertThat(this.encoder.canEncode(pojoType, APPLICATION_STREAM_JSON)).isTrue();
 		assertThat(this.encoder.canEncode(pojoType, null)).isTrue();
 
 		assertThat(this.encoder.canEncode(ResolvableType.forClass(Pojo.class),
@@ -94,7 +92,7 @@ class Jackson2JsonEncoderTests extends AbstractEncoderTests<Jackson2JsonEncoder>
 				new Pojo("foofoo", "barbar"),
 				new Pojo("foofoofoo", "barbarbar"));
 
-		testEncodeAll(input, ResolvableType.forClass(Pojo.class), APPLICATION_STREAM_JSON, null, step -> step
+		testEncodeAll(input, ResolvableType.forClass(Pojo.class), APPLICATION_NDJSON, null, step -> step
 				.consumeNextWith(expectString("{\"foo\":\"foo\",\"bar\":\"bar\"}\n"))
 				.consumeNextWith(expectString("{\"foo\":\"foofoo\",\"bar\":\"barbar\"}\n"))
 				.consumeNextWith(expectString("{\"foo\":\"foofoofoo\",\"bar\":\"barbarbar\"}\n"))
@@ -203,7 +201,8 @@ class Jackson2JsonEncoderTests extends AbstractEncoderTests<Jackson2JsonEncoder>
 		Mono<JacksonViewBean> input = Mono.just(bean);
 
 		ResolvableType type = ResolvableType.forClass(JacksonViewBean.class);
-		Map<String, Object> hints = singletonMap(JSON_VIEW_HINT, MyJacksonView1.class);
+		Map<String, Object> hints = singletonMap(org.springframework.http.codec.json.Jackson2CodecSupport.JSON_VIEW_HINT,
+				MyJacksonView1.class);
 
 		testEncode(input, type, null, hints, step -> step
 				.consumeNextWith(expectString("{\"withView1\":\"with\"}"))
@@ -220,7 +219,8 @@ class Jackson2JsonEncoderTests extends AbstractEncoderTests<Jackson2JsonEncoder>
 		Mono<JacksonViewBean> input = Mono.just(bean);
 
 		ResolvableType type = ResolvableType.forClass(JacksonViewBean.class);
-		Map<String, Object> hints = singletonMap(JSON_VIEW_HINT, MyJacksonView3.class);
+		Map<String, Object> hints = singletonMap(org.springframework.http.codec.json.Jackson2CodecSupport.JSON_VIEW_HINT,
+				MyJacksonView3.class);
 
 		testEncode(input, type, null, hints, step -> step
 				.consumeNextWith(expectString("{\"withoutView\":\"without\"}"))

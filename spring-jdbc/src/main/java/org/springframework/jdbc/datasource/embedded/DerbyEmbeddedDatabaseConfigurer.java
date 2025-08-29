@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.derby.jdbc.EmbeddedDriver;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link EmbeddedDatabaseConfigurer} for the Apache Derby database.
@@ -39,8 +38,7 @@ final class DerbyEmbeddedDatabaseConfigurer implements EmbeddedDatabaseConfigure
 
 	private static final String URL_TEMPLATE = "jdbc:derby:memory:%s;%s";
 
-	@Nullable
-	private static DerbyEmbeddedDatabaseConfigurer instance;
+	private static @Nullable DerbyEmbeddedDatabaseConfigurer instance;
 
 
 	/**

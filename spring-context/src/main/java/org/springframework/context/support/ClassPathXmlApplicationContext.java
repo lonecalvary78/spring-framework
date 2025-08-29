@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package org.springframework.context.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -51,8 +52,7 @@ import org.springframework.util.Assert;
  */
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
 
-	@Nullable
-	private Resource[] configResources;
+	private Resource @Nullable [] configResources;
 
 
 	/**
@@ -204,8 +204,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 
 
 	@Override
-	@Nullable
-	protected Resource[] getConfigResources() {
+	protected Resource @Nullable [] getConfigResources() {
 		return this.configResources;
 	}
 

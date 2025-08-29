@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -90,12 +91,10 @@ class RestTemplateIntegrationTests extends AbstractMockWebServerTests {
 	@interface ParameterizedRestTemplateTest {
 	}
 
-	@SuppressWarnings("removal")
 	static Stream<Arguments> clientHttpRequestFactories() {
 		return Stream.of(
 			argumentSet("JDK HttpURLConnection", new SimpleClientHttpRequestFactory()),
 			argumentSet("HttpComponents", new HttpComponentsClientHttpRequestFactory()),
-			argumentSet("OkHttp", new org.springframework.http.client.OkHttp3ClientHttpRequestFactory()),
 			argumentSet("Jetty", new JettyClientHttpRequestFactory()),
 			argumentSet("JDK HttpClient", new JdkClientHttpRequestFactory()),
 			argumentSet("Reactor Netty", new ReactorClientHttpRequestFactory())
@@ -409,7 +408,9 @@ class RestTemplateIntegrationTests extends AbstractMockWebServerTests {
 	}
 
 	@ParameterizedRestTemplateTest
-	void jsonPostForObjectWithJacksonView(ClientHttpRequestFactory clientHttpRequestFactory) {
+	@Disabled("Use RestClient + upcoming hint management instead")
+	@SuppressWarnings("removal")
+	void jsonPostForObjectWithJacksonJsonView(ClientHttpRequestFactory clientHttpRequestFactory) {
 		setUpClient(clientHttpRequestFactory);
 
 		HttpHeaders entityHeaders = new HttpHeaders();

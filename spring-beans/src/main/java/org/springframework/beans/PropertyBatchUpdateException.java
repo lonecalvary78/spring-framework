@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.StringJoiner;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -73,8 +74,7 @@ public class PropertyBatchUpdateException extends BeansException {
 	/**
 	 * Return the exception for this field, or {@code null} if there isn't any.
 	 */
-	@Nullable
-	public PropertyAccessException getPropertyAccessException(String propertyName) {
+	public @Nullable PropertyAccessException getPropertyAccessException(String propertyName) {
 		for (PropertyAccessException pae : this.propertyAccessExceptions) {
 			if (ObjectUtils.nullSafeEquals(propertyName, pae.getPropertyName())) {
 				return pae;

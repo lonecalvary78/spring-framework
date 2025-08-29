@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,10 @@ import java.util.Map;
 
 import javax.management.modelmbean.ModelMBeanNotificationInfo;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jmx.export.metadata.JmxMetadataUtils;
 import org.springframework.jmx.export.metadata.ManagedNotification;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,8 +40,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractConfigurableMBeanInfoAssembler extends AbstractReflectiveMBeanInfoAssembler {
 
-	@Nullable
-	private ModelMBeanNotificationInfo[] notificationInfos;
+	private ModelMBeanNotificationInfo @Nullable [] notificationInfos;
 
 	private final Map<String, ModelMBeanNotificationInfo[]> notificationInfoMappings = new HashMap<>();
 

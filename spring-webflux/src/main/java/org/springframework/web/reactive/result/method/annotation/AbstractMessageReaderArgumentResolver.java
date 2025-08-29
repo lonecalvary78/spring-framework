@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -44,7 +45,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.ValidationAnnotationUtils;
@@ -52,7 +52,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.bind.support.WebExchangeDataBinder;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolverSupport;
-import org.springframework.web.server.PayloadTooLargeException;
+import org.springframework.web.server.ContentTooLargeException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ServerWebInputException;
@@ -236,7 +236,7 @@ public abstract class AbstractMessageReaderArgumentResolver extends HandlerMetho
 
 	private Throwable handleReadError(MethodParameter parameter, Throwable ex) {
 		if (ex instanceof DataBufferLimitException) {
-			return new PayloadTooLargeException(ex);
+			return new ContentTooLargeException(ex);
 		}
 		if (ex instanceof DecodingException) {
 			return new ServerWebInputException("Failed to read HTTP message", parameter, ex);
@@ -260,8 +260,7 @@ public abstract class AbstractMessageReaderArgumentResolver extends HandlerMetho
 	 * a (possibly empty) Object[] with validation hints. A return value of
 	 * {@code null} indicates that validation is not required.
 	 */
-	@Nullable
-	private Object[] extractValidationHints(MethodParameter parameter) {
+	private Object @Nullable [] extractValidationHints(MethodParameter parameter) {
 		Annotation[] annotations = parameter.getParameterAnnotations();
 		for (Annotation ann : annotations) {
 			Object[] hints = ValidationAnnotationUtils.determineValidationHints(ann);

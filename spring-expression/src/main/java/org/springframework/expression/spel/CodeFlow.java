@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,12 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.MethodVisitor;
 import org.springframework.asm.Opcodes;
 import org.springframework.lang.Contract;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -69,8 +70,7 @@ public class CodeFlow implements Opcodes {
 	 * they can register to add a field to this class. Any registered FieldAdders
 	 * will be called after the main evaluation function has finished being generated.
 	 */
-	@Nullable
-	private List<FieldAdder> fieldAdders;
+	private @Nullable List<FieldAdder> fieldAdders;
 
 	/**
 	 * As SpEL AST nodes are called to generate code for the main evaluation method
@@ -78,8 +78,7 @@ public class CodeFlow implements Opcodes {
 	 * registered ClinitAdders will be called after the main evaluation function
 	 * has finished being generated.
 	 */
-	@Nullable
-	private List<ClinitAdder> clinitAdders;
+	private @Nullable List<ClinitAdder> clinitAdders;
 
 	/**
 	 * When code generation requires holding a value in a class level field, this
@@ -157,8 +156,7 @@ public class CodeFlow implements Opcodes {
 	/**
 	 * Return the descriptor for the item currently on top of the stack (in the current scope).
 	 */
-	@Nullable
-	public String lastDescriptor() {
+	public @Nullable String lastDescriptor() {
 		return CollectionUtils.lastElement(this.compilationScopes.peek());
 	}
 
@@ -518,11 +516,9 @@ public class CodeFlow implements Opcodes {
 	 */
 	public static String toJvmDescriptor(Class<?> clazz) {
 		StringBuilder sb = new StringBuilder();
-		if (clazz.isArray()) {
-			while (clazz.isArray()) {
-				sb.append('[');
-				clazz = clazz.componentType();
-			}
+		while (clazz.isArray()) {
+			sb.append('[');
+			clazz = clazz.componentType();
 		}
 		if (clazz.isPrimitive()) {
 			if (clazz == boolean.class) {
@@ -691,9 +687,8 @@ public class CodeFlow implements Opcodes {
 	 * Determine whether the given number is to be considered as an integer
 	 * for the purposes of a numeric operation at the bytecode level.
 	 * @param number the number to check
-	 * @return {@code true} if it is an {@link Integer}, {@link Short} or {@link Byte}
+	 * @return {@code true} if it is an {@link Integer}, {@link Short}, or {@link Byte}
 	 */
-	@Contract("null -> false")
 	public static boolean isIntegerForNumericOp(Number number) {
 		return (number instanceof Integer || number instanceof Short || number instanceof Byte);
 	}

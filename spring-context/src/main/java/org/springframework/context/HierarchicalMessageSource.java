@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.context;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Sub-interface of MessageSource to be implemented by objects that
@@ -39,7 +39,6 @@ public interface HierarchicalMessageSource extends MessageSource {
 	/**
 	 * Return the parent of this MessageSource, or {@code null} if none.
 	 */
-	@Nullable
-	MessageSource getParentMessageSource();
+	@Nullable MessageSource getParentMessageSource();
 
 }

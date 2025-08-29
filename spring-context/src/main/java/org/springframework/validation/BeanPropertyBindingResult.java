@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ package org.springframework.validation;
 
 import java.io.Serializable;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.ConfigurablePropertyAccessor;
 import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of the {@link Errors} and {@link BindingResult}
@@ -43,15 +44,13 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class BeanPropertyBindingResult extends AbstractPropertyBindingResult implements Serializable {
 
-	@Nullable
-	private final Object target;
+	private final @Nullable Object target;
 
 	private final boolean autoGrowNestedPaths;
 
 	private final int autoGrowCollectionLimit;
 
-	@Nullable
-	private transient BeanWrapper beanWrapper;
+	private transient @Nullable BeanWrapper beanWrapper;
 
 
 	/**
@@ -81,8 +80,7 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 
 
 	@Override
-	@Nullable
-	public final Object getTarget() {
+	public final @Nullable Object getTarget() {
 		return this.target;
 	}
 

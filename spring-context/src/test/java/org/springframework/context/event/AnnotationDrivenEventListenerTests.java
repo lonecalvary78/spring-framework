@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,25 +276,6 @@ class AnnotationDrivenEventListenerTests {
 		this.context.publishEvent(event);
 		this.eventCollector.assertEvent(replyEventListener, event);
 		this.eventCollector.assertEvent(listener, "test");
-		this.eventCollector.assertTotalEventsCount(2);
-	}
-
-	@Test
-	@SuppressWarnings({"deprecation", "removal"})
-	void listenableFutureReply() {
-		load(TestEventListener.class, ReplyEventListener.class);
-		org.springframework.util.concurrent.SettableListenableFuture<String> future =
-				new org.springframework.util.concurrent.SettableListenableFuture<>();
-		future.set("dummy");
-		AnotherTestEvent event = new AnotherTestEvent(this, future);
-		ReplyEventListener replyEventListener = this.context.getBean(ReplyEventListener.class);
-		TestEventListener listener = this.context.getBean(TestEventListener.class);
-
-		this.eventCollector.assertNoEventReceived(listener);
-		this.eventCollector.assertNoEventReceived(replyEventListener);
-		this.context.publishEvent(event);
-		this.eventCollector.assertEvent(replyEventListener, event);
-		this.eventCollector.assertEvent(listener, "dummy"); // reply
 		this.eventCollector.assertTotalEventsCount(2);
 	}
 
@@ -1108,16 +1089,6 @@ class AnnotationDrivenEventListenerTests {
 
 		@Override
 		public void registerDestructionCallback(String name, Runnable callback) {
-		}
-
-		@Override
-		public Object resolveContextualObject(String key) {
-			return null;
-		}
-
-		@Override
-		public String getConversationId() {
-			return null;
 		}
 	}
 

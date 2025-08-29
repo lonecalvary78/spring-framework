@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -52,8 +52,7 @@ public class LocaleChangeInterceptor implements HandlerInterceptor {
 
 	private String paramName = DEFAULT_PARAM_NAME;
 
-	@Nullable
-	private String[] httpMethods;
+	private String @Nullable [] httpMethods;
 
 	private boolean ignoreInvalidLocale = false;
 
@@ -79,7 +78,7 @@ public class LocaleChangeInterceptor implements HandlerInterceptor {
 	 * @param httpMethods the methods
 	 * @since 4.2
 	 */
-	public void setHttpMethods(@Nullable String... httpMethods) {
+	public void setHttpMethods(String @Nullable ... httpMethods) {
 		this.httpMethods = httpMethods;
 	}
 
@@ -87,8 +86,7 @@ public class LocaleChangeInterceptor implements HandlerInterceptor {
 	 * Return the configured HTTP methods.
 	 * @since 4.2
 	 */
-	@Nullable
-	public String[] getHttpMethods() {
+	public String @Nullable [] getHttpMethods() {
 		return this.httpMethods;
 	}
 
@@ -161,8 +159,7 @@ public class LocaleChangeInterceptor implements HandlerInterceptor {
 	 * @return the corresponding {@code Locale} instance
 	 * @since 4.3
 	 */
-	@Nullable
-	protected Locale parseLocaleValue(String localeValue) {
+	protected @Nullable Locale parseLocaleValue(String localeValue) {
 		return StringUtils.parseLocale(localeValue);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ package org.springframework.beans.factory.xml;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.parsing.ComponentDefinition;
 import org.springframework.beans.factory.parsing.CompositeComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.lang.Nullable;
 
 /**
  * Context that gets passed along a bean definition parsing process,
@@ -44,8 +45,7 @@ public final class ParserContext {
 
 	private final BeanDefinitionParserDelegate delegate;
 
-	@Nullable
-	private BeanDefinition containingBeanDefinition;
+	private @Nullable BeanDefinition containingBeanDefinition;
 
 	private final Deque<CompositeComponentDefinition> containingComponents = new ArrayDeque<>();
 
@@ -76,8 +76,7 @@ public final class ParserContext {
 		return this.delegate;
 	}
 
-	@Nullable
-	public BeanDefinition getContainingBeanDefinition() {
+	public @Nullable BeanDefinition getContainingBeanDefinition() {
 		return this.containingBeanDefinition;
 	}
 
@@ -89,13 +88,11 @@ public final class ParserContext {
 		return BeanDefinitionParserDelegate.TRUE_VALUE.equals(this.delegate.getDefaults().getLazyInit());
 	}
 
-	@Nullable
-	public Object extractSource(Object sourceCandidate) {
+	public @Nullable Object extractSource(Object sourceCandidate) {
 		return this.readerContext.extractSource(sourceCandidate);
 	}
 
-	@Nullable
-	public CompositeComponentDefinition getContainingComponent() {
+	public @Nullable CompositeComponentDefinition getContainingComponent() {
 		return this.containingComponents.peek();
 	}
 

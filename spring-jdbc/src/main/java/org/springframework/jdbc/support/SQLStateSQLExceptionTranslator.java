@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.jdbc.support;
 import java.sql.SQLException;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -28,7 +30,6 @@ import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link SQLExceptionTranslator} implementation that analyzes the SQL state in
@@ -70,6 +71,11 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 			"44"   // With check violation
 		);
 
+	private static final Set<String> PESSIMISTIC_LOCKING_FAILURE_CODES = Set.of(
+			"40",  // Transaction rollback
+			"61"   // Oracle: deadlock
+	);
+
 	private static final Set<String> DATA_ACCESS_RESOURCE_FAILURE_CODES = Set.of(
 			"08",  // Connection exception
 			"53",  // PostgreSQL: insufficient resources (for example, disk full)
@@ -84,11 +90,6 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 			"S1"   // DB2: communication failure
 		);
 
-	private static final Set<String> PESSIMISTIC_LOCKING_FAILURE_CODES = Set.of(
-			"40",  // Transaction rollback
-			"61"   // Oracle: deadlock
-		);
-
 	private static final Set<Integer> DUPLICATE_KEY_ERROR_CODES = Set.of(
 			1,     // Oracle
 			301,   // SAP HANA
@@ -99,8 +100,7 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 
 
 	@Override
-	@Nullable
-	protected DataAccessException doTranslate(String task, @Nullable String sql, SQLException ex) {
+	protected @Nullable DataAccessException doTranslate(String task, @Nullable String sql, SQLException ex) {
 		// First, the getSQLState check...
 		String sqlState = getSqlState(ex);
 		if (sqlState != null && sqlState.length() >= 2) {
@@ -117,17 +117,20 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 				}
 				return new DataIntegrityViolationException(buildMessage(task, sql, ex), ex);
 			}
-			else if (DATA_ACCESS_RESOURCE_FAILURE_CODES.contains(classCode)) {
-				return new DataAccessResourceFailureException(buildMessage(task, sql, ex), ex);
-			}
-			else if (TRANSIENT_DATA_ACCESS_RESOURCE_CODES.contains(classCode)) {
-				return new TransientDataAccessResourceException(buildMessage(task, sql, ex), ex);
-			}
 			else if (PESSIMISTIC_LOCKING_FAILURE_CODES.contains(classCode)) {
 				if (indicatesCannotAcquireLock(sqlState)) {
 					return new CannotAcquireLockException(buildMessage(task, sql, ex), ex);
 				}
 				return new PessimisticLockingFailureException(buildMessage(task, sql, ex), ex);
+			}
+			else if (DATA_ACCESS_RESOURCE_FAILURE_CODES.contains(classCode)) {
+				if (indicatesQueryTimeout(sqlState)) {
+					return new QueryTimeoutException(buildMessage(task, sql, ex), ex);
+				}
+				return new DataAccessResourceFailureException(buildMessage(task, sql, ex), ex);
+			}
+			else if (TRANSIENT_DATA_ACCESS_RESOURCE_CODES.contains(classCode)) {
+				return new TransientDataAccessResourceException(buildMessage(task, sql, ex), ex);
 			}
 		}
 
@@ -149,8 +152,7 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 	 * is to be extracted
 	 * @return the SQL state code
 	 */
-	@Nullable
-	private String getSqlState(SQLException ex) {
+	private @Nullable String getSqlState(SQLException ex) {
 		String sqlState = ex.getSQLState();
 		if (sqlState == null) {
 			SQLException nestedEx = ex.getNextException();
@@ -182,6 +184,15 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 	 */
 	static boolean indicatesCannotAcquireLock(@Nullable String sqlState) {
 		return "40001".equals(sqlState);
+	}
+
+	/**
+	 * Check whether the given SQL state indicates a {@link QueryTimeoutException},
+	 * with SQL state 57014 as a specific indication.
+	 * @param sqlState the SQL state value
+	 */
+	static boolean indicatesQueryTimeout(@Nullable String sqlState) {
+		return "57014".equals(sqlState);
 	}
 
 }

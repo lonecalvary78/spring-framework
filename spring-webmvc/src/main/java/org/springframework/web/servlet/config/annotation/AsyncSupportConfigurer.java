@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.async.CallableProcessingInterceptor;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.context.request.async.DeferredResultProcessingInterceptor;
@@ -35,11 +36,9 @@ import org.springframework.web.context.request.async.DeferredResultProcessingInt
  */
 public class AsyncSupportConfigurer {
 
-	@Nullable
-	private AsyncTaskExecutor taskExecutor;
+	private @Nullable AsyncTaskExecutor taskExecutor;
 
-	@Nullable
-	private Long timeout;
+	private @Nullable Long timeout;
 
 	private final List<CallableProcessingInterceptor> callableInterceptors = new ArrayList<>();
 
@@ -101,13 +100,11 @@ public class AsyncSupportConfigurer {
 	}
 
 
-	@Nullable
-	protected AsyncTaskExecutor getTaskExecutor() {
+	protected @Nullable AsyncTaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
 	}
 
-	@Nullable
-	protected Long getTimeout() {
+	protected @Nullable Long getTimeout() {
 		return this.timeout;
 	}
 

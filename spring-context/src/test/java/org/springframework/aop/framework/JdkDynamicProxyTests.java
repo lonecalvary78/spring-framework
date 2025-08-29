@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.aop.framework;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
@@ -25,7 +26,6 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.testfixture.beans.IOther;
 import org.springframework.beans.testfixture.beans.ITestBean;
 import org.springframework.beans.testfixture.beans.TestBean;
-import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -141,6 +141,7 @@ class JdkDynamicProxyTests extends AbstractAopProxyTests {
 	}
 
 	@Test  // SPR-13328
+	@SuppressWarnings("unchecked")
 	void varargsWithEnumArray() {
 		ProxyFactory proxyFactory = new ProxyFactory(new VarargTestBean());
 		VarargTestInterface proxy = (VarargTestInterface) proxyFactory.getProxy();

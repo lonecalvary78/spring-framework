@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -44,7 +45,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.servlet.ModelAndView;
@@ -66,14 +66,6 @@ public interface ServerResponse {
 	HttpStatusCode statusCode();
 
 	/**
-	 * Return the status code of this response as integer.
-	 * @return the status as an integer
-	 * @deprecated in favor of {@link #statusCode()}, for removal in 7.0
-	 */
-	@Deprecated(since = "6.0", forRemoval = true)
-	int rawStatusCode();
-
-	/**
 	 * Return the headers of this response.
 	 */
 	HttpHeaders headers();
@@ -90,8 +82,7 @@ public interface ServerResponse {
 	 * @param context the context to use when writing
 	 * @return a {@code ModelAndView} to render, or {@code null} if handled directly
 	 */
-	@Nullable
-	ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
+	@Nullable ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
 		throws ServletException, IOException;
 
 
@@ -222,9 +213,20 @@ public interface ServerResponse {
 
 	/**
 	 * Create a builder with a
-	 * {@linkplain HttpStatus#UNPROCESSABLE_ENTITY 422 Unprocessable Entity} status.
+	 * {@linkplain HttpStatus#UNPROCESSABLE_CONTENT 422 Unprocessable Content} status.
 	 * @return the created builder
 	 */
+	static BodyBuilder unprocessableContent() {
+		return status(HttpStatus.UNPROCESSABLE_CONTENT);
+	}
+
+	/**
+	 * Create a builder with a
+	 * {@linkplain HttpStatus#UNPROCESSABLE_ENTITY 422 Unprocessable Entity} status.
+	 * @return the created builder
+	 * @deprecated since 7.0 in favor of {@link #unprocessableContent()}
+	 */
+	@Deprecated(since = "7.0")
 	static BodyBuilder unprocessableEntity() {
 		return status(HttpStatus.UNPROCESSABLE_ENTITY);
 	}
@@ -290,10 +292,10 @@ public interface ServerResponse {
 	 *         .send("Hello World!"));
 	 * }
 	 * </pre>
-	 * @param consumer consumer that will be provided with an event builder
+	 * @param consumer the consumer that will be provided with an event builder
 	 * @return the server-side event response
 	 * @since 5.3.2
-	 * @see <a href="https://www.w3.org/TR/eventsource/">Server-Sent Events</a>
+	 * @see <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events</a>
 	 */
 	static ServerResponse sse(Consumer<SseBuilder> consumer) {
 		return SseServerResponse.create(consumer, null);
@@ -319,11 +321,11 @@ public interface ServerResponse {
 	 *         .send("Hello World!"));
 	 * }
 	 * </pre>
-	 * @param consumer consumer that will be provided with an event builder
-	 * @param timeout  maximum time period to wait before timing out
+	 * @param consumer the consumer that will be provided with an event builder
+	 * @param timeout maximum time period to wait before timing out
 	 * @return the server-side event response
 	 * @since 5.3.2
-	 * @see <a href="https://www.w3.org/TR/eventsource/">Server-Sent Events</a>
+	 * @see <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events</a>
 	 */
 	static ServerResponse sse(Consumer<SseBuilder> consumer, Duration timeout) {
 		return SseServerResponse.create(consumer, timeout);
@@ -338,18 +340,18 @@ public interface ServerResponse {
 
 		/**
 		 * Add the given header value(s) under the given name.
-		 * @param headerName   the header name
+		 * @param headerName the header name
 		 * @param headerValues the header value(s)
 		 * @return this builder
 		 * @see HttpHeaders#add(String, String)
 		 */
-		B header(String headerName, String... headerValues);
+		B header(String headerName, @Nullable String... headerValues);
 
 		/**
 		 * Manipulate this response's headers with the given consumer. The
 		 * headers provided to the consumer are "live", so that the consumer can be used to
 		 * {@linkplain HttpHeaders#set(String, String) overwrite} existing header values,
-		 * {@linkplain HttpHeaders#remove(Object) remove} values, or use any of the other
+		 * {@linkplain HttpHeaders#remove(String) remove} values, or use any of the other
 		 * {@link HttpHeaders} methods.
 		 * @param headersConsumer a function that consumes the {@code HttpHeaders}
 		 * @return this builder
@@ -474,8 +476,7 @@ public interface ServerResponse {
 			 * @return a {@code ModelAndView} to render, or {@code null} if handled directly
 			 * @throws Exception in case of Servlet errors
 			 */
-			@Nullable
-			ModelAndView write(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws Exception;
+			@Nullable ModelAndView write(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws Exception;
 
 		}
 

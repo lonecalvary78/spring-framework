@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 package org.springframework.jms.config;
 
 import jakarta.resource.spi.ResourceAdapter;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jms.listener.endpoint.JmsActivationSpecConfig;
 import org.springframework.jms.listener.endpoint.JmsActivationSpecFactory;
 import org.springframework.jms.listener.endpoint.JmsMessageEndpointManager;
 import org.springframework.jms.support.destination.DestinationResolver;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link JmsListenerContainerFactory} implementation to build a
@@ -34,20 +34,15 @@ import org.springframework.lang.Nullable;
 public class DefaultJcaListenerContainerFactory extends JmsActivationSpecConfig
 		implements JmsListenerContainerFactory<JmsMessageEndpointManager> {
 
-	@Nullable
-	private ResourceAdapter resourceAdapter;
+	private @Nullable ResourceAdapter resourceAdapter;
 
-	@Nullable
-	private JmsActivationSpecFactory activationSpecFactory;
+	private @Nullable JmsActivationSpecFactory activationSpecFactory;
 
-	@Nullable
-	private DestinationResolver destinationResolver;
+	private @Nullable DestinationResolver destinationResolver;
 
-	@Nullable
-	private Object transactionManager;
+	private @Nullable Object transactionManager;
 
-	@Nullable
-	private Integer phase;
+	private @Nullable Integer phase;
 
 
 	/**

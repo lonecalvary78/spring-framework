@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -47,7 +48,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -90,7 +90,12 @@ import org.springframework.web.util.pattern.PathPatternParser;
  *
  * @author Rossen Stoyanchev
  * @since 4.3.1
+ * @deprecated in favor of using just {@link PathPatternParser}; when
+ * {@link #allHandlerMappingsUsePathPatternParser} returns true, it is sufficient
+ * to use that to align with handler mappings.
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "7.0", forRemoval = true)
 public class HandlerMappingIntrospector
 		implements CorsConfigurationSource, PreFlightRequestHandler, ApplicationContextAware, InitializingBean {
 
@@ -99,17 +104,38 @@ public class HandlerMappingIntrospector
 	private static final String CACHED_RESULT_ATTRIBUTE =
 			HandlerMappingIntrospector.class.getName() + ".CachedResult";
 
+	private static final int DEFAULT_CACHE_LIMIT = 2048;
 
-	@Nullable
-	private ApplicationContext applicationContext;
 
-	@Nullable
-	private List<HandlerMapping> handlerMappings;
+	private @Nullable ApplicationContext applicationContext;
+
+	private @Nullable List<HandlerMapping> handlerMappings;
 
 	private Map<HandlerMapping, PathPatternMatchableHandlerMapping> pathPatternMappings = Collections.emptyMap();
 
+	private int patternCacheLimit = DEFAULT_CACHE_LIMIT;
+
 	private final CacheResultLogHelper cacheLogHelper = new CacheResultLogHelper();
 
+
+	/**
+	 * Set a limit on the maximum number of security patterns passed into
+	 * {@link MatchableHandlerMapping#match} at runtime to cache.
+	 * <p>By default, this is set to 2048.
+	 * @param patternCacheLimit the limit to use
+	 * @since 6.2.8
+	 */
+	public void setPatternCacheLimit(int patternCacheLimit) {
+		this.patternCacheLimit = patternCacheLimit;
+	}
+
+	/**
+	 * Return the configured limit on security patterns to cache.
+	 * @since 6.2.8
+	 */
+	public int getPatternCacheLimit() {
+		return this.patternCacheLimit;
+	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) {
@@ -124,8 +150,9 @@ public class HandlerMappingIntrospector
 
 			this.pathPatternMappings = this.handlerMappings.stream()
 					.filter(m -> m instanceof MatchableHandlerMapping hm && hm.getPatternParser() != null)
-					.map(mapping -> (MatchableHandlerMapping) mapping)
-					.collect(Collectors.toMap(mapping -> mapping, PathPatternMatchableHandlerMapping::new));
+					.map(hm -> (MatchableHandlerMapping) hm)
+					.collect(Collectors.toMap(hm -> hm, (MatchableHandlerMapping delegate) ->
+							new PathPatternMatchableHandlerMapping(delegate, getPatternCacheLimit())));
 		}
 	}
 
@@ -257,8 +284,7 @@ public class HandlerMappingIntrospector
 	 * @return the previous {@link CachedResult}, if there is one from a parent dispatch
 	 * @since 6.0.14
 	 */
-	@Nullable
-	public CachedResult setCache(HttpServletRequest request) {
+	public @Nullable CachedResult setCache(HttpServletRequest request) {
 		CachedResult previous = (CachedResult) request.getAttribute(CACHED_RESULT_ATTRIBUTE);
 		if (previous == null || !previous.matches(request)) {
 			HttpServletRequest wrapped = new AttributesPreservingRequest(request);
@@ -310,8 +336,7 @@ public class HandlerMappingIntrospector
 	 * instance of {@link MatchableHandlerMapping}
 	 * @throws Exception if any of the HandlerMapping's raise an exception
 	 */
-	@Nullable
-	public MatchableHandlerMapping getMatchableHandlerMapping(HttpServletRequest request) throws Exception {
+	public @Nullable MatchableHandlerMapping getMatchableHandlerMapping(HttpServletRequest request) throws Exception {
 		CachedResult result = CachedResult.getResultFor(request);
 		if (result != null) {
 			return result.getHandlerMapping();
@@ -338,8 +363,7 @@ public class HandlerMappingIntrospector
 	}
 
 	@Override
-	@Nullable
-	public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+	public @Nullable CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
 		CachedResult result = CachedResult.getResultFor(request);
 		if (result != null) {
 			return result.getCorsConfig();
@@ -357,8 +381,7 @@ public class HandlerMappingIntrospector
 		}
 	}
 
-	@Nullable
-	private static CorsConfiguration getCorsConfiguration(HandlerExecutionChain chain, HttpServletRequest request) {
+	private static @Nullable CorsConfiguration getCorsConfiguration(HandlerExecutionChain chain, HttpServletRequest request) {
 		for (HandlerInterceptor interceptor : chain.getInterceptorList()) {
 			if (interceptor instanceof CorsConfigurationSource source) {
 				return source.getCorsConfiguration(request);
@@ -370,8 +393,7 @@ public class HandlerMappingIntrospector
 		return null;
 	}
 
-	@Nullable
-	private <T> T doWithHandlerMapping(
+	private <T> @Nullable T doWithHandlerMapping(
 			HttpServletRequest request, boolean ignoreException,
 			BiFunction<HandlerMapping, HandlerExecutionChain, T> extractor) throws Exception {
 
@@ -421,17 +443,13 @@ public class HandlerMappingIntrospector
 
 		private final String requestURI;
 
-		@Nullable
-		private final MatchableHandlerMapping handlerMapping;
+		private final @Nullable MatchableHandlerMapping handlerMapping;
 
-		@Nullable
-		private final CorsConfiguration corsConfig;
+		private final @Nullable CorsConfiguration corsConfig;
 
-		@Nullable
-		private final Exception failure;
+		private final @Nullable Exception failure;
 
-		@Nullable
-		private final IllegalStateException corsConfigFailure;
+		private final @Nullable IllegalStateException corsConfigFailure;
 
 		private CachedResult(HttpServletRequest request,
 				@Nullable MatchableHandlerMapping mapping, @Nullable CorsConfiguration config,
@@ -450,16 +468,14 @@ public class HandlerMappingIntrospector
 					this.requestURI.equals(request.getRequestURI()));
 		}
 
-		@Nullable
-		public MatchableHandlerMapping getHandlerMapping() throws Exception {
+		public @Nullable MatchableHandlerMapping getHandlerMapping() throws Exception {
 			if (this.failure != null) {
 				throw this.failure;
 			}
 			return this.handlerMapping;
 		}
 
-		@Nullable
-		public CorsConfiguration getCorsConfig() {
+		public @Nullable CorsConfiguration getCorsConfig() {
 			if (this.corsConfigFailure != null) {
 				throw this.corsConfigFailure;
 			}
@@ -475,8 +491,7 @@ public class HandlerMappingIntrospector
 		/**
 		 * Return a {@link CachedResult} that matches the given request.
 		 */
-		@Nullable
-		public static CachedResult getResultFor(HttpServletRequest request) {
+		public static @Nullable CachedResult getResultFor(HttpServletRequest request) {
 			CachedResult result = (CachedResult) request.getAttribute(CACHED_RESULT_ATTRIBUTE);
 			return (result != null && result.matches(request) ? result : null);
 		}
@@ -548,8 +563,7 @@ public class HandlerMappingIntrospector
 		}
 
 		@Override
-		@Nullable
-		public Object getAttribute(String name) {
+		public @Nullable Object getAttribute(String name) {
 			return this.attributes.get(name);
 		}
 
@@ -581,14 +595,14 @@ public class HandlerMappingIntrospector
 		}
 
 		@Override
-		@Nullable
-		public PathPatternParser getPatternParser() {
+		public @Nullable PathPatternParser getPatternParser() {
 			return this.delegate.getPatternParser();
 		}
 
-		@Nullable
+		@SuppressWarnings("removal")
+		@Deprecated(since = "7.0", forRemoval = true)
 		@Override
-		public RequestMatchResult match(HttpServletRequest request, String pattern) {
+		public @Nullable RequestMatchResult match(HttpServletRequest request, String pattern) {
 			pattern = initFullPathPattern(pattern);
 			Object previousPath = request.getAttribute(this.pathAttributeName);
 			request.setAttribute(this.pathAttributeName, this.lookupPath);
@@ -605,9 +619,8 @@ public class HandlerMappingIntrospector
 			return parser.initFullPathPattern(pattern);
 		}
 
-		@Nullable
 		@Override
-		public HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		public @Nullable HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
 			return this.delegate.getHandler(request);
 		}
 	}

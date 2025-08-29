@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -38,7 +39,7 @@ import org.springframework.util.ClassUtils;
  * applying the mapping and mirroring rules of an {@link AnnotationTypeMapping}.
  *
  * <p>Root attribute values are extracted from a source object using a supplied
- * {@code BiFunction}. This allows various different annotation models to be
+ * {@link ValueExtractor}. This allows various different annotation models to be
  * supported by the same class. For example, the attributes source might be an
  * actual {@link Annotation} instance where methods on the annotation instance
  * are {@linkplain AnnotationUtils#invokeAnnotationMethod(Method, Object) invoked}
@@ -82,14 +83,11 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 
 	private final AnnotationTypeMapping mapping;
 
-	@Nullable
-	private final ClassLoader classLoader;
+	private final @Nullable ClassLoader classLoader;
 
-	@Nullable
-	private final Object source;
+	private final @Nullable Object source;
 
-	@Nullable
-	private final Object rootAttributes;
+	private final @Nullable Object rootAttributes;
 
 	private final ValueExtractor valueExtractor;
 
@@ -97,8 +95,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 
 	private final boolean useMergedValues;
 
-	@Nullable
-	private final Predicate<String> attributeFilter;
+	private final @Nullable Predicate<String> attributeFilter;
 
 	private final int[] resolvedRootMirrors;
 
@@ -114,7 +111,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 
 	private TypeMappedAnnotation(AnnotationTypeMapping mapping, @Nullable ClassLoader classLoader,
 			@Nullable Object source, @Nullable Object rootAttributes, ValueExtractor valueExtractor,
-			int aggregateIndex, @Nullable int[] resolvedRootMirrors) {
+			int aggregateIndex, int @Nullable [] resolvedRootMirrors) {
 
 		this.mapping = mapping;
 		this.classLoader = classLoader;
@@ -175,14 +172,12 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 	}
 
 	@Override
-	@Nullable
-	public Object getSource() {
+	public @Nullable Object getSource() {
 		return this.source;
 	}
 
 	@Override
-	@Nullable
-	public MergedAnnotation<?> getMetaSource() {
+	public @Nullable MergedAnnotation<?> getMetaSource() {
 		AnnotationTypeMapping metaSourceMapping = this.mapping.getSource();
 		if (metaSourceMapping == null) {
 			return null;
@@ -204,7 +199,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 	@Override
 	public boolean hasDefaultValue(String attributeName) {
 		int attributeIndex = getAttributeIndex(attributeName, true);
-		Object value = getValue(attributeIndex, true, false);
+		Object value = getValue(attributeIndex, false);
 		return (value == null || this.mapping.isEquivalentToDefaultValue(attributeIndex, value, this.valueExtractor));
 	}
 
@@ -366,8 +361,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 	}
 
 	@Override
-	@Nullable
-	protected <T> T getAttributeValue(String attributeName, Class<T> type) {
+	protected <T> @Nullable T getAttributeValue(String attributeName, Class<T> type) {
 		int attributeIndex = getAttributeIndex(attributeName, false);
 		return (attributeIndex != -1 ? getValue(attributeIndex, type) : null);
 	}
@@ -375,30 +369,25 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 	private Object getRequiredValue(int attributeIndex, String attributeName) {
 		Object value = getValue(attributeIndex, Object.class);
 		if (value == null) {
-			throw new NoSuchElementException("No element at attribute index "
-					+ attributeIndex + " for name " + attributeName);
+			throw new NoSuchElementException("No element at attribute index " +
+					attributeIndex + " for name " + attributeName);
 		}
 		return value;
 	}
 
-	@Nullable
-	private <T> T getValue(int attributeIndex, Class<T> type) {
+	private <T> @Nullable T getValue(int attributeIndex, Class<T> type) {
 		Method attribute = this.mapping.getAttributes().get(attributeIndex);
-		Object value = getValue(attributeIndex, true, false);
+		Object value = getValue(attributeIndex, false);
 		if (value == null) {
 			value = attribute.getDefaultValue();
 		}
 		return adapt(attribute, value, type);
 	}
 
-	@Nullable
-	private Object getValue(int attributeIndex, boolean useConventionMapping, boolean forMirrorResolution) {
+	private @Nullable Object getValue(int attributeIndex, boolean forMirrorResolution) {
 		AnnotationTypeMapping mapping = this.mapping;
 		if (this.useMergedValues) {
 			int mappedIndex = this.mapping.getAliasMapping(attributeIndex);
-			if (mappedIndex == -1 && useConventionMapping) {
-				mappedIndex = this.mapping.getConventionMapping(attributeIndex);
-			}
 			if (mappedIndex != -1) {
 				mapping = mapping.getRoot();
 				attributeIndex = mappedIndex;
@@ -419,8 +408,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 		return getValueFromMetaAnnotation(attributeIndex, forMirrorResolution);
 	}
 
-	@Nullable
-	private Object getValueFromMetaAnnotation(int attributeIndex, boolean forMirrorResolution) {
+	private @Nullable Object getValueFromMetaAnnotation(int attributeIndex, boolean forMirrorResolution) {
 		Object value = null;
 		if (this.useMergedValues || forMirrorResolution) {
 			value = this.mapping.getMappedAnnotationValue(attributeIndex, forMirrorResolution);
@@ -432,16 +420,13 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 		return value;
 	}
 
-	@Nullable
-	private Object getValueForMirrorResolution(Method attribute, @Nullable Object annotation) {
+	private @Nullable Object getValueForMirrorResolution(Method attribute, @Nullable Object annotation) {
 		int attributeIndex = this.mapping.getAttributes().indexOf(attribute);
-		boolean valueAttribute = VALUE.equals(attribute.getName());
-		return getValue(attributeIndex, !valueAttribute, true);
+		return getValue(attributeIndex, true);
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
-	private <T> T adapt(Method attribute, @Nullable Object value, Class<T> type) {
+	private <T> @Nullable T adapt(Method attribute, @Nullable Object value, Class<T> type) {
 		if (value == null) {
 			return null;
 		}
@@ -585,8 +570,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 		return false;
 	}
 
-	@Nullable
-	private ClassLoader getClassLoader() {
+	private @Nullable ClassLoader getClassLoader() {
 		if (this.classLoader != null) {
 			return this.classLoader;
 		}
@@ -619,8 +603,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 				mappings.get(0), classLoader, source, attributes, TypeMappedAnnotation::extractFromMap, 0);
 	}
 
-	@Nullable
-	static <A extends Annotation> TypeMappedAnnotation<A> createIfPossible(
+	static <A extends Annotation> @Nullable TypeMappedAnnotation<A> createIfPossible(
 			AnnotationTypeMapping mapping, MergedAnnotation<?> annotation, IntrospectionFailureLogger logger) {
 
 		if (annotation instanceof TypeMappedAnnotation<?> typeMappedAnnotation) {
@@ -633,8 +616,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 				annotation.getAggregateIndex(), logger);
 	}
 
-	@Nullable
-	static <A extends Annotation> TypeMappedAnnotation<A> createIfPossible(
+	static <A extends Annotation> @Nullable TypeMappedAnnotation<A> createIfPossible(
 			AnnotationTypeMapping mapping, @Nullable Object source, Annotation annotation,
 			int aggregateIndex, IntrospectionFailureLogger logger) {
 
@@ -642,8 +624,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 				AnnotationUtils::invokeAnnotationMethod, aggregateIndex, logger);
 	}
 
-	@Nullable
-	private static <A extends Annotation> TypeMappedAnnotation<A> createIfPossible(
+	private static <A extends Annotation> @Nullable TypeMappedAnnotation<A> createIfPossible(
 			AnnotationTypeMapping mapping, @Nullable Object source, @Nullable Object rootAttribute,
 			ValueExtractor valueExtractor, int aggregateIndex, IntrospectionFailureLogger logger) {
 
@@ -664,8 +645,7 @@ final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnn
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
-	static Object extractFromMap(Method attribute, @Nullable Object map) {
+	static @Nullable Object extractFromMap(Method attribute, @Nullable Object map) {
 		return (map != null ? ((Map<String, ?>) map).get(attribute.getName()) : null);
 	}
 

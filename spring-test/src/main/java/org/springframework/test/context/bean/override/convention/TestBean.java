@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import org.springframework.core.annotation.AliasFor;
 import org.springframework.test.context.bean.override.BeanOverride;
 
 /**
- * {@code @TestBean} is an annotation that can be applied to a field in a test
- * class to override a bean in the test's
+ * {@code @TestBean} is an annotation that can be applied to a non-static field
+ * in a test class to override a bean in the test's
  * {@link org.springframework.context.ApplicationContext ApplicationContext}
  * using a static factory method.
  *
@@ -44,24 +44,24 @@ import org.springframework.test.context.bean.override.BeanOverride;
  * you can set the {@link #enforceOverride() enforceOverride} attribute to {@code true}
  * &mdash; for example,  {@code @TestBean(enforceOverride = true)}.
  *
- * <p>The instance is created from a zero-argument static factory method in the
- * test class whose return type is compatible with the annotated field. In the
- * case of a nested test class, the enclosing class hierarchy is also searched.
- * Similarly, if the test class extends from a base class or implements any
- * interfaces, the entire type hierarchy is searched. Alternatively, a factory
- * method in an external class can be referenced via its fully-qualified method
- * name following the syntax {@code <fully-qualified class name>#<method name>}
- * &mdash; for example,
+ * <p>The instance is created from a zero-argument static factory method whose
+ * return type is compatible with the annotated field. The factory method can be
+ * declared directly in the class which declares the {@code @TestBean} field or
+ * within the type hierarchy above that class, including implemented interfaces.
+ * If the {@code @TestBean} field is declared in a nested test class, the enclosing
+ * class hierarchy is also searched. Alternatively, a factory method in an external
+ * class can be referenced via its fully-qualified method name following the syntax
+ * {@code <fully-qualified class name>#<method name>} &mdash; for example,
  * {@code @TestBean(methodName = "org.example.TestUtils#createCustomerRepository")}.
  *
  * <p>The factory method is deduced as follows.
  *
  * <ul>
- * <li>If the {@link #methodName()} is specified, look for a static method with
- * that name.</li>
- * <li>If a method name is not specified, look for exactly one static method
- * named with either the name of the annotated field or the name of the bean
- * (if specified).</li>
+ * <li>If the {@link #methodName methodName} is specified, Spring looks for a static
+ * method with that name.</li>
+ * <li>If a method name is not specified, Spring looks for exactly one static method
+ * whose name is either the name of the annotated field or the {@link #name() name}
+ * of the bean (if specified).</li>
  * </ul>
  *
  * <p>Consider the following example.
@@ -99,11 +99,30 @@ import org.springframework.test.context.bean.override.BeanOverride;
  *     }
  * }</code></pre>
  *
+ * <p><strong>WARNING</strong>: Using {@code @TestBean} in conjunction with
+ * {@code @ContextHierarchy} can lead to undesirable results since each
+ * {@code @TestBean} will be applied to all context hierarchy levels by default.
+ * To ensure that a particular {@code @TestBean} is applied to a single context
+ * hierarchy level, set the {@link #contextName() contextName} to match a
+ * configured {@code @ContextConfiguration}
+ * {@link org.springframework.test.context.ContextConfiguration#name() name}.
+ * See the Javadoc for {@link org.springframework.test.context.ContextHierarchy @ContextHierarchy}
+ * for further details and examples.
+ *
  * <p><strong>NOTE</strong>: Only <em>singleton</em> beans can be overridden.
  * Any attempt to override a non-singleton bean will result in an exception. When
  * overriding a bean created by a {@link org.springframework.beans.factory.FactoryBean
  * FactoryBean}, the {@code FactoryBean} will be replaced with a singleton bean
  * corresponding to the value returned from the {@code @TestBean} factory method.
+ *
+ * <p>There are no restrictions on the visibility of {@code @TestBean} fields or
+ * factory methods. Such fields and methods can therefore be {@code public},
+ * {@code protected}, package-private (default visibility), or {@code private}
+ * depending on the needs or coding practices of the project.
+ *
+ * <p>{@code @TestBean} fields will be inherited from an enclosing test class by default. See
+ * {@link org.springframework.test.context.NestedTestConfiguration @NestedTestConfiguration}
+ * for details.
  *
  * @author Simon Baslé
  * @author Stephane Nicoll
@@ -141,17 +160,32 @@ public @interface TestBean {
 	/**
 	 * Name of the static factory method that will be used to instantiate the bean
 	 * to override.
-	 * <p>A search will be performed to find the factory method in the test class,
-	 * in one of its superclasses, or in any implemented interfaces. In the case
-	 * of a nested test class, the enclosing class hierarchy will also be searched.
+	 * <p>A search will be performed to find the factory method in the class in
+	 * which the {@code @TestBean} field is declared, in one of its superclasses,
+	 * or in any implemented interfaces. If the {@code @TestBean} field is declared
+	 * in a nested test class, the enclosing class hierarchy will also be searched.
 	 * <p>Alternatively, a factory method in an external class can be referenced
 	 * via its fully-qualified method name following the syntax
 	 * {@code <fully-qualified class name>#<method name>} &mdash; for example,
 	 * {@code @TestBean(methodName = "org.example.TestUtils#createCustomerRepository")}.
 	 * <p>If left unspecified, the name of the factory method will be detected
-	 * based either on the name of the annotated field or the name of the bean.
+	 * based either on the name of the {@code @TestBean} field or the {@link #name() name}
+	 * of the bean.
 	 */
 	String methodName() default "";
+
+	/**
+	 * The name of the context hierarchy level in which this {@code @TestBean}
+	 * should be applied.
+	 * <p>Defaults to an empty string which indicates that this {@code @TestBean}
+	 * should be applied to all application contexts.
+	 * <p>If a context name is configured, it must match a name configured via
+	 * {@code @ContextConfiguration(name=...)}.
+	 * @since 6.2.6
+	 * @see org.springframework.test.context.ContextHierarchy @ContextHierarchy
+	 * @see org.springframework.test.context.ContextConfiguration#name() @ContextConfiguration(name=...)
+	 */
+	String contextName() default "";
 
 	/**
 	 * Whether to require the existence of the bean being overridden.

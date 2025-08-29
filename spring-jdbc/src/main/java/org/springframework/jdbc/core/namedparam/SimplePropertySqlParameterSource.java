@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.jdbc.core.StatementCreatorUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -72,8 +73,7 @@ public class SimplePropertySqlParameterSource extends AbstractSqlParameterSource
 	}
 
 	@Override
-	@Nullable
-	public Object getValue(String paramName) throws IllegalArgumentException {
+	public @Nullable Object getValue(String paramName) throws IllegalArgumentException {
 		Object desc = getDescriptor(paramName);
 		if (desc instanceof PropertyDescriptor pd) {
 			ReflectionUtils.makeAccessible(pd.getReadMethod());

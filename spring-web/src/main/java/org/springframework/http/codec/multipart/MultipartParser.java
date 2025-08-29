@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
@@ -41,7 +42,6 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.Nullable;
 
 /**
  * Subscribes to a buffer stream and produces a flux of {@link Token} instances.
@@ -49,7 +49,6 @@ import org.springframework.lang.Nullable;
  * @author Arjen Poutsma
  * @since 5.3
  */
-@SuppressWarnings("NullAway")
 final class MultipartParser extends BaseSubscriber<DataBuffer> {
 
 	private static final byte CR = '\r';
@@ -100,6 +99,7 @@ final class MultipartParser extends BaseSubscriber<DataBuffer> {
 		return Flux.create(sink -> {
 			MultipartParser parser = new MultipartParser(sink, boundary, maxHeadersSize, headersCharset);
 			sink.onCancel(parser::onSinkCancel);
+			sink.onRequest(l -> parser.requestBuffer());
 			buffers.subscribe(parser);
 		});
 	}
@@ -117,12 +117,14 @@ final class MultipartParser extends BaseSubscriber<DataBuffer> {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected void hookOnNext(DataBuffer value) {
 		this.requestOutstanding.set(false);
 		this.state.get().onNext(value);
 	}
 
 	@Override
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected void hookOnComplete() {
 		this.state.get().onComplete();
 	}
@@ -415,14 +417,13 @@ final class MultipartParser extends BaseSubscriber<DataBuffer> {
 		 */
 		private boolean isLastBoundary(DataBuffer buf) {
 			return (this.buffers.isEmpty() &&
-					buf.readableByteCount() >= 2 &&
-					buf.getByte(0) == HYPHEN && buf.getByte(1) == HYPHEN)
-					||
+						buf.readableByteCount() >= 2 &&
+						buf.getByte(0) == HYPHEN && buf.getByte(1) == HYPHEN) ||
 					(this.buffers.size() == 1 &&
-							this.buffers.get(0).readableByteCount() == 1 &&
-							this.buffers.get(0).getByte(0) == HYPHEN &&
-							buf.readableByteCount() >= 1 &&
-							buf.getByte(0) == HYPHEN);
+						this.buffers.get(0).readableByteCount() == 1 &&
+						this.buffers.get(0).getByte(0) == HYPHEN &&
+						buf.readableByteCount() >= 1 &&
+						buf.getByte(0) == HYPHEN);
 		}
 
 		/**

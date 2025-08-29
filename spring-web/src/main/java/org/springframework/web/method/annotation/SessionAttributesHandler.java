@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.SessionAttributes;
@@ -183,8 +184,7 @@ public class SessionAttributesHandler {
 	 * @param attributeName the name of the attribute of interest
 	 * @return the attribute value, or {@code null} if none
 	 */
-	@Nullable
-	Object retrieveAttribute(WebRequest request, String attributeName) {
+	@Nullable Object retrieveAttribute(WebRequest request, String attributeName) {
 		return this.sessionAttributeStore.retrieveAttribute(request, attributeName);
 	}
 

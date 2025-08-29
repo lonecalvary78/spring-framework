@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.messaging.handler;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -47,8 +48,7 @@ public interface MessageCondition<T> {
 	 * condition with sorted, matching patterns only.
 	 * @return a condition instance in case of a match; or {@code null} if there is no match.
 	 */
-	@Nullable
-	T getMatchingCondition(Message<?> message);
+	@Nullable T getMatchingCondition(Message<?> message);
 
 	/**
 	 * Compare this condition to another in the context of a specific message.

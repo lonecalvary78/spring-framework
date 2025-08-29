@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.transaction.support;
 import java.io.Serializable;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.util.Assert;
 
@@ -85,8 +86,7 @@ public class DefaultTransactionDefinition implements TransactionDefinition, Seri
 
 	private boolean readOnly = false;
 
-	@Nullable
-	private String name;
+	private @Nullable String name;
 
 
 	/**
@@ -270,8 +270,7 @@ public class DefaultTransactionDefinition implements TransactionDefinition, Seri
 	}
 
 	@Override
-	@Nullable
-	public final String getName() {
+	public final @Nullable String getName() {
 		return this.name;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,21 @@ import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.ModelMap;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -141,8 +143,7 @@ public class HttpEntityMethodProcessor extends AbstractMessageConverterMethodPro
 	}
 
 	@Override
-	@Nullable
-	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
+	public @Nullable Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory)
 			throws IOException, HttpMediaTypeNotSupportedException {
 
@@ -163,8 +164,7 @@ public class HttpEntityMethodProcessor extends AbstractMessageConverterMethodPro
 		}
 	}
 
-	@Nullable
-	private Type getHttpEntityType(MethodParameter parameter) {
+	private @Nullable Type getHttpEntityType(MethodParameter parameter) {
 		Assert.isAssignable(HttpEntity.class, parameter.getParameterType());
 		Type parameterType = parameter.getGenericParameterType();
 		if (parameterType instanceof ParameterizedType type) {
@@ -226,7 +226,7 @@ public class HttpEntityMethodProcessor extends AbstractMessageConverterMethodPro
 		HttpHeaders entityHeaders = httpEntity.getHeaders();
 		if (!entityHeaders.isEmpty()) {
 			entityHeaders.forEach((key, value) -> {
-				if (HttpHeaders.VARY.equals(key) && outputHeaders.containsKey(HttpHeaders.VARY)) {
+				if (HttpHeaders.VARY.equals(key) && outputHeaders.containsHeader(HttpHeaders.VARY)) {
 					List<String> values = getVaryRequestHeadersToAdd(outputHeaders, entityHeaders);
 					if (!values.isEmpty()) {
 						outputHeaders.setVary(values);
@@ -239,18 +239,18 @@ public class HttpEntityMethodProcessor extends AbstractMessageConverterMethodPro
 		}
 
 		if (httpEntity instanceof ResponseEntity<?> responseEntity) {
-			int returnStatus = responseEntity.getStatusCode().value();
-			outputMessage.getServletResponse().setStatus(returnStatus);
-			if (returnStatus == 200) {
+			HttpStatusCode returnStatus = responseEntity.getStatusCode();
+			outputMessage.getServletResponse().setStatus(returnStatus.value());
+			if (returnStatus.value() == HttpStatus.OK.value()) {
 				HttpMethod method = inputMessage.getMethod();
-				if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method))
-						&& isResourceNotModified(inputMessage, outputMessage)) {
+				if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) &&
+						isResourceNotModified(inputMessage, outputMessage)) {
 					outputMessage.flush();
 					return;
 				}
 			}
-			else if (returnStatus / 100 == 3) {
-				String location = outputHeaders.getFirst("location");
+			else if (returnStatus.is3xxRedirection()) {
+				String location = outputHeaders.getFirst(HttpHeaders.LOCATION);
 				if (location != null) {
 					saveFlashAttributes(mavContainer, webRequest, location);
 				}

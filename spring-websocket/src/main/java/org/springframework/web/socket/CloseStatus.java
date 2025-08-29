@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.web.socket;
 import java.io.Serializable;
 import java.util.Objects;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -63,7 +64,7 @@ public final class CloseStatus implements Serializable {
 	 */
 	public static final CloseStatus NOT_ACCEPTABLE = new CloseStatus(1003);
 
-	// 10004: Reserved.
+	// 1004: Reserved.
 	// The specific meaning might be defined in the future.
 
 	/**
@@ -152,8 +153,7 @@ public final class CloseStatus implements Serializable {
 
 	private final int code;
 
-	@Nullable
-	private final String reason;
+	private final @Nullable String reason;
 
 
 	/**
@@ -186,8 +186,7 @@ public final class CloseStatus implements Serializable {
 	/**
 	 * Return the reason, or {@code null} if none.
 	 */
-	@Nullable
-	public String getReason() {
+	public @Nullable String getReason() {
 		return this.reason;
 	}
 

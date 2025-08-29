@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ class DefaultEntityResponseBuilderTests {
 
 	static final ServerResponse.Context EMPTY_CONTEXT = Collections::emptyList;
 
+
 	@Test
 	void fromObject() {
 		String body = "foo";
@@ -66,14 +67,12 @@ class DefaultEntityResponseBuilderTests {
 	}
 
 	@Test
-	@SuppressWarnings("removal")
 	void status() {
 		String body = "foo";
 		EntityResponse<String> result =
 				EntityResponse.fromObject(body).status(HttpStatus.CREATED).build();
 
 		assertThat(result.statusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(result.rawStatusCode()).isEqualTo(201);
 	}
 
 	@Test

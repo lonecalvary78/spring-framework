@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.util.Assert;
 import org.springframework.web.accept.ContentNegotiationManager;
@@ -80,17 +80,13 @@ public class RouterFunctionMockMvcBuilder extends AbstractMockMvcBuilder<RouterF
 
 	private final List<MappedInterceptor> mappedInterceptors = new ArrayList<>();
 
-	@Nullable
-	private List<HandlerExceptionResolver> handlerExceptionResolvers;
+	private @Nullable List<HandlerExceptionResolver> handlerExceptionResolvers;
 
-	@Nullable
-	private Long asyncRequestTimeout;
+	private @Nullable Long asyncRequestTimeout;
 
-	@Nullable
-	private List<ViewResolver> viewResolvers;
+	private @Nullable List<ViewResolver> viewResolvers;
 
-	@Nullable
-	private PathPatternParser patternParser;
+	private @Nullable PathPatternParser patternParser;
 
 	private Supplier<RouterFunctionMapping> handlerMappingFactory = RouterFunctionMapping::new;
 
@@ -124,7 +120,7 @@ public class RouterFunctionMockMvcBuilder extends AbstractMockMvcBuilder<RouterF
 	/**
 	 * Add interceptors mapped to a set of path patterns.
 	 */
-	public RouterFunctionMockMvcBuilder addMappedInterceptors(@Nullable String[] pathPatterns,
+	public RouterFunctionMockMvcBuilder addMappedInterceptors(String @Nullable [] pathPatterns,
 			HandlerInterceptor... interceptors) {
 
 		for (HandlerInterceptor interceptor : interceptors) {
@@ -192,9 +188,9 @@ public class RouterFunctionMockMvcBuilder extends AbstractMockMvcBuilder<RouterF
 	}
 
 	/**
-	 * Enable URL path matching with parsed
-	 * {@link org.springframework.web.util.pattern.PathPattern PathPatterns}
-	 * instead of String pattern matching with a {@link org.springframework.util.PathMatcher}.
+	 * Configure the parser to use for
+	 * {@link org.springframework.web.util.pattern.PathPattern PathPatterns}.
+	 * <p>By default, this is a default instance of {@link PathPatternParser}.
 	 * @param parser the parser to use
 	 */
 	public RouterFunctionMockMvcBuilder setPatternParser(@Nullable PathPatternParser parser) {
@@ -272,6 +268,7 @@ public class RouterFunctionMockMvcBuilder extends AbstractMockMvcBuilder<RouterF
 		}
 
 		@Override
+		@SuppressWarnings("removal")
 		protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 			converters.addAll(messageConverters);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1189,6 +1189,65 @@ class ResolvableTypeTests {
 	}
 
 	@Test
+	void isAssignableFromForUnresolvedWildcard() {
+		ResolvableType wildcard = ResolvableType.forInstance(new Wildcard<>());
+		ResolvableType wildcardFixed = ResolvableType.forInstance(new WildcardFixed());
+		ResolvableType wildcardConcrete = ResolvableType.forClassWithGenerics(Wildcard.class, CharSequence.class);
+		ResolvableType wildcardConsumer = ResolvableType.forInstance(new WildcardConsumer<>());
+
+		assertThat(wildcard.isAssignableFrom(wildcardFixed)).isTrue();
+		assertThat(wildcard.isAssignableFromResolvedPart(wildcardFixed)).isTrue();
+		assertThat(wildcard.isAssignableFrom(wildcardConcrete)).isTrue();
+		assertThat(wildcard.isAssignableFromResolvedPart(wildcardConcrete)).isTrue();
+		assertThat(wildcardFixed.isAssignableFrom(wildcard)).isFalse();
+		assertThat(wildcardFixed.isAssignableFromResolvedPart(wildcard)).isFalse();
+		assertThat(wildcardFixed.isAssignableFrom(wildcardConcrete)).isFalse();
+		assertThat(wildcardFixed.isAssignableFromResolvedPart(wildcardConcrete)).isFalse();
+		assertThat(wildcardConcrete.isAssignableFrom(wildcard)).isTrue();
+		assertThat(wildcardConcrete.isAssignableFromResolvedPart(wildcard)).isTrue();
+		assertThat(wildcardConcrete.isAssignableFrom(wildcardFixed)).isFalse();
+		assertThat(wildcardConcrete.isAssignableFromResolvedPart(wildcardFixed)).isFalse();
+		assertThat(wildcardConsumer.as(Consumer.class).getGeneric().isAssignableFrom(wildcard)).isFalse();
+		assertThat(wildcardConsumer.as(Consumer.class).getGeneric().isAssignableFromResolvedPart(wildcard)).isTrue();
+	}
+
+	@Test
+	void isAssignableFromForUnresolvedDoubleWildcard() {
+		ResolvableType wildcard = ResolvableType.forInstance(new DoubleWildcard<>());
+		ResolvableType wildcardFixed = ResolvableType.forInstance(new DoubleWildcardFixed());
+		ResolvableType wildcardConsumer = ResolvableType.forInstance(new DoubleWildcardConsumer<>());
+
+		assertThat(wildcard.isAssignableFrom(wildcardFixed)).isTrue();
+		assertThat(wildcard.isAssignableFromResolvedPart(wildcardFixed)).isTrue();
+		assertThat(wildcardFixed.isAssignableFrom(wildcard)).isFalse();
+		assertThat(wildcardFixed.isAssignableFromResolvedPart(wildcard)).isFalse();
+		assertThat(wildcardConsumer.as(Consumer.class).getGeneric().isAssignableFrom(wildcard)).isTrue();
+		assertThat(wildcardConsumer.as(Consumer.class).getGeneric().isAssignableFromResolvedPart(wildcard)).isTrue();
+	}
+
+	@Test
+	void strictGenericsMatching() {
+		ResolvableType consumerUnresolved = ResolvableType.forClass(Consumer.class);
+		ResolvableType consumerObject = ResolvableType.forClassWithGenerics(Consumer.class, Object.class);
+		ResolvableType consumerNestedUnresolved = ResolvableType.forClassWithGenerics(Consumer.class, ResolvableType.forClass(Consumer.class));
+		ResolvableType consumerNumber = ResolvableType.forClassWithGenerics(Consumer.class, Number.class);
+		ResolvableType consumerExtendsNumber = ResolvableType.forClass(SubConsumer.class);
+
+		assertThat(consumerUnresolved.isAssignableFrom(consumerObject)).isTrue();
+		assertThat(consumerUnresolved.isAssignableFromResolvedPart(consumerObject)).isTrue();
+		assertThat(consumerObject.isAssignableFrom(consumerUnresolved)).isTrue();
+		assertThat(consumerObject.isAssignableFromResolvedPart(consumerUnresolved)).isTrue();
+		assertThat(consumerUnresolved.isAssignableFrom(consumerNestedUnresolved)).isTrue();
+		assertThat(consumerUnresolved.isAssignableFromResolvedPart(consumerNestedUnresolved)).isTrue();
+		assertThat(consumerObject.isAssignableFrom(consumerNestedUnresolved)).isFalse();
+		assertThat(consumerObject.isAssignableFromResolvedPart(consumerNestedUnresolved)).isFalse();
+		assertThat(consumerObject.isAssignableFrom(consumerNumber)).isFalse();
+		assertThat(consumerObject.isAssignableFromResolvedPart(consumerNumber)).isFalse();
+		assertThat(consumerObject.isAssignableFrom(consumerExtendsNumber)).isFalse();
+		assertThat(consumerObject.isAssignableFromResolvedPart(consumerExtendsNumber)).isTrue();
+	}
+
+	@Test
 	void identifyTypeVariable() throws Exception {
 		Method method = ClassArguments.class.getMethod("typedArgumentFirst", Class.class, Class.class, Class.class);
 		ResolvableType returnType = ResolvableType.forMethodReturnType(method, ClassArguments.class);
@@ -1367,6 +1426,30 @@ class ResolvableTypeTests {
 		assertThat(type.hasUnresolvableGenerics()).isFalse();
 	}
 
+	@Test  // gh-33932
+	void recursiveType() {
+		assertThat(ResolvableType.forClass(RecursiveMap.class)).isEqualTo(
+				ResolvableType.forClass(RecursiveMap.class));
+
+		ResolvableType resolvableType1 = ResolvableType.forClassWithGenerics(Map.class,
+				String.class, RecursiveMap.class);
+		ResolvableType resolvableType2 = ResolvableType.forClassWithGenerics(Map.class,
+				String.class, RecursiveMap.class);
+		assertThat(resolvableType1).isEqualTo(resolvableType2);
+	}
+
+	@Test  // gh-33932
+	void recursiveTypeWithInterface() {
+		assertThat(ResolvableType.forClass(RecursiveMapWithInterface.class)).isEqualTo(
+				ResolvableType.forClass(RecursiveMapWithInterface.class));
+
+		ResolvableType resolvableType1 = ResolvableType.forClassWithGenerics(Map.class,
+				String.class, RecursiveMapWithInterface.class);
+		ResolvableType resolvableType2 = ResolvableType.forClassWithGenerics(Map.class,
+				String.class, RecursiveMapWithInterface.class);
+		assertThat(resolvableType1).isEqualTo(resolvableType2);
+	}
+
 	@Test
 	void spr11219() throws Exception {
 		ResolvableType type = ResolvableType.forField(BaseProvider.class.getField("stuff"), BaseProvider.class);
@@ -1442,6 +1525,12 @@ class ResolvableTypeTests {
 		assertThat(repository2.isAssignableFromResolvedPart(repository3)).isTrue();
 		assertThat(repository3.isAssignableFrom(repository2)).isTrue();
 		assertThat(repository3.isAssignableFromResolvedPart(repository2)).isTrue();
+	}
+
+	@Test
+	void gh34541() throws Exception {
+		ResolvableType typeWithGenerics = ResolvableType.forField(getClass().getDeclaredField("paymentCreator"));
+		assertThat(typeWithGenerics.isAssignableFrom(PaymentCreator.class)).isTrue();
 	}
 
 
@@ -1685,7 +1774,6 @@ class ResolvableTypeTests {
 		}
 	}
 
-
 	public class MySimpleInterfaceType implements MyInterfaceType<String> {
 	}
 
@@ -1695,7 +1783,6 @@ class ResolvableTypeTests {
 	public abstract class ExtendsMySimpleInterfaceTypeWithImplementsRaw extends MySimpleInterfaceTypeWithImplementsRaw {
 	}
 
-
 	public class MyCollectionInterfaceType implements MyInterfaceType<Collection<String>> {
 	}
 
@@ -1703,21 +1790,37 @@ class ResolvableTypeTests {
 	public abstract class MySuperclassType<T> {
 	}
 
-
 	public class MySimpleSuperclassType extends MySuperclassType<String> {
 	}
-
 
 	public class MyCollectionSuperclassType extends MySuperclassType<Collection<String>> {
 	}
 
 
-	interface Wildcard<T extends Number> extends List<T> {
+	public interface Consumer<T> {
 	}
 
-
-	interface RawExtendsWildcard extends Wildcard {
+	private static class SubConsumer<N extends Number> implements Consumer<N> {
 	}
+
+	public class Wildcard<T extends CharSequence> {
+	}
+
+	public class WildcardFixed extends Wildcard<String> {
+	}
+
+	public class WildcardConsumer<T extends CharSequence & Serializable> implements Consumer<Wildcard<T>> {
+	}
+
+	public class DoubleWildcard<T extends CharSequence & Serializable> {
+	}
+
+	public class DoubleWildcardFixed extends DoubleWildcard<String> {
+	}
+
+	public class DoubleWildcardConsumer<T extends CharSequence & Serializable> implements Consumer<DoubleWildcard<T>> {
+	}
+
 
 
 	interface VariableNameSwitch<V, K> extends MultiValueMap<K, V> {
@@ -1818,6 +1921,28 @@ class ResolvableTypeTests {
 		@Override
 		public void doA() {
 		}
+	}
+
+
+	@SuppressWarnings("serial")
+	static class RecursiveMap extends HashMap<String, RecursiveMap> {
+	}
+
+	@SuppressWarnings("serial")
+	static class RecursiveMapWithInterface extends HashMap<String, RecursiveMapWithInterface>
+			implements Map<String, RecursiveMapWithInterface> {
+	}
+
+
+	PaymentCreator<? extends Payment, PaymentCreatorParameter<? extends Payment>> paymentCreator;
+
+	static class PaymentCreator<T extends Payment, P extends PaymentCreatorParameter<T>> {
+	}
+
+	static class PaymentCreatorParameter<T extends Payment> {
+	}
+
+	abstract static class Payment {
 	}
 
 

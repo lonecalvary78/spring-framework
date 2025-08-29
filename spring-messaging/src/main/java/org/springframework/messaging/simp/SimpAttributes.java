@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.messaging.simp;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -71,8 +71,7 @@ public class SimpAttributes {
 	 * @param name the name of the attribute
 	 * @return the current attribute value, or {@code null} if not found
 	 */
-	@Nullable
-	public Object getAttribute(String name) {
+	public @Nullable Object getAttribute(String name) {
 		return this.attributes.get(name);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.web.util.pattern;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.pattern.PathPattern.MatchingContext;
@@ -44,12 +45,10 @@ abstract class PathElement {
 	protected final char separator;
 
 	// The next path element in the chain
-	@Nullable
-	protected PathElement next;
+	protected @Nullable PathElement next;
 
 	// The previous path element in the chain
-	@Nullable
-	protected PathElement prev;
+	protected @Nullable PathElement prev;
 
 
 	/**
@@ -109,7 +108,7 @@ abstract class PathElement {
 	}
 
 	/**
-	 * Return if the there are no more PathElements in the pattern.
+	 * Return if there are no more PathElements in the pattern.
 	 * @return {@code true} if the there are no more elements
 	 */
 	protected final boolean isNoMorePattern() {

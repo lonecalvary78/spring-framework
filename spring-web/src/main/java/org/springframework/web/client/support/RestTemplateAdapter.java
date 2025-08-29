@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.service.invoker.HttpExchangeAdapter;
@@ -71,8 +72,7 @@ public final class RestTemplateAdapter implements HttpExchangeAdapter {
 	}
 
 	@Override
-	@Nullable
-	public <T> T exchangeForBody(HttpRequestValues values, ParameterizedTypeReference<T> bodyType) {
+	public <T> @Nullable T exchangeForBody(HttpRequestValues values, ParameterizedTypeReference<T> bodyType) {
 		return this.restTemplate.exchange(newRequest(values), bodyType).getBody();
 	}
 
@@ -86,7 +86,7 @@ public final class RestTemplateAdapter implements HttpExchangeAdapter {
 		return this.restTemplate.exchange(newRequest(values), bodyType);
 	}
 
-	private RequestEntity<?> newRequest(HttpRequestValues values) {
+	private <B> RequestEntity<?> newRequest(HttpRequestValues values) {
 		HttpMethod httpMethod = values.getHttpMethod();
 		Assert.notNull(httpMethod, "HttpMethod is required");
 
@@ -120,11 +120,16 @@ public final class RestTemplateAdapter implements HttpExchangeAdapter {
 			builder.header(HttpHeaders.COOKIE, String.join("; ", cookies));
 		}
 
-		if (values.getBodyValue() != null) {
-			return builder.body(values.getBodyValue());
+		Object body = values.getBodyValue();
+		if (body == null) {
+			return builder.build();
 		}
 
-		return builder.build();
+		if (values.getBodyValueType() != null) {
+			return builder.body(body, values.getBodyValueType().getType());
+		}
+
+		return builder.body(body);
 	}
 
 

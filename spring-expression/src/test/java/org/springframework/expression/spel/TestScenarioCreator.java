@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,10 +108,20 @@ class TestScenarioCreator {
 				"formatObjectVarargs", MethodType.methodType(String.class, String.class, Object[].class));
 		testContext.registerFunction("formatObjectVarargs", formatObjectVarargs);
 
-		// #formatObjectVarargs(format, args...)
+		// #formatPrimitiveVarargs(format, args...)
 		MethodHandle formatPrimitiveVarargs = MethodHandles.lookup().findStatic(TestScenarioCreator.class,
 				"formatPrimitiveVarargs", MethodType.methodType(String.class, String.class, int[].class));
 		testContext.registerFunction("formatPrimitiveVarargs", formatPrimitiveVarargs);
+
+		// #varargsFunctionHandle(args...)
+		MethodHandle varargsFunctionHandle = MethodHandles.lookup().findStatic(TestScenarioCreator.class,
+				"varargsFunction", MethodType.methodType(String.class, String[].class));
+		testContext.registerFunction("varargsFunctionHandle", varargsFunctionHandle);
+
+		// #varargsObjectFunctionHandle(args...)
+		MethodHandle varargsObjectFunctionHandle = MethodHandles.lookup().findStatic(TestScenarioCreator.class,
+				"varargsObjectFunction", MethodType.methodType(String.class, Object[].class));
+		testContext.registerFunction("varargsObjectFunctionHandle", varargsObjectFunctionHandle);
 
 		// #add(int, int)
 		MethodHandle add = MethodHandles.lookup().findStatic(TestScenarioCreator.class,

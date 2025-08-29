@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.web.method.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -56,8 +57,7 @@ public interface HandlerMethodArgumentResolver {
 	 * @return the resolved argument value, or {@code null} if not resolvable
 	 * @throws Exception in case of errors with the preparation of argument values
 	 */
-	@Nullable
-	Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
+	@Nullable Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception;
 
 }

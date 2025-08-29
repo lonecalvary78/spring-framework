@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,9 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.format.Parser;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -59,11 +60,9 @@ public final class TemporalAccessorParser implements Parser<TemporalAccessor> {
 
 	private final DateTimeFormatter formatter;
 
-	@Nullable
-	private final String[] fallbackPatterns;
+	private final String @Nullable [] fallbackPatterns;
 
-	@Nullable
-	private final Object source;
+	private final @Nullable Object source;
 
 
 	/**
@@ -77,7 +76,7 @@ public final class TemporalAccessorParser implements Parser<TemporalAccessor> {
 	}
 
 	TemporalAccessorParser(Class<? extends TemporalAccessor> temporalAccessorType, DateTimeFormatter formatter,
-			@Nullable String[] fallbackPatterns, @Nullable Object source) {
+			String @Nullable [] fallbackPatterns, @Nullable Object source) {
 
 		this.temporalAccessorType = temporalAccessorType;
 		this.formatter = formatter;

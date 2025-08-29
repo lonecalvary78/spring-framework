@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.context.request.ServletWebRequest;
 
@@ -57,11 +57,9 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 
 	private final List<Runnable> completionHandlers = new ArrayList<>();
 
-	@Nullable
-	private Long timeout;
+	private @Nullable Long timeout;
 
-	@Nullable
-	private AsyncContext asyncContext;
+	private @Nullable AsyncContext asyncContext;
 
 	private State state;
 
@@ -85,7 +83,7 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 	 * @param previousRequest the existing request from the last dispatch
 	 * @since 5.3.33
 	 */
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	StandardServletAsyncWebRequest(HttpServletRequest request, HttpServletResponse response,
 			@Nullable StandardServletAsyncWebRequest previousRequest) {
 
@@ -237,8 +235,7 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 					break;
 				}
 			}
-			catch (InterruptedException ex) {
-				// ignore
+			catch (InterruptedException ignored) {
 			}
 		}
 
@@ -259,14 +256,11 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 	 */
 	private static final class LifecycleHttpServletResponse extends HttpServletResponseWrapper {
 
-		@Nullable
-		private StandardServletAsyncWebRequest asyncWebRequest;
+		private @Nullable StandardServletAsyncWebRequest asyncWebRequest;
 
-		@Nullable
-		private ServletOutputStream outputStream;
+		private @Nullable ServletOutputStream outputStream;
 
-		@Nullable
-		private PrintWriter writer;
+		private @Nullable PrintWriter writer;
 
 		public LifecycleHttpServletResponse(HttpServletResponse response) {
 			super(response);
@@ -277,7 +271,7 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 		}
 
 		@Override
-		@SuppressWarnings("NullAway")
+		@SuppressWarnings("NullAway") // Dataflow analysis limitation
 		public ServletOutputStream getOutputStream() throws IOException {
 			int level = obtainLockOrRaiseException();
 			try {
@@ -297,7 +291,7 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 		}
 
 		@Override
-		@SuppressWarnings("NullAway")
+		@SuppressWarnings("NullAway") // Dataflow analysis limitation
 		public PrintWriter getWriter() throws IOException {
 			int level = obtainLockOrRaiseException();
 			try {

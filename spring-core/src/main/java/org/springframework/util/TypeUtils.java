@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.lang.Contract;
 
 /**
  * Utility to work with generic type parameters.
@@ -210,6 +212,7 @@ public abstract class TypeUtils {
 		return (upperBounds.length == 0 ? IMPLICIT_UPPER_BOUNDS : upperBounds);
 	}
 
+	@Contract("_, null -> true; null, _ -> false")
 	public static boolean isAssignableBound(@Nullable Type lhsType, @Nullable Type rhsType) {
 		if (rhsType == null) {
 			return true;

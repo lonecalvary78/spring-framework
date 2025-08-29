@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.IntroductionAwareMethodMatcher;
 import org.springframework.aop.MethodMatcher;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -150,7 +151,7 @@ public abstract class MethodMatchers {
 		}
 
 		@Override
-		public boolean matches(Method method, Class<?> targetClass, Object... args) {
+		public boolean matches(Method method, Class<?> targetClass, @Nullable Object... args) {
 			return this.mm1.matches(method, targetClass, args) || this.mm2.matches(method, targetClass, args);
 		}
 
@@ -302,7 +303,7 @@ public abstract class MethodMatchers {
 		}
 
 		@Override
-		public boolean matches(Method method, Class<?> targetClass, Object... args) {
+		public boolean matches(Method method, Class<?> targetClass, @Nullable Object... args) {
 			// Because a dynamic intersection may be composed of a static and dynamic part,
 			// we must avoid calling the 3-arg matches method on a dynamic matcher, as
 			// it will probably be an unsupported operation.
@@ -372,14 +373,14 @@ public abstract class MethodMatchers {
 		}
 
 		@Override
-		public boolean matches(Method method, Class<?> targetClass, Object... args) {
+		public boolean matches(Method method, Class<?> targetClass, @Nullable Object... args) {
 			return !this.original.matches(method, targetClass, args);
 		}
 
 		@Override
 		public boolean equals(Object other) {
-			return (this == other || (other instanceof NegateMethodMatcher that
-					&& this.original.equals(that.original)));
+			return (this == other || (other instanceof NegateMethodMatcher that &&
+					this.original.equals(that.original)));
 		}
 
 		@Override

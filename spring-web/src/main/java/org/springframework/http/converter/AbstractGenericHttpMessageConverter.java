@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,12 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.StreamingHttpOutputMessage;
-import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for most {@link GenericHttpMessageConverter} implementations.
@@ -93,7 +94,7 @@ public abstract class AbstractGenericHttpMessageConverter<T> extends AbstractHtt
 	 * and then calls {@link #writeInternal}.
 	 */
 	@Override
-	public final void write(final T t, @Nullable final Type type, @Nullable MediaType contentType,
+	public final void write(final T t, final @Nullable Type type, @Nullable MediaType contentType,
 			HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
 
 		final HttpHeaders headers = outputMessage.getHeaders();

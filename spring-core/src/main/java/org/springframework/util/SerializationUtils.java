@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.lang.Contract;
 
 /**
  * Static utilities for serialization and deserialization using
@@ -47,8 +49,8 @@ public abstract class SerializationUtils {
 	 * @param object the object to serialize
 	 * @return an array of bytes representing the object in a portable fashion
 	 */
-	@Nullable
-	public static byte[] serialize(@Nullable Object object) {
+	@Contract("null -> null")
+	public static byte @Nullable [] serialize(@Nullable Object object) {
 		if (object == null) {
 			return null;
 		}
@@ -73,9 +75,9 @@ public abstract class SerializationUtils {
 	 * <p>Prefer the use of an external tool (that serializes to JSON, XML, or
 	 * any other format) which is regularly checked and updated for not allowing RCE.
 	 */
-	@Deprecated
-	@Nullable
-	public static Object deserialize(@Nullable byte[] bytes) {
+	@Deprecated(since = "6.0")
+	@Contract("null -> null")
+	public static @Nullable Object deserialize(byte @Nullable [] bytes) {
 		if (bytes == null) {
 			return null;
 		}

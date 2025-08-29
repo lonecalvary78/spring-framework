@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.TypeMismatchDataAccessException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.NumberUtils;
@@ -50,8 +52,7 @@ public abstract class DataAccessUtils {
 	 * @throws IncorrectResultSizeDataAccessException if more than one
 	 * element has been found in the given Collection
 	 */
-	@Nullable
-	public static <T> T singleResult(@Nullable Collection<T> results) throws IncorrectResultSizeDataAccessException {
+	public static <T> @Nullable T singleResult(@Nullable Collection<T> results) throws IncorrectResultSizeDataAccessException {
 		if (CollectionUtils.isEmpty(results)) {
 			return null;
 		}
@@ -71,8 +72,7 @@ public abstract class DataAccessUtils {
 	 * element has been found in the given Stream
 	 * @since 6.1
 	 */
-	@Nullable
-	public static <T> T singleResult(@Nullable Stream<T> results) throws IncorrectResultSizeDataAccessException {
+	public static <T> @Nullable T singleResult(@Nullable Stream<T> results) throws IncorrectResultSizeDataAccessException {
 		if (results == null) {
 			return null;
 		}
@@ -95,8 +95,7 @@ public abstract class DataAccessUtils {
 	 * element has been found in the given Iterator
 	 * @since 6.1
 	 */
-	@Nullable
-	public static <T> T singleResult(@Nullable Iterator<T> results) throws IncorrectResultSizeDataAccessException {
+	public static <T> @Nullable T singleResult(@Nullable Iterator<T> results) throws IncorrectResultSizeDataAccessException {
 		if (results == null) {
 			return null;
 		}
@@ -117,7 +116,9 @@ public abstract class DataAccessUtils {
 	 * element has been found in the given Collection
 	 * @since 6.1
 	 */
-	public static <T> Optional<T> optionalResult(@Nullable Collection<T> results) throws IncorrectResultSizeDataAccessException {
+	public static <T extends @Nullable Object> Optional<@NonNull T> optionalResult(@Nullable Collection<T> results)
+			throws IncorrectResultSizeDataAccessException {
+
 		return Optional.ofNullable(singleResult(results));
 	}
 
@@ -160,7 +161,9 @@ public abstract class DataAccessUtils {
 	 * @throws EmptyResultDataAccessException if no element at all
 	 * has been found in the given Collection
 	 */
-	public static <T> T requiredSingleResult(@Nullable Collection<T> results) throws IncorrectResultSizeDataAccessException {
+	public static <T extends @Nullable Object> @NonNull T requiredSingleResult(@Nullable Collection<T> results)
+			throws IncorrectResultSizeDataAccessException {
+
 		if (CollectionUtils.isEmpty(results)) {
 			throw new EmptyResultDataAccessException(1);
 		}
@@ -186,8 +189,9 @@ public abstract class DataAccessUtils {
 	 * has been found in the given Collection
 	 * @since 5.0.2
 	 */
-	@Nullable
-	public static <T> T nullableSingleResult(@Nullable Collection<T> results) throws IncorrectResultSizeDataAccessException {
+	public static <T extends @Nullable Object> T nullableSingleResult(@Nullable Collection<T> results)
+			throws IncorrectResultSizeDataAccessException {
+
 		// This is identical to the requiredSingleResult implementation but differs in the
 		// semantics of the incoming Collection (which we currently can't formally express)
 		if (CollectionUtils.isEmpty(results)) {
@@ -209,8 +213,7 @@ public abstract class DataAccessUtils {
 	 * result object has been found in the given Collection
 	 * @see org.springframework.util.CollectionUtils#hasUniqueObject
 	 */
-	@Nullable
-	public static <T> T uniqueResult(@Nullable Collection<T> results) throws IncorrectResultSizeDataAccessException {
+	public static <T> @Nullable T uniqueResult(@Nullable Collection<T> results) throws IncorrectResultSizeDataAccessException {
 		if (CollectionUtils.isEmpty(results)) {
 			return null;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.Session;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jms.support.JmsAccessor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -69,7 +69,7 @@ public abstract class JmsDestinationAccessor extends JmsAccessor {
 	 * @see org.springframework.jms.support.destination.JndiDestinationResolver
 	 */
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
-		Assert.notNull(destinationResolver, "'destinationResolver' must not be null");
+		Assert.notNull(destinationResolver, "DestinationResolver must not be null");
 		this.destinationResolver = destinationResolver;
 	}
 
@@ -126,8 +126,7 @@ public abstract class JmsDestinationAccessor extends JmsAccessor {
 	 * @see #RECEIVE_TIMEOUT_NO_WAIT
 	 * @see #RECEIVE_TIMEOUT_INDEFINITE_WAIT
 	 */
-	@Nullable
-	protected Message receiveFromConsumer(MessageConsumer consumer, long timeout) throws JMSException {
+	protected @Nullable Message receiveFromConsumer(MessageConsumer consumer, long timeout) throws JMSException {
 		if (timeout > 0) {
 			return consumer.receive(timeout);
 		}

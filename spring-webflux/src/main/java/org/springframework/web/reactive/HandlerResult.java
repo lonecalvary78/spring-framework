@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.web.reactive;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 
@@ -32,15 +33,13 @@ public class HandlerResult {
 
 	private final Object handler;
 
-	@Nullable
-	private final Object returnValue;
+	private final @Nullable Object returnValue;
 
 	private final ResolvableType returnType;
 
 	private final BindingContext bindingContext;
 
-	@Nullable
-	private DispatchExceptionHandler exceptionHandler;
+	private @Nullable DispatchExceptionHandler exceptionHandler;
 
 
 	/**
@@ -82,8 +81,7 @@ public class HandlerResult {
 	/**
 	 * Return the value returned from the handler, if any.
 	 */
-	@Nullable
-	public Object getReturnValue() {
+	public @Nullable Object getReturnValue() {
 		return this.returnValue;
 	}
 
@@ -137,8 +135,7 @@ public class HandlerResult {
 	 * configured} exception handler.
 	 * @since 6.0
 	 */
-	@Nullable
-	public DispatchExceptionHandler getExceptionHandler() {
+	public @Nullable DispatchExceptionHandler getExceptionHandler() {
 		return this.exceptionHandler;
 	}
 

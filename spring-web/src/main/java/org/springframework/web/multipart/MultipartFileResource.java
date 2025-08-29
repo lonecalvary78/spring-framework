@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.web.multipart;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.AbstractResource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -65,8 +66,7 @@ class MultipartFileResource extends AbstractResource {
 	}
 
 	@Override
-	@Nullable
-	public String getFilename() {
+	public @Nullable String getFilename() {
 		return this.multipartFile.getOriginalFilename();
 	}
 

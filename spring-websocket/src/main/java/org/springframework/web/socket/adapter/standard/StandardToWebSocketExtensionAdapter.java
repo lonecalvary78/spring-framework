@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,9 @@ import org.springframework.web.socket.WebSocketExtension;
  */
 public class StandardToWebSocketExtensionAdapter extends WebSocketExtension {
 
-
 	public StandardToWebSocketExtensionAdapter(Extension extension) {
 		super(extension.getName(), initParameters(extension));
 	}
-
 
 	private static Map<String, String> initParameters(Extension extension) {
 		List<Extension.Parameter> parameters = extension.getParameters();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,9 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionSystemException;
@@ -121,8 +122,7 @@ import org.springframework.util.Assert;
 public class DataSourceTransactionManager extends AbstractPlatformTransactionManager
 		implements ResourceTransactionManager, InitializingBean {
 
-	@Nullable
-	private DataSource dataSource;
+	private @Nullable DataSource dataSource;
 
 	private boolean enforceReadOnly = false;
 
@@ -180,8 +180,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 	/**
 	 * Return the JDBC {@code DataSource} that this instance manages transactions for.
 	 */
-	@Nullable
-	public DataSource getDataSource() {
+	public @Nullable DataSource getDataSource() {
 		return this.dataSource;
 	}
 

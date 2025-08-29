@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -41,16 +42,15 @@ import org.springframework.util.Assert;
  * @author Juergen Hoeller
  * @see #loadBeanDefinitions
  * @see org.springframework.beans.factory.support.PropertiesBeanDefinitionReader
- * @deprecated as of 5.3, in favor of Spring's common bean definition formats
- * and/or custom reader implementations
+ * @deprecated in favor of Spring's common bean definition formats and/or custom
+ * reader implementations
  */
-@Deprecated
+@Deprecated(since = "5.3")
 public class JdbcBeanDefinitionReader {
 
 	private final org.springframework.beans.factory.support.PropertiesBeanDefinitionReader propReader;
 
-	@Nullable
-	private JdbcTemplate jdbcTemplate;
+	private @Nullable JdbcTemplate jdbcTemplate;
 
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Conventions;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 import org.springframework.util.ReflectionUtils;
@@ -43,6 +43,12 @@ import org.springframework.util.ReflectionUtils;
  * @since 6.0.10
  */
 class MicrometerObservationRegistryTestExecutionListener extends AbstractTestExecutionListener {
+
+	/**
+	 * The {@link #getOrder() order} value for this listener: {@value}.
+	 * @since 6.2.3
+	 */
+	public static final int ORDER = 2500;
 
 	private static final Log logger = LogFactory.getLog(MicrometerObservationRegistryTestExecutionListener.class);
 
@@ -68,8 +74,7 @@ class MicrometerObservationRegistryTestExecutionListener extends AbstractTestExe
 	static final String OBSERVATION_THREAD_LOCAL_ACCESSOR_CLASS_NAME =
 			"io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor";
 
-	@Nullable
-	private static final String ERROR_MESSAGE;
+	private static final @Nullable String ERROR_MESSAGE;
 
 	static {
 		// Trigger eager resolution of Micrometer Observation types to ensure that
@@ -107,11 +112,16 @@ class MicrometerObservationRegistryTestExecutionListener extends AbstractTestExe
 
 
 	/**
-	 * Returns {@code 2500}.
+	 * Returns {@value #ORDER}, which ensures that the
+	 * {@code MicrometerObservationRegistryTestExecutionListener} is ordered after the
+	 * {@link org.springframework.test.context.support.DependencyInjectionTestExecutionListener
+	 * DependencyInjectionTestExecutionListener} and before the
+	 * {@link org.springframework.test.context.support.DirtiesContextTestExecutionListener
+	 * DirtiesContextTestExecutionListener}.
 	 */
 	@Override
 	public final int getOrder() {
-		return 2500;
+		return ORDER;
 	}
 
 	/**

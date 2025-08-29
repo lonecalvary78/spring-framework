@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ import org.aspectj.weaver.reflect.ReflectionBasedReferenceTypeDelegate;
 import org.aspectj.weaver.reflect.ReflectionVar;
 import org.aspectj.weaver.reflect.ShadowMatchImpl;
 import org.aspectj.weaver.tools.ShadowMatch;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -79,8 +79,7 @@ class RuntimeTestWalker {
 	}
 
 
-	@Nullable
-	private final Test runtimeTest;
+	private final @Nullable Test runtimeTest;
 
 
 	public RuntimeTestWalker(ShadowMatch shadowMatch) {

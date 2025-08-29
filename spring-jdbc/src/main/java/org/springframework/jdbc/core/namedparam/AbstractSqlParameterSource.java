@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.support.JdbcUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -85,8 +86,7 @@ public abstract class AbstractSqlParameterSource implements SqlParameterSource {
 	 * or {@code null} if not registered
 	 */
 	@Override
-	@Nullable
-	public String getTypeName(String paramName) {
+	public @Nullable String getTypeName(String paramName) {
 		Assert.notNull(paramName, "Parameter name must not be null");
 		return this.typeNames.get(paramName);
 	}

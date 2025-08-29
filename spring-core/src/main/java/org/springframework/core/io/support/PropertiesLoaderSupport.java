@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
@@ -44,18 +44,15 @@ public abstract class PropertiesLoaderSupport {
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	protected Properties[] localProperties;
+	protected Properties @Nullable [] localProperties;
 
 	protected boolean localOverride = false;
 
-	@Nullable
-	private Resource[] locations;
+	private Resource @Nullable [] locations;
 
 	private boolean ignoreResourceNotFound = false;
 
-	@Nullable
-	private String fileEncoding;
+	private @Nullable String fileEncoding;
 
 	private PropertiesPersister propertiesPersister = DefaultPropertiesPersister.INSTANCE;
 
@@ -141,8 +138,8 @@ public abstract class PropertiesLoaderSupport {
 
 
 	/**
-	 * Return a merged Properties instance containing both the
-	 * loaded properties and properties set on this FactoryBean.
+	 * Return a merged {@link Properties} instance containing both the
+	 * loaded properties and properties set on this component.
 	 */
 	protected Properties mergeProperties() throws IOException {
 		Properties result = new Properties();

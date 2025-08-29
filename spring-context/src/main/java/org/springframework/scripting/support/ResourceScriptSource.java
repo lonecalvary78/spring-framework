@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
-import org.springframework.lang.Nullable;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -129,8 +129,7 @@ public class ResourceScriptSource implements ScriptSource {
 	}
 
 	@Override
-	@Nullable
-	public String suggestedClassName() {
+	public @Nullable String suggestedClassName() {
 		String filename = getResource().getFilename();
 		return (filename != null ? StringUtils.stripFilenameExtension(filename) : null);
 	}

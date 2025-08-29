@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -46,7 +47,6 @@ import org.springframework.http.codec.multipart.Part;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -99,15 +99,13 @@ public class DefaultServerWebExchange implements ServerWebExchange {
 
 	private volatile boolean multipartRead = false;
 
-	@Nullable
-	private final ApplicationContext applicationContext;
+	private final @Nullable ApplicationContext applicationContext;
 
 	private volatile boolean notModified;
 
 	private Function<String, String> urlTransformer = url -> url;
 
-	@Nullable
-	private Object logId;
+	private @Nullable Object logId;
 
 	private String logPrefix = "";
 
@@ -119,7 +117,7 @@ public class DefaultServerWebExchange implements ServerWebExchange {
 		this(request, response, sessionManager, codecConfigurer, localeContextResolver, null);
 	}
 
-	DefaultServerWebExchange(ServerHttpRequest request, ServerHttpResponse response,
+	protected DefaultServerWebExchange(ServerHttpRequest request, ServerHttpResponse response,
 			WebSessionManager sessionManager, ServerCodecConfigurer codecConfigurer,
 			LocaleContextResolver localeContextResolver, @Nullable ApplicationContext applicationContext) {
 
@@ -149,7 +147,7 @@ public class DefaultServerWebExchange implements ServerWebExchange {
 			ServerCodecConfigurer configurer, String logPrefix) {
 
 		MediaType contentType = getContentType(request);
-		if (contentType == null || !contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)) {
+		if (contentType == null || !contentType.isConcrete() || !contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)) {
 			return EMPTY_FORM_DATA;
 		}
 
@@ -167,7 +165,7 @@ public class DefaultServerWebExchange implements ServerWebExchange {
 	private Mono<MultiValueMap<String, Part>> initMultipartData(ServerCodecConfigurer configurer, String logPrefix) {
 
 		MediaType contentType = getContentType(this.request);
-		if (contentType == null || !contentType.getType().equalsIgnoreCase("multipart")) {
+		if (contentType == null || !contentType.isConcrete() || !contentType.getType().equalsIgnoreCase("multipart")) {
 			return EMPTY_MULTIPART_DATA;
 		}
 
@@ -183,8 +181,7 @@ public class DefaultServerWebExchange implements ServerWebExchange {
 				.cache();
 	}
 
-	@Nullable
-	private static MediaType getContentType(ServerHttpRequest request) {
+	private static @Nullable MediaType getContentType(ServerHttpRequest request) {
 		MediaType contentType = null;
 		try {
 			contentType = request.getHeaders().getContentType();
@@ -196,8 +193,7 @@ public class DefaultServerWebExchange implements ServerWebExchange {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
-	private static <E> HttpMessageReader<E> getReader(
+	private static <E> @Nullable HttpMessageReader<E> getReader(
 			ServerCodecConfigurer configurer, MediaType contentType, ResolvableType targetType) {
 
 		HttpMessageReader<E> result = null;
@@ -278,8 +274,7 @@ public class DefaultServerWebExchange implements ServerWebExchange {
 	}
 
 	@Override
-	@Nullable
-	public ApplicationContext getApplicationContext() {
+	public @Nullable ApplicationContext getApplicationContext() {
 		return this.applicationContext;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package org.springframework.cache.annotation;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.CacheResolver;
 import org.springframework.cache.interceptor.KeyGenerator;
-import org.springframework.lang.Nullable;
 
 /**
  * An implementation of {@link CachingConfigurer} with empty methods allowing
@@ -35,26 +36,22 @@ import org.springframework.lang.Nullable;
 public class CachingConfigurerSupport implements CachingConfigurer {
 
 	@Override
-	@Nullable
-	public CacheManager cacheManager() {
+	public @Nullable CacheManager cacheManager() {
 		return null;
 	}
 
 	@Override
-	@Nullable
-	public CacheResolver cacheResolver() {
+	public @Nullable CacheResolver cacheResolver() {
 		return null;
 	}
 
 	@Override
-	@Nullable
-	public KeyGenerator keyGenerator() {
+	public @Nullable KeyGenerator keyGenerator() {
 		return null;
 	}
 
 	@Override
-	@Nullable
-	public CacheErrorHandler errorHandler() {
+	public @Nullable CacheErrorHandler errorHandler() {
 		return null;
 	}
 

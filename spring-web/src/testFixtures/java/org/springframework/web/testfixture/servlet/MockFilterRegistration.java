@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,7 @@ import java.util.Set;
 
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterRegistration;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Mock implementation of {@link FilterRegistration}.
@@ -68,9 +67,8 @@ public class MockFilterRegistration implements FilterRegistration.Dynamic {
 		return this.name;
 	}
 
-	@Nullable
 	@Override
-	public String getClassName() {
+	public @Nullable String getClassName() {
 		return this.className;
 	}
 
@@ -79,9 +77,8 @@ public class MockFilterRegistration implements FilterRegistration.Dynamic {
 		return (this.initParameters.putIfAbsent(name, value) != null);
 	}
 
-	@Nullable
 	@Override
-	public String getInitParameter(String name) {
+	public @Nullable String getInitParameter(String name) {
 		return this.initParameters.get(name);
 	}
 

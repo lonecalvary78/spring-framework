@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
-import org.springframework.lang.Nullable;
 
 /**
  * A single merged annotation returned from a {@link MergedAnnotations}
@@ -133,8 +134,7 @@ public interface MergedAnnotation<A extends Annotation> {
 	 * {@link #getRoot() root}.
 	 * @return the source, or {@code null}
 	 */
-	@Nullable
-	Object getSource();
+	@Nullable Object getSource();
 
 	/**
 	 * Get the source of the meta-annotation, or {@code null} if the
@@ -144,8 +144,7 @@ public interface MergedAnnotation<A extends Annotation> {
 	 * @return the meta-annotation source or {@code null}
 	 * @see #getRoot()
 	 */
-	@Nullable
-	MergedAnnotation<?> getMetaSource();
+	@Nullable MergedAnnotation<?> getMetaSource();
 
 	/**
 	 * Get the root annotation, i.e. the {@link #getDistance() distance} {@code 0}
@@ -491,8 +490,6 @@ public interface MergedAnnotation<A extends Annotation> {
 	 * it has not already been synthesized and one of the following is true.
 	 * <ul>
 	 * <li>The annotation declares attributes annotated with {@link AliasFor @AliasFor}.</li>
-	 * <li>The annotation is a composed annotation that relies on convention-based
-	 * annotation attribute overrides in meta-annotations.</li>
 	 * <li>The annotation declares attributes that are annotations or arrays of
 	 * annotations that are themselves synthesizable.</li>
 	 * </ul>

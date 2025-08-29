@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collections;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -49,6 +49,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.testfixture.http.MockHttpInputMessage;
 import org.springframework.web.testfixture.servlet.MockHttpServletRequest;
 import org.springframework.web.testfixture.servlet.MockHttpServletResponse;
 
@@ -153,9 +154,8 @@ class DefaultHandlerExceptionResolverTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void handleHttpMessageNotReadable() {
-		HttpMessageNotReadableException ex = new HttpMessageNotReadableException("foo");
+		HttpMessageNotReadableException ex = new HttpMessageNotReadableException("foo", new MockHttpInputMessage(new byte[0]));
 		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
 		assertThat(mav).as("No ModelAndView returned").isNotNull();
 		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
@@ -175,7 +175,7 @@ class DefaultHandlerExceptionResolverTests {
 	void handleMethodArgumentNotValid() throws Exception {
 		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(new TestBean(), "testBean");
 		errors.rejectValue("name", "invalid");
-		MethodParameter parameter = new MethodParameter(this.getClass().getMethod("handle", String.class), 0);
+		MethodParameter parameter = new MethodParameter(getClass().getMethod("handle", String.class), 0);
 		MethodArgumentNotValidException ex = new MethodArgumentNotValidException(parameter, errors);
 		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
 		assertThat(mav).as("No ModelAndView returned").isNotNull();
@@ -209,7 +209,7 @@ class DefaultHandlerExceptionResolverTests {
 
 	@Test
 	void handleNoResourceFoundException() {
-		NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/resource");
+		NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/context/resource", "/resource");
 		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
 		assertThat(mav).as("No ModelAndView returned").isNotNull();
 		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();

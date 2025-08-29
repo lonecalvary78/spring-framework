@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.web.context;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.lang.Nullable;
 
 /**
  * Interface to provide configuration for a web application. This is read-only while
@@ -100,7 +100,6 @@ public interface WebApplicationContext extends ApplicationContext {
 	/**
 	 * Return the standard Servlet API ServletContext for this application.
 	 */
-	@Nullable
-	ServletContext getServletContext();
+	@Nullable ServletContext getServletContext();
 
 }

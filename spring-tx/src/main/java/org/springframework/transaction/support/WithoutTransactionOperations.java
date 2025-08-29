@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.transaction.support;
 
 import java.util.function.Consumer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 
@@ -40,8 +41,7 @@ final class WithoutTransactionOperations implements TransactionOperations {
 
 
 	@Override
-	@Nullable
-	public <T> T execute(TransactionCallback<T> action) throws TransactionException {
+	public <T> @Nullable T execute(TransactionCallback<T> action) throws TransactionException {
 		return action.doInTransaction(new SimpleTransactionStatus(false));
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.web.reactive.resource;
 
 import java.io.IOException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 
 /**
  * An extension of {@link ByteArrayResource} that a {@link ResourceTransformer}
@@ -32,8 +33,7 @@ import org.springframework.lang.Nullable;
  */
 public class TransformedResource extends ByteArrayResource {
 
-	@Nullable
-	private final String filename;
+	private final @Nullable String filename;
 
 	private final long lastModified;
 
@@ -52,8 +52,7 @@ public class TransformedResource extends ByteArrayResource {
 
 
 	@Override
-	@Nullable
-	public String getFilename() {
+	public @Nullable String getFilename() {
 		return this.filename;
 	}
 

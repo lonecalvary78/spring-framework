@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package org.springframework.context;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.HierarchicalBeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.lang.Nullable;
 
 /**
  * Central interface to provide configuration for an application.
@@ -62,8 +63,7 @@ public interface ApplicationContext extends EnvironmentCapable, ListableBeanFact
 	 * Return the unique id of this application context.
 	 * @return the unique id of the context, or {@code null} if none
 	 */
-	@Nullable
-	String getId();
+	@Nullable String getId();
 
 	/**
 	 * Return a name for the deployed application that this context belongs to.
@@ -88,8 +88,7 @@ public interface ApplicationContext extends EnvironmentCapable, ListableBeanFact
 	 * and this is the root of the context hierarchy.
 	 * @return the parent context, or {@code null} if there is no parent
 	 */
-	@Nullable
-	ApplicationContext getParent();
+	@Nullable ApplicationContext getParent();
 
 	/**
 	 * Expose AutowireCapableBeanFactory functionality for this context.

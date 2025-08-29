@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -39,7 +39,10 @@ import org.springframework.util.Assert;
  *
  * @author Rossen Stoyanchev
  * @since 4.0
+ * @deprecated since 7.0 in favor of {@link JacksonJsonSockJsMessageCodec}
  */
+@Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public class Jackson2SockJsMessageCodec extends AbstractSockJsMessageCodec {
 
 	private final ObjectMapper objectMapper;
@@ -56,14 +59,12 @@ public class Jackson2SockJsMessageCodec extends AbstractSockJsMessageCodec {
 
 
 	@Override
-	@Nullable
-	public String[] decode(String content) throws IOException {
+	public String @Nullable [] decode(String content) throws IOException {
 		return this.objectMapper.readValue(content, String[].class);
 	}
 
 	@Override
-	@Nullable
-	public String[] decodeInputStream(InputStream content) throws IOException {
+	public String @Nullable [] decodeInputStream(InputStream content) throws IOException {
 		return this.objectMapper.readValue(content, String[].class);
 	}
 

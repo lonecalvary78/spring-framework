@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.springframework.aop.target;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.support.DefaultIntroductionAdvisor;
 import org.springframework.aop.support.DelegatingIntroductionInterceptor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for pooling {@link org.springframework.aop.TargetSource}
@@ -101,8 +102,7 @@ public abstract class AbstractPoolingTargetSource extends AbstractPrototypeBased
 	 * APIs, so we're forgiving with our exception signature
 	 */
 	@Override
-	@Nullable
-	public abstract Object getTarget() throws Exception;
+	public abstract @Nullable Object getTarget() throws Exception;
 
 	/**
 	 * Return the given object to the pool.

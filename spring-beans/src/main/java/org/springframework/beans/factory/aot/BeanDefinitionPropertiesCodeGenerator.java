@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,11 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.generate.GeneratedMethods;
 import org.springframework.aot.generate.ValueCodeGenerator;
 import org.springframework.aot.generate.ValueCodeGenerator.Delegate;
-import org.springframework.aot.generate.ValueCodeGeneratorDelegates;
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
@@ -52,10 +53,12 @@ import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueH
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.InstanceSupplier;
+import org.springframework.beans.factory.support.LookupOverride;
+import org.springframework.beans.factory.support.MethodOverride;
+import org.springframework.beans.factory.support.ReplaceOverride;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.CodeBlock.Builder;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -102,15 +105,15 @@ class BeanDefinitionPropertiesCodeGenerator {
 
 		this.hints = hints;
 		this.attributeFilter = attributeFilter;
-		List<Delegate> allDelegates = new ArrayList<>();
-		allDelegates.add((valueCodeGenerator, value) -> customValueCodeGenerator.apply(PropertyNamesStack.peek(), value));
-		allDelegates.addAll(additionalDelegates);
-		allDelegates.addAll(BeanDefinitionPropertyValueCodeGeneratorDelegates.INSTANCES);
-		allDelegates.addAll(ValueCodeGeneratorDelegates.INSTANCES);
-		this.valueCodeGenerator = ValueCodeGenerator.with(allDelegates).scoped(generatedMethods);
+		List<Delegate> customDelegates = new ArrayList<>();
+		customDelegates.add((valueCodeGenerator, value) ->
+				customValueCodeGenerator.apply(PropertyNamesStack.peek(), value));
+		customDelegates.addAll(additionalDelegates);
+		this.valueCodeGenerator = BeanDefinitionPropertyValueCodeGeneratorDelegates
+				.createValueCodeGenerator(generatedMethods, customDelegates);
 	}
 
-
+	@SuppressWarnings("NullAway") // https://github.com/uber/NullAway/issues/1128
 	CodeBlock generateCode(RootBeanDefinition beanDefinition) {
 		CodeBlock.Builder code = CodeBlock.builder();
 		addStatementForValue(code, beanDefinition, BeanDefinition::getScope,
@@ -145,11 +148,12 @@ class BeanDefinitionPropertiesCodeGenerator {
 		addPropertyValues(code, beanDefinition);
 		addAttributes(code, beanDefinition);
 		addQualifiers(code, beanDefinition);
+		addMethodOverrides(code, beanDefinition);
 		return code.build();
 	}
 
 	private void addInitDestroyMethods(Builder code, AbstractBeanDefinition beanDefinition,
-			@Nullable String[] methodNames, String format) {
+			String @Nullable [] methodNames, String format) {
 
 		// For Publisher-based destroy methods
 		this.hints.reflection().registerType(TypeReference.of("org.reactivestreams.Publisher"));
@@ -252,10 +256,10 @@ class BeanDefinitionPropertiesCodeGenerator {
 		// ReflectionUtils#findField searches recursively in the type hierarchy
 		Class<?> searchType = beanDefinition.getTargetType();
 		while (searchType != null && searchType != writeMethod.getDeclaringClass()) {
-			this.hints.reflection().registerType(searchType, MemberCategory.DECLARED_FIELDS);
+			this.hints.reflection().registerType(searchType, MemberCategory.ACCESS_DECLARED_FIELDS);
 			searchType = searchType.getSuperclass();
 		}
-		this.hints.reflection().registerType(writeMethod.getDeclaringClass(), MemberCategory.DECLARED_FIELDS);
+		this.hints.reflection().registerType(writeMethod.getDeclaringClass(), MemberCategory.ACCESS_DECLARED_FIELDS);
 	}
 
 	private void addQualifiers(CodeBlock.Builder code, RootBeanDefinition beanDefinition) {
@@ -270,6 +274,36 @@ class BeanDefinitionPropertiesCodeGenerator {
 				}
 				code.addStatement("$L.addQualifier(new $T($L))", BEAN_DEFINITION_VARIABLE,
 						AutowireCandidateQualifier.class, CodeBlock.join(arguments, ", "));
+			}
+		}
+	}
+
+	private void addMethodOverrides(CodeBlock.Builder code, RootBeanDefinition beanDefinition) {
+		if (beanDefinition.hasMethodOverrides()) {
+			for (MethodOverride methodOverride : beanDefinition.getMethodOverrides().getOverrides()) {
+				if (methodOverride instanceof LookupOverride lookupOverride) {
+					Collection<CodeBlock> arguments = new ArrayList<>();
+					arguments.add(CodeBlock.of("$S", lookupOverride.getMethodName()));
+					arguments.add(CodeBlock.of("$S", lookupOverride.getBeanName()));
+					code.addStatement("$L.getMethodOverrides().addOverride(new $T($L))", BEAN_DEFINITION_VARIABLE,
+							LookupOverride.class, CodeBlock.join(arguments, ", "));
+				}
+				else if (methodOverride instanceof ReplaceOverride replaceOverride) {
+					Collection<CodeBlock> arguments = new ArrayList<>();
+					arguments.add(CodeBlock.of("$S", replaceOverride.getMethodName()));
+					arguments.add(CodeBlock.of("$S", replaceOverride.getMethodReplacerBeanName()));
+					List<String> typeIdentifiers = replaceOverride.getTypeIdentifiers();
+					if (!typeIdentifiers.isEmpty()) {
+						arguments.add(CodeBlock.of("java.util.List.of($S)",
+								StringUtils.collectionToDelimitedString(typeIdentifiers, ", ")));
+					}
+					code.addStatement("$L.getMethodOverrides().addOverride(new $T($L))", BEAN_DEFINITION_VARIABLE,
+							ReplaceOverride.class, CodeBlock.join(arguments, ", "));
+				}
+				else {
+					throw new UnsupportedOperationException("Unexpected MethodOverride subclass: " +
+							methodOverride.getClass().getName());
+				}
 			}
 		}
 	}
@@ -343,7 +377,7 @@ class BeanDefinitionPropertiesCodeGenerator {
 	}
 
 	private <B extends BeanDefinition, T> void addStatementForValue(
-			CodeBlock.Builder code, BeanDefinition beanDefinition, Function<B, T> getter, String format) {
+			CodeBlock.Builder code, BeanDefinition beanDefinition, Function<B, @Nullable T> getter, String format) {
 
 		addStatementForValue(code, beanDefinition, getter,
 				(defaultValue, actualValue) -> !Objects.equals(defaultValue, actualValue), format);
@@ -351,14 +385,14 @@ class BeanDefinitionPropertiesCodeGenerator {
 
 	private <B extends BeanDefinition, T> void addStatementForValue(
 			CodeBlock.Builder code, BeanDefinition beanDefinition,
-			Function<B, T> getter, BiPredicate<T, T> filter, String format) {
+			Function<B, @Nullable T> getter, BiPredicate<T, T> filter, String format) {
 
 		addStatementForValue(code, beanDefinition, getter, filter, format, actualValue -> actualValue);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	private <B extends BeanDefinition, T> void addStatementForValue(
-			CodeBlock.Builder code, BeanDefinition beanDefinition, Function<B, T> getter,
+			CodeBlock.Builder code, BeanDefinition beanDefinition, Function<B, @Nullable T> getter,
 			BiPredicate<T, T> filter, String format, Function<T, Object> formatter) {
 
 		T defaultValue = getter.apply((B) DEFAULT_BEAN_DEFINITION);
@@ -395,8 +429,7 @@ class BeanDefinitionPropertiesCodeGenerator {
 			threadLocal.get().pop();
 		}
 
-		@Nullable
-		static String peek() {
+		static @Nullable String peek() {
 			String value = threadLocal.get().peek();
 			return ("".equals(value) ? null : value);
 		}

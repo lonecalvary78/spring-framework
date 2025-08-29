@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ import javax.naming.OperationNotSupportedException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -213,8 +213,7 @@ public class SimpleNamingContext implements Context {
 	}
 
 	@Override
-	@Nullable
-	public Object addToEnvironment(String propName, Object propVal) {
+	public @Nullable Object addToEnvironment(String propName, Object propVal) {
 		return this.environment.put(propName, propVal);
 	}
 

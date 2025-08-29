@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.messaging.converter;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -39,13 +40,12 @@ public interface SmartMessageConverter extends MessageConverter {
 	 * @param message the input message
 	 * @param targetClass the target class for the conversion
 	 * @param conversionHint an extra object passed to the {@link MessageConverter},
-	 * for example, the associated {@code MethodParameter} (may be {@code null}}
+	 * for example, the associated {@code MethodParameter} (may be {@code null})
 	 * @return the result of the conversion, or {@code null} if the converter cannot
 	 * perform the conversion
 	 * @see #fromMessage(Message, Class)
 	 */
-	@Nullable
-	Object fromMessage(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint);
+	@Nullable Object fromMessage(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint);
 
 	/**
 	 * A variant of {@link #toMessage(Object, MessageHeaders)} which takes an extra
@@ -54,12 +54,11 @@ public interface SmartMessageConverter extends MessageConverter {
 	 * @param payload the Object to convert
 	 * @param headers optional headers for the message (may be {@code null})
 	 * @param conversionHint an extra object passed to the {@link MessageConverter},
-	 * for example, the associated {@code MethodParameter} (may be {@code null}}
+	 * for example, the associated {@code MethodParameter} (may be {@code null})
 	 * @return the new message, or {@code null} if the converter does not support the
 	 * Object type or the target media type
 	 * @see #toMessage(Object, MessageHeaders)
 	 */
-	@Nullable
-	Message<?> toMessage(Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint);
+	@Nullable Message<?> toMessage(Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint);
 
 }

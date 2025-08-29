@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -39,7 +40,6 @@ import org.springframework.core.type.filter.AspectJTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.RegexPatternTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -79,8 +79,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 
 
 	@Override
-	@Nullable
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
+	public @Nullable BeanDefinition parse(Element element, ParserContext parserContext) {
 		String basePackage = element.getAttribute(BASE_PACKAGE_ATTRIBUTE);
 		basePackage = parserContext.getReaderContext().getEnvironment().resolvePlaceholders(basePackage);
 		String[] basePackages = StringUtils.tokenizeToStringArray(basePackage,

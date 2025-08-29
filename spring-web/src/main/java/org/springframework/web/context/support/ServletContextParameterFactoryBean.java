@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.web.context.support;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.lang.Nullable;
 import org.springframework.web.context.ServletContextAware;
 
 /**
@@ -39,11 +39,9 @@ import org.springframework.web.context.ServletContextAware;
  */
 public class ServletContextParameterFactoryBean implements FactoryBean<String>, ServletContextAware {
 
-	@Nullable
-	private String initParamName;
+	private @Nullable String initParamName;
 
-	@Nullable
-	private String paramValue;
+	private @Nullable String paramValue;
 
 
 	/**
@@ -66,8 +64,7 @@ public class ServletContextParameterFactoryBean implements FactoryBean<String>, 
 
 
 	@Override
-	@Nullable
-	public String getObject() {
+	public @Nullable String getObject() {
 		return this.paramValue;
 	}
 

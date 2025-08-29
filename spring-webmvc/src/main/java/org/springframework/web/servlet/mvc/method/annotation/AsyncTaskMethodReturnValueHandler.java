@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.web.servlet.mvc.method.annotation;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.async.WebAsyncTask;
 import org.springframework.web.context.request.async.WebAsyncUtils;
@@ -33,8 +34,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  */
 public class AsyncTaskMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
-	@Nullable
-	private final BeanFactory beanFactory;
+	private final @Nullable BeanFactory beanFactory;
 
 
 	public AsyncTaskMethodReturnValueHandler(@Nullable BeanFactory beanFactory) {

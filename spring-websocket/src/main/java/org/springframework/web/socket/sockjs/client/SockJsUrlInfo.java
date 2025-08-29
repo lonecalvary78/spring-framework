@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.web.socket.sockjs.client;
 import java.net.URI;
 import java.util.UUID;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.IdGenerator;
 import org.springframework.util.JdkIdGenerator;
 import org.springframework.util.StringUtils;
@@ -42,14 +43,11 @@ public class SockJsUrlInfo {
 
 	private final URI sockJsUrl;
 
-	@Nullable
-	private String serverId;
+	private @Nullable String serverId;
 
-	@Nullable
-	private String sessionId;
+	private @Nullable String sessionId;
 
-	@Nullable
-	private UUID uuid;
+	private @Nullable UUID uuid;
 
 
 	/**

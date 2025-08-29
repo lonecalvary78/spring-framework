@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.sql.ShardingKey;
 
 import javax.sql.DataSource;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An adapter for a target {@link DataSource}, designed to apply sharding keys, if specified,
@@ -53,8 +53,7 @@ import org.springframework.lang.Nullable;
  */
 public class ShardingKeyDataSourceAdapter extends DelegatingDataSource {
 
-	@Nullable
-	private ShardingKeyProvider shardingkeyProvider;
+	private @Nullable ShardingKeyProvider shardingkeyProvider;
 
 
 	/**

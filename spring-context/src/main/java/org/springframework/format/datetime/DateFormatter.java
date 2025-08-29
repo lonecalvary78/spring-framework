@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.format.Formatter;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -76,25 +77,19 @@ public class DateFormatter implements Formatter<Date> {
 	}
 
 
-	@Nullable
-	private Object source;
+	private @Nullable Object source;
 
-	@Nullable
-	private String pattern;
+	private @Nullable String pattern;
 
-	@Nullable
-	private String[] fallbackPatterns;
+	private String @Nullable [] fallbackPatterns;
 
 	private int style = DateFormat.DEFAULT;
 
-	@Nullable
-	private String stylePattern;
+	private @Nullable String stylePattern;
 
-	@Nullable
-	private ISO iso;
+	private @Nullable ISO iso;
 
-	@Nullable
-	private TimeZone timeZone;
+	private @Nullable TimeZone timeZone;
 
 	private boolean lenient = false;
 

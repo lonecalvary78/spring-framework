@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.function.BiConsumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -49,7 +50,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.core.metrics.ApplicationStartup;
 import org.springframework.core.metrics.StartupStep;
-import org.springframework.lang.Nullable;
 
 /**
  * Delegate for AbstractApplicationContext's post-processor handling.
@@ -493,8 +493,8 @@ final class PostProcessorRegistrationDelegate {
 
 		private void postProcessValue(List<MergedBeanDefinitionPostProcessor> postProcessors,
 				BeanDefinitionValueResolver valueResolver, @Nullable Object value) {
-			if (value instanceof BeanDefinitionHolder bdh
-					&& bdh.getBeanDefinition() instanceof AbstractBeanDefinition innerBd) {
+			if (value instanceof BeanDefinitionHolder bdh &&
+					bdh.getBeanDefinition() instanceof AbstractBeanDefinition innerBd) {
 
 				Class<?> innerBeanType = resolveBeanType(innerBd);
 				resolveInnerBeanDefinition(valueResolver, innerBd, (innerBeanName, innerBeanDefinition)
@@ -523,8 +523,7 @@ final class PostProcessorRegistrationDelegate {
 			try {
 				typedStringValue.resolveTargetType(this.beanFactory.getBeanClassLoader());
 			}
-			catch (ClassNotFoundException ex) {
-				// ignore
+			catch (ClassNotFoundException ignored) {
 			}
 		}
 

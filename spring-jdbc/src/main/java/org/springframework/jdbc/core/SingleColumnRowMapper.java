@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,13 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.jdbc.IncorrectResultSetColumnCountException;
 import org.springframework.jdbc.support.JdbcUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;
 
@@ -45,13 +46,11 @@ import org.springframework.util.NumberUtils;
  * @see JdbcTemplate#queryForList(String, Class)
  * @see JdbcTemplate#queryForObject(String, Class)
  */
-public class SingleColumnRowMapper<T> implements RowMapper<T> {
+public class SingleColumnRowMapper<T> implements RowMapper<@Nullable T> {
 
-	@Nullable
-	private Class<?> requiredType;
+	private @Nullable Class<?> requiredType;
 
-	@Nullable
-	private ConversionService conversionService = DefaultConversionService.getSharedInstance();
+	private @Nullable ConversionService conversionService = DefaultConversionService.getSharedInstance();
 
 
 	/**
@@ -71,6 +70,19 @@ public class SingleColumnRowMapper<T> implements RowMapper<T> {
 		}
 	}
 
+	/**
+	 * Create a new {@code SingleColumnRowMapper}.
+	 * @param requiredType the type that each result object is expected to match
+	 * @param conversionService a {@link ConversionService} for converting a fetched value
+	 * @since 7.0
+	 */
+	public SingleColumnRowMapper(Class<T> requiredType, @Nullable ConversionService conversionService) {
+		if (requiredType != Object.class) {
+			setRequiredType(requiredType);
+		}
+		setConversionService(conversionService);
+	}
+
 
 	/**
 	 * Set the type that each result object is expected to match.
@@ -85,11 +97,12 @@ public class SingleColumnRowMapper<T> implements RowMapper<T> {
 	 * Set a {@link ConversionService} for converting a fetched value.
 	 * <p>Default is the {@link DefaultConversionService}.
 	 * @since 5.0.4
-	 * @see DefaultConversionService#getSharedInstance
+	 * @see DefaultConversionService#getSharedInstance()
 	 */
 	public void setConversionService(@Nullable ConversionService conversionService) {
 		this.conversionService = conversionService;
 	}
+
 
 	/**
 	 * Extract a value for the single column in the current row.
@@ -102,8 +115,7 @@ public class SingleColumnRowMapper<T> implements RowMapper<T> {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	@Nullable
-	public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+	public @Nullable T mapRow(ResultSet rs, int rowNum) throws SQLException {
 		// Validate column count.
 		ResultSetMetaData rsmd = rs.getMetaData();
 		int nrOfColumns = rsmd.getColumnCount();
@@ -144,8 +156,7 @@ public class SingleColumnRowMapper<T> implements RowMapper<T> {
 	 * @see org.springframework.jdbc.support.JdbcUtils#getResultSetValue(java.sql.ResultSet, int, Class)
 	 * @see #getColumnValue(java.sql.ResultSet, int)
 	 */
-	@Nullable
-	protected Object getColumnValue(ResultSet rs, int index, @Nullable Class<?> requiredType) throws SQLException {
+	protected @Nullable Object getColumnValue(ResultSet rs, int index, @Nullable Class<?> requiredType) throws SQLException {
 		if (requiredType != null) {
 			return JdbcUtils.getResultSetValue(rs, index, requiredType);
 		}
@@ -169,8 +180,7 @@ public class SingleColumnRowMapper<T> implements RowMapper<T> {
 	 * @throws SQLException in case of extraction failure
 	 * @see org.springframework.jdbc.support.JdbcUtils#getResultSetValue(java.sql.ResultSet, int)
 	 */
-	@Nullable
-	protected Object getColumnValue(ResultSet rs, int index) throws SQLException {
+	protected @Nullable Object getColumnValue(ResultSet rs, int index) throws SQLException {
 		return JdbcUtils.getResultSetValue(rs, index);
 	}
 
@@ -190,8 +200,7 @@ public class SingleColumnRowMapper<T> implements RowMapper<T> {
 	 * @see #getColumnValue(java.sql.ResultSet, int, Class)
 	 */
 	@SuppressWarnings("unchecked")
-	@Nullable
-	protected Object convertValueToRequiredType(Object value, Class<?> requiredType) {
+	protected @Nullable Object convertValueToRequiredType(Object value, Class<?> requiredType) {
 		if (String.class == requiredType) {
 			return value.toString();
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link Iterator} that filters out values that do not match a predicate.
@@ -37,8 +37,7 @@ final class FilteredIterator<E> implements Iterator<E> {
 
 	private final Predicate<E> filter;
 
-	@Nullable
-	private E next;
+	private @Nullable E next;
 
 	private boolean hasNext;
 

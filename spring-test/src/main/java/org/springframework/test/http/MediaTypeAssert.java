@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.error.BasicErrorMessageFactory;
 import org.assertj.core.internal.Failures;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -103,7 +103,6 @@ public class MediaTypeAssert extends AbstractObjectAssert<MediaTypeAssert, Media
 	}
 
 
-	@SuppressWarnings("NullAway")
 	private MediaType parseMediaType(String value) {
 		try {
 			return MediaType.parseMediaType(value);

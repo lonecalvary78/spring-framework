@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Simple utility methods for file and stream copying. All copy methods use a block size
@@ -229,8 +229,7 @@ public abstract class FileCopyUtils {
 		try {
 			closeable.close();
 		}
-		catch (IOException ex) {
-			// ignore
+		catch (IOException ignored) {
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ import java.lang.reflect.Field;
 
 import org.easymock.EasyMock;
 import org.easymock.MockType;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.SingletonBeanRegistry;
 import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.bean.override.BeanOverrideHandler;
 
 import static org.springframework.test.context.bean.override.BeanOverrideStrategy.REPLACE_OR_CREATE;
@@ -43,7 +43,7 @@ class EasyMockBeanOverrideHandler extends BeanOverrideHandler {
 	EasyMockBeanOverrideHandler(Field field, Class<?> typeToOverride, @Nullable String beanName,
 			MockType mockType) {
 
-		super(field, ResolvableType.forClass(typeToOverride), beanName, REPLACE_OR_CREATE);
+		super(field, ResolvableType.forClass(typeToOverride), beanName, "", REPLACE_OR_CREATE);
 		this.mockType = mockType;
 	}
 

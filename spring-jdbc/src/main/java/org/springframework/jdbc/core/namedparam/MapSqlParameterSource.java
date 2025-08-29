@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jdbc.core.SqlParameterValue;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -165,8 +165,7 @@ public class MapSqlParameterSource extends AbstractSqlParameterSource {
 	}
 
 	@Override
-	@Nullable
-	public Object getValue(String paramName) {
+	public @Nullable Object getValue(String paramName) {
 		if (!hasValue(paramName)) {
 			throw new IllegalArgumentException("No value registered for key '" + paramName + "'");
 		}
@@ -174,7 +173,6 @@ public class MapSqlParameterSource extends AbstractSqlParameterSource {
 	}
 
 	@Override
-	@NonNull
 	public String[] getParameterNames() {
 		return StringUtils.toStringArray(this.values.keySet());
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -122,8 +123,7 @@ class HtmlCharacterEntityReferences {
 	/**
 	 * Return the reference mapped to the given character, or {@code null} if none found.
 	 */
-	@Nullable
-	public String convertToReference(char character) {
+	public @Nullable String convertToReference(char character) {
 		return convertToReference(character, WebUtils.DEFAULT_CHARACTER_ENCODING);
 	}
 
@@ -131,8 +131,7 @@ class HtmlCharacterEntityReferences {
 	 * Return the reference mapped to the given character, or {@code null} if none found.
 	 * @since 4.1.2
 	 */
-	@Nullable
-	public String convertToReference(char character, String encoding) {
+	public @Nullable String convertToReference(char character, String encoding) {
 		if (encoding.startsWith("UTF-")){
 			return switch (character){
 				case '<' -> "&lt;";

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import java.util.Optional;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.GetExchange;
 
@@ -54,6 +54,7 @@ class RequestBodyArgumentResolverTests {
 		this.service.execute(body);
 
 		assertThat(getBodyValue()).isEqualTo(body);
+		assertThat(getBodyValueType()).isEqualTo(new ParameterizedTypeReference<String>() {});
 		assertThat(getPublisherBody()).isNull();
 	}
 
@@ -168,18 +169,19 @@ class RequestBodyArgumentResolverTests {
 	}
 
 
-	@Nullable
-	private Object getBodyValue() {
+	private @Nullable Object getBodyValue() {
 		return getReactiveRequestValues().getBodyValue();
 	}
 
-	@Nullable
-	private Publisher<?> getPublisherBody() {
+	private @Nullable ParameterizedTypeReference<?> getBodyValueType() {
+		return getReactiveRequestValues().getBodyValueType();
+	}
+
+	private @Nullable Publisher<?> getPublisherBody() {
 		return getReactiveRequestValues().getBodyPublisher();
 	}
 
-	@Nullable
-	private ParameterizedTypeReference<?> getBodyElementType() {
+	private @Nullable ParameterizedTypeReference<?> getBodyElementType() {
 		return getReactiveRequestValues().getBodyPublisherElementType();
 	}
 

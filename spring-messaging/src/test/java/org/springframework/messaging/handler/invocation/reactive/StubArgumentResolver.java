@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package org.springframework.messaging.handler.invocation.reactive;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -34,8 +34,7 @@ public class StubArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private final Class<?> valueType;
 
-	@Nullable
-	private final Object value;
+	private final @Nullable Object value;
 
 	private List<MethodParameter> resolvedParameters = new ArrayList<>();
 

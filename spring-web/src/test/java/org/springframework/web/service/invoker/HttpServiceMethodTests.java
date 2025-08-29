@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Optional;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,7 +39,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
@@ -198,12 +198,12 @@ class HttpServiceMethodTests {
 
 	@Test
 	void typeAndMethodAnnotatedService() {
-		HttpServiceProxyFactory proxyFactory = HttpServiceProxyFactory.builder()
-			.exchangeAdapter(this.client)
-			.embeddedValueResolver(value -> (value.equals("${baseUrl}") ? "/base" : value))
-			.build();
 
-		MethodLevelAnnotatedService service = proxyFactory.createClient(TypeAndMethodLevelAnnotatedService.class);
+		MethodLevelAnnotatedService service = HttpServiceProxyFactory.builder()
+				.exchangeAdapter(this.client)
+				.embeddedValueResolver(value -> (value.equals("${baseUrl}") ? "/base" : value))
+				.build()
+				.createClient(TypeAndMethodLevelAnnotatedService.class);
 
 		service.performGet();
 
@@ -220,6 +220,19 @@ class HttpServiceMethodTests {
 		assertThat(requestValues.getUriTemplate()).isEqualTo("/base/url");
 		assertThat(requestValues.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_JSON);
 		assertThat(requestValues.getHeaders().getAccept()).containsOnly(MediaType.APPLICATION_JSON);
+	}
+
+	@Test
+	void httpRequestValuesProcessor() {
+
+		HttpServiceProxyFactory.builder()
+				.exchangeAdapter(this.client)
+				.httpRequestValuesProcessor((m, p, a, builder) -> builder.addAttribute("foo", "a"))
+				.build()
+				.createClient(Service.class)
+				.execute();
+
+		assertThat(this.client.getRequestValues().getAttributes().get("foo")).isEqualTo("a");
 	}
 
 	@Test  // gh-32049
@@ -348,8 +361,10 @@ class HttpServiceMethodTests {
 		@PostExchange(url = "/url", contentType = APPLICATION_JSON_VALUE, accept = APPLICATION_JSON_VALUE)
 		void performPost();
 
-		@HttpExchange(contentType = APPLICATION_JSON_VALUE, headers = {"CustomHeader=a,b, c",
-				"Content-Type=" + APPLICATION_NDJSON_VALUE}, method = "GET")
+		@HttpExchange(
+				method = "GET",
+				contentType = APPLICATION_JSON_VALUE,
+				headers = {"CustomHeader=a,b, c", "Content-Type=" + APPLICATION_NDJSON_VALUE})
 		void performGetWithHeaders();
 
 	}

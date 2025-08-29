@@ -7,7 +7,6 @@ The Spring Framework provides a WebSocket API that you can use to write client- 
 server-side applications that handle WebSocket messages.
 
 
-
 [[websocket-server-handler]]
 == `WebSocketHandler`
 [.small]#xref:web/webflux-websocket.adoc#webflux-websocket-server-handler[See equivalent in the Reactive stack]#
@@ -34,7 +33,6 @@ xref:web/websocket/stomp.adoc[STOMP] messaging, the application must synchronize
 since the underlying standard WebSocket session (JSR-356) does not allow concurrent
 sending. One option is to wrap the `WebSocketSession` with
 {spring-framework-api}/web/socket/handler/ConcurrentWebSocketSessionDecorator.html[`ConcurrentWebSocketSessionDecorator`].
-
 
 
 [[websocket-server-handshake]]
@@ -67,7 +65,6 @@ exceptions that arise from any `WebSocketHandler` method and closes the WebSocke
 session with status `1011`, which indicates a server error.
 
 
-
 [[websocket-server-deployment]]
 == Deployment
 
@@ -85,10 +82,7 @@ for all HTTP processing -- including WebSocket handshake and all other HTTP
 requests -- such as Spring MVC's `DispatcherServlet`.
 
 This is a significant limitation of JSR-356 that Spring's WebSocket support addresses with
-server-specific `RequestUpgradeStrategy` implementations even when running in a JSR-356 runtime.
-Such strategies currently exist for Tomcat, Jetty, GlassFish, WebLogic, WebSphere, and Undertow
-(and WildFly). As of Jakarta WebSocket 2.1, a standard request upgrade strategy is available
-which Spring chooses on Jakarta EE 10 based web containers such as Tomcat 10.1 and Jetty 12.
+a standard `RequestUpgradeStrategy` implementation when running in a WebSocket API 2.1+ runtime.
 
 A secondary consideration is that Servlet containers with JSR-356 support are expected
 to perform a `ServletContainerInitializer` (SCI) scan that can slow down application
@@ -132,7 +126,6 @@ Java initialization API. The following example shows how to do so:
 ----
 
 
-
 [[websocket-server-runtime-configuration]]
 == Configuring the Server
 [.small]#xref:web/webflux-websocket.adoc#webflux-websocket-server-config[See equivalent in the Reactive stack]#
@@ -156,7 +149,6 @@ include-code::./JettyWebSocketConfiguration[tag=snippet,indent=0]
 TIP: When using STOMP over WebSocket, you will also need to configure
 xref:web/websocket/stomp/server-config.adoc[STOMP WebSocket transport]
 properties.
-
 
 
 [[websocket-server-allowed-origins]]

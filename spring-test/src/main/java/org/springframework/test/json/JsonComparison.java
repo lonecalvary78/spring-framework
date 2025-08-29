@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.test.json;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A comparison of two JSON strings as returned from a {@link JsonComparator}.
@@ -28,8 +28,7 @@ public final class JsonComparison {
 
 	private final Result result;
 
-	@Nullable
-	private final String message;
+	private final @Nullable String message;
 
 
 	private JsonComparison(Result result, @Nullable String message) {
@@ -66,8 +65,7 @@ public final class JsonComparison {
 	/**
 	 * Return a message describing the comparison.
 	 */
-	@Nullable
-	public String getMessage() {
+	public @Nullable String getMessage() {
 		return this.message;
 	}
 

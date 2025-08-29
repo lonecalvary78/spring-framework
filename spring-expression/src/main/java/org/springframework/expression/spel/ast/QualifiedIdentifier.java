@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.springframework.expression.spel.ast;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.TypedValue;
 import org.springframework.expression.spel.ExpressionState;
-import org.springframework.lang.Nullable;
 
 /**
  * Represents a dot separated sequence of strings that indicate a package qualified type
@@ -32,8 +33,7 @@ import org.springframework.lang.Nullable;
  */
 public class QualifiedIdentifier extends SpelNodeImpl {
 
-	@Nullable
-	private TypedValue value;
+	private @Nullable TypedValue value;
 
 
 	public QualifiedIdentifier(int startPos, int endPos, SpelNodeImpl... operands) {

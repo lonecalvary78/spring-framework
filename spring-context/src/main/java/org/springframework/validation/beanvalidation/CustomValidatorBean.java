@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorContext;
 import jakarta.validation.ValidatorFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 
 /**
  * Configurable bean class that exposes a specific JSR-303 Validator
@@ -36,14 +36,11 @@ import org.springframework.lang.Nullable;
  */
 public class CustomValidatorBean extends SpringValidatorAdapter implements Validator, InitializingBean {
 
-	@Nullable
-	private ValidatorFactory validatorFactory;
+	private @Nullable ValidatorFactory validatorFactory;
 
-	@Nullable
-	private MessageInterpolator messageInterpolator;
+	private @Nullable MessageInterpolator messageInterpolator;
 
-	@Nullable
-	private TraversableResolver traversableResolver;
+	private @Nullable TraversableResolver traversableResolver;
 
 
 	/**

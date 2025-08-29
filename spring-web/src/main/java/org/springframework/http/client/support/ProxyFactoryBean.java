@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketAddress;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -37,13 +38,11 @@ public class ProxyFactoryBean implements FactoryBean<Proxy>, InitializingBean {
 
 	private Proxy.Type type = Proxy.Type.HTTP;
 
-	@Nullable
-	private String hostname;
+	private @Nullable String hostname;
 
 	private int port = -1;
 
-	@Nullable
-	private Proxy proxy;
+	private @Nullable Proxy proxy;
 
 
 	/**
@@ -83,8 +82,7 @@ public class ProxyFactoryBean implements FactoryBean<Proxy>, InitializingBean {
 
 
 	@Override
-	@Nullable
-	public Proxy getObject() {
+	public @Nullable Proxy getObject() {
 		return this.proxy;
 	}
 

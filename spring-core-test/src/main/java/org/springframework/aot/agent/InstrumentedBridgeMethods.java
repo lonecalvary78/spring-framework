@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Instrumented version of JDK methods to be used by bytecode rewritten by the {@link RuntimeHintsAgent}.
@@ -44,7 +44,7 @@ import org.springframework.lang.Nullable;
  * @deprecated This class should only be used by the runtime-hints agent when instrumenting bytecode
  * and is not considered public API.
  */
-@Deprecated
+@Deprecated(since = "6.0")
 public abstract class InstrumentedBridgeMethods {
 
 	private InstrumentedBridgeMethods() {
@@ -232,8 +232,7 @@ public abstract class InstrumentedBridgeMethods {
 		return result;
 	}
 
-	@Nullable
-	public static URL classgetResource(Class<?> clazz, String name) {
+	public static @Nullable URL classgetResource(Class<?> clazz, String name) {
 		URL result = clazz.getResource(name);
 		RecordedInvocation invocation = RecordedInvocation.of(InstrumentedMethod.CLASS_GETRESOURCE)
 				.onInstance(clazz).withArgument(name).returnValue(result).build();
@@ -241,8 +240,7 @@ public abstract class InstrumentedBridgeMethods {
 		return result;
 	}
 
-	@Nullable
-	public static InputStream classgetResourceAsStream(Class<?> clazz, String name) {
+	public static @Nullable InputStream classgetResourceAsStream(Class<?> clazz, String name) {
 		InputStream result = clazz.getResourceAsStream(name);
 		RecordedInvocation invocation = RecordedInvocation.of(InstrumentedMethod.CLASS_GETRESOURCEASSTREAM)
 				.onInstance(clazz).withArgument(name).returnValue(result).build();
@@ -267,8 +265,7 @@ public abstract class InstrumentedBridgeMethods {
 		return result;
 	}
 
-	@Nullable
-	public static URL classloadergetResource(ClassLoader classLoader, String name) {
+	public static @Nullable URL classloadergetResource(ClassLoader classLoader, String name) {
 		URL result = classLoader.getResource(name);
 		RecordedInvocation invocation = RecordedInvocation.of(InstrumentedMethod.CLASSLOADER_GETRESOURCE)
 				.onInstance(classLoader).withArgument(name).returnValue(result).build();
@@ -276,8 +273,7 @@ public abstract class InstrumentedBridgeMethods {
 		return result;
 	}
 
-	@Nullable
-	public static InputStream classloadergetResourceAsStream(ClassLoader classLoader, String name) {
+	public static @Nullable InputStream classloadergetResourceAsStream(ClassLoader classLoader, String name) {
 		InputStream result = classLoader.getResourceAsStream(name);
 		RecordedInvocation invocation = RecordedInvocation.of(InstrumentedMethod.CLASSLOADER_GETRESOURCEASSTREAM)
 				.onInstance(classLoader).withArgument(name).returnValue(result).build();
@@ -338,8 +334,8 @@ public abstract class InstrumentedBridgeMethods {
 		Object result = null;
 		boolean accessibilityChanged = false;
 		try {
-			if (!Modifier.isPublic(method.getModifiers())
-				|| !Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
+			if (!Modifier.isPublic(method.getModifiers()) ||
+					!Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
 				method.setAccessible(true);
 				accessibilityChanged = true;
 			}

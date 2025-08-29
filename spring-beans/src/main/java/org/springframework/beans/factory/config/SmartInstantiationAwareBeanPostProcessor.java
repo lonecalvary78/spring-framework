@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.beans.factory.config;
 
 import java.lang.reflect.Constructor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
-import org.springframework.lang.Nullable;
 
 /**
  * Extension of the {@link InstantiationAwareBeanPostProcessor} interface,
@@ -46,8 +47,7 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 * @return the type of the bean, or {@code null} if not predictable
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 */
-	@Nullable
-	default Class<?> predictBeanType(Class<?> beanClass, String beanName) throws BeansException {
+	default @Nullable Class<?> predictBeanType(Class<?> beanClass, String beanName) throws BeansException {
 		return null;
 	}
 
@@ -75,8 +75,7 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 * @return the candidate constructors, or {@code null} if none specified
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 */
-	@Nullable
-	default Constructor<?>[] determineCandidateConstructors(Class<?> beanClass, String beanName)
+	default Constructor<?> @Nullable [] determineCandidateConstructors(Class<?> beanClass, String beanName)
 			throws BeansException {
 
 		return null;

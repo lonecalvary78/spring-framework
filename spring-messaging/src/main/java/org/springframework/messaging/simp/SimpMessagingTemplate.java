@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.messaging.simp;
 
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -53,8 +54,7 @@ public class SimpMessagingTemplate extends AbstractMessageSendingTemplate<String
 
 	private volatile long sendTimeout = -1;
 
-	@Nullable
-	private MessageHeaderInitializer headerInitializer;
+	private @Nullable MessageHeaderInitializer headerInitializer;
 
 
 	/**
@@ -118,8 +118,7 @@ public class SimpMessagingTemplate extends AbstractMessageSendingTemplate<String
 	/**
 	 * Return the configured header initializer.
 	 */
-	@Nullable
-	public MessageHeaderInitializer getHeaderInitializer() {
+	public @Nullable MessageHeaderInitializer getHeaderInitializer() {
 		return this.headerInitializer;
 	}
 

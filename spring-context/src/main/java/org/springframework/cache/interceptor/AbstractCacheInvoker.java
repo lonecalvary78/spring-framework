@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.Cache;
-import org.springframework.lang.Nullable;
 import org.springframework.util.function.SingletonSupplier;
 
 /**
@@ -72,8 +73,7 @@ public abstract class AbstractCacheInvoker {
 	 * miss in case of error.
 	 * @see Cache#get(Object)
 	 */
-	@Nullable
-	protected Cache.ValueWrapper doGet(Cache cache, Object key) {
+	protected Cache.@Nullable ValueWrapper doGet(Cache cache, Object key) {
 		try {
 			return cache.get(key);
 		}
@@ -91,8 +91,7 @@ public abstract class AbstractCacheInvoker {
 	 * @since 6.2
 	 * @see Cache#get(Object, Callable)
 	 */
-	@Nullable
-	protected <T> T doGet(Cache cache, Object key, Callable<T> valueLoader) {
+	protected <T> @Nullable T doGet(Cache cache, Object key, Callable<T> valueLoader) {
 		try {
 			return cache.get(key, valueLoader);
 		}
@@ -105,7 +104,7 @@ public abstract class AbstractCacheInvoker {
 				return valueLoader.call();
 			}
 			catch (Exception ex2) {
-				throw new RuntimeException(ex2);
+				throw new Cache.ValueRetrievalException(key, valueLoader, ex);
 			}
 		}
 	}
@@ -119,20 +118,15 @@ public abstract class AbstractCacheInvoker {
 	 * @since 6.2
 	 * @see Cache#retrieve(Object)
 	 */
-	@Nullable
-	protected CompletableFuture<?> doRetrieve(Cache cache, Object key) {
+	protected @Nullable CompletableFuture<?> doRetrieve(Cache cache, Object key) {
 		try {
 			return cache.retrieve(key);
-		}
-		catch (Cache.ValueRetrievalException ex) {
-			throw ex;
 		}
 		catch (RuntimeException ex) {
 			getErrorHandler().handleCacheGetError(ex, cache, key);
 			return null;
 		}
 	}
-
 
 	/**
 	 * Execute {@link Cache#retrieve(Object, Supplier)} on the specified
@@ -145,9 +139,6 @@ public abstract class AbstractCacheInvoker {
 	protected <T> CompletableFuture<T> doRetrieve(Cache cache, Object key, Supplier<CompletableFuture<T>> valueLoader) {
 		try {
 			return cache.retrieve(key, valueLoader);
-		}
-		catch (Cache.ValueRetrievalException ex) {
-			throw ex;
 		}
 		catch (RuntimeException ex) {
 			getErrorHandler().handleCacheGetError(ex, cache, key);

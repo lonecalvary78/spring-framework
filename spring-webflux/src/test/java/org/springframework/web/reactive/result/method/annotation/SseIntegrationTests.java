@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -43,7 +44,6 @@ import org.springframework.http.client.reactive.JettyClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.server.reactive.HttpHandler;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,7 +57,6 @@ import org.springframework.web.testfixture.http.server.reactive.bootstrap.JettyC
 import org.springframework.web.testfixture.http.server.reactive.bootstrap.JettyHttpServer;
 import org.springframework.web.testfixture.http.server.reactive.bootstrap.ReactorHttpServer;
 import org.springframework.web.testfixture.http.server.reactive.bootstrap.TomcatHttpServer;
-import org.springframework.web.testfixture.http.server.reactive.bootstrap.UndertowHttpServer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -314,10 +313,7 @@ class SseIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 				args(new ReactorHttpServer(), new HttpComponentsClientHttpConnector()),
 				args(new TomcatHttpServer(), new ReactorClientHttpConnector()),
 				args(new TomcatHttpServer(), new JettyClientHttpConnector()),
-				args(new TomcatHttpServer(), new HttpComponentsClientHttpConnector()),
-				args(new UndertowHttpServer(), new ReactorClientHttpConnector()),
-				args(new UndertowHttpServer(), new JettyClientHttpConnector()),
-				args(new UndertowHttpServer(), new HttpComponentsClientHttpConnector())
+				args(new TomcatHttpServer(), new HttpComponentsClientHttpConnector())
 		);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.core.io;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A resolution strategy for protocol-specific resource handles.
@@ -40,7 +40,6 @@ public interface ProtocolResolver {
 	 * @return a corresponding {@code Resource} handle if the given location
 	 * matches this resolver's protocol, or {@code null} otherwise
 	 */
-	@Nullable
-	Resource resolve(String location, ResourceLoader resourceLoader);
+	@Nullable Resource resolve(String location, ResourceLoader resourceLoader);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.expression.spel.support;
 
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.ConversionException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -25,7 +27,6 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -76,8 +77,7 @@ public class StandardTypeConverter implements TypeConverter {
 	}
 
 	@Override
-	@Nullable
-	public Object convertValue(@Nullable Object value, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
+	public @Nullable Object convertValue(@Nullable Object value, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
 		try {
 			return this.conversionService.get().convert(value, sourceType, targetType);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import io.micrometer.context.ContextSnapshotFactory;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleEmitter;
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -48,7 +49,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.ContentNegotiationManagerFactoryBean;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -158,19 +158,6 @@ class ReactiveTypeHandlerTests {
 				.isEqualTo(MediaType.APPLICATION_NDJSON);
 	}
 
-	@SuppressWarnings("deprecation")
-	@Test
-	void findsConcreteStreamingMediaType_plainStreamingJsonFirst() {
-		final List<MediaType> accept = List.of(
-				MediaType.ALL,
-				MediaType.APPLICATION_STREAM_JSON,
-				MediaType.parseMediaType("application/*+x-ndjson"),
-				MediaType.parseMediaType("application/vnd.myapp.v1+x-ndjson"));
-
-		assertThat(ReactiveTypeHandler.findConcreteJsonStreamMediaType(accept))
-				.isEqualTo(MediaType.APPLICATION_STREAM_JSON);
-	}
-
 	@Test
 	void deferredResultSubscriberWithOneValue() throws Exception {
 
@@ -242,19 +229,22 @@ class ReactiveTypeHandlerTests {
 
 		// Media type from request
 		this.servletRequest.addHeader("Accept", "text/event-stream");
-		testSseResponse(true);
+		testSseResponse(true, null);
 
 		// Media type from "produces" attribute
 		Set<MediaType> types = Collections.singleton(MediaType.TEXT_EVENT_STREAM);
 		this.servletRequest.setAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE, types);
-		testSseResponse(true);
+		testSseResponse(true, null);
+
+		// Preset media type // gh-35130
+		testSseResponse(true, MediaType.TEXT_EVENT_STREAM);
 
 		// No media type preferences
-		testSseResponse(false);
+		testSseResponse(false, null);
 	}
 
-	private void testSseResponse(boolean expectSseEmitter) throws Exception {
-		ResponseBodyEmitter emitter = handleValue(Flux.empty(), Flux.class, forClass(String.class));
+	private void testSseResponse(boolean expectSseEmitter, @Nullable MediaType contentType) throws Exception {
+		ResponseBodyEmitter emitter = handleValue(Flux.empty(), Flux.class, forClass(String.class), contentType);
 		Object actual = emitter instanceof SseEmitter;
 		assertThat(actual).isEqualTo(expectSseEmitter);
 		resetRequest();
@@ -450,7 +440,7 @@ class ReactiveTypeHandlerTests {
 
 		try {
 			Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
-			ResponseBodyEmitter emitter = handler.handleValue(sink.asFlux(), returnType, mavContainer, this.webRequest);
+			ResponseBodyEmitter emitter = handler.handleValue(sink.asFlux(), returnType, null, mavContainer, this.webRequest);
 
 			ContextEmitterHandler emitterHandler = new ContextEmitterHandler();
 			emitter.initialize(emitterHandler);
@@ -497,9 +487,15 @@ class ReactiveTypeHandlerTests {
 	private ResponseBodyEmitter handleValue(Object returnValue, Class<?> asyncType,
 			ResolvableType genericType) throws Exception {
 
+		return handleValue(returnValue, asyncType, genericType, null);
+	}
+
+	private ResponseBodyEmitter handleValue(Object returnValue, Class<?> asyncType,
+			ResolvableType genericType, @Nullable MediaType contentType) throws Exception {
+
 		ModelAndViewContainer mavContainer = new ModelAndViewContainer();
 		MethodParameter returnType = on(TestController.class).resolveReturnType(asyncType, genericType);
-		return this.handler.handleValue(returnValue, returnType, mavContainer, this.webRequest);
+		return this.handler.handleValue(returnValue, returnType, contentType, mavContainer, this.webRequest);
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,16 @@ import java.util.stream.Collectors;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.framework.ReflectiveMethodInvocation;
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.MethodIntrospector;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.format.support.DefaultFormattingConversionService;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringValueResolver;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -58,16 +59,19 @@ public final class HttpServiceProxyFactory {
 
 	private final List<HttpServiceArgumentResolver> argumentResolvers;
 
-	@Nullable
-	private final StringValueResolver embeddedValueResolver;
+	private final HttpRequestValues.Processor requestValuesProcessor;
+
+	private final @Nullable StringValueResolver embeddedValueResolver;
 
 
 	private HttpServiceProxyFactory(
 			HttpExchangeAdapter exchangeAdapter, List<HttpServiceArgumentResolver> argumentResolvers,
+			List<HttpRequestValues.Processor> requestValuesProcessor,
 			@Nullable StringValueResolver embeddedValueResolver) {
 
 		this.exchangeAdapter = exchangeAdapter;
 		this.argumentResolvers = argumentResolvers;
+		this.requestValuesProcessor = new CompositeHttpRequestValuesProcessor(requestValuesProcessor);
 		this.embeddedValueResolver = embeddedValueResolver;
 	}
 
@@ -86,7 +90,14 @@ public final class HttpServiceProxyFactory {
 						.map(method -> createHttpServiceMethod(serviceType, method))
 						.toList();
 
-		return ProxyFactory.getProxy(serviceType, new HttpServiceMethodInterceptor(httpServiceMethods));
+		return getProxy(serviceType, httpServiceMethods);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <S> S getProxy(Class<S> serviceType, List<HttpServiceMethod> httpServiceMethods) {
+		MethodInterceptor interceptor = new HttpServiceMethodInterceptor(httpServiceMethods);
+		ProxyFactory factory = new ProxyFactory(serviceType, interceptor);
+		return (S) factory.getProxy(serviceType.getClassLoader());
 	}
 
 	private boolean isExchangeMethod(Method method) {
@@ -98,7 +109,8 @@ public final class HttpServiceProxyFactory {
 				"No argument resolvers: afterPropertiesSet was not called");
 
 		return new HttpServiceMethod(
-				method, serviceType, this.argumentResolvers, this.exchangeAdapter, this.embeddedValueResolver);
+				method, serviceType, this.argumentResolvers, this.requestValuesProcessor,
+				this.exchangeAdapter, this.embeddedValueResolver);
 	}
 
 
@@ -123,16 +135,17 @@ public final class HttpServiceProxyFactory {
 	 */
 	public static final class Builder {
 
-		@Nullable
-		private HttpExchangeAdapter exchangeAdapter;
+		private @Nullable HttpExchangeAdapter exchangeAdapter;
+
+		private Function<HttpExchangeAdapter, HttpExchangeAdapter> exchangeAdapterDecorator = Function.identity();
 
 		private final List<HttpServiceArgumentResolver> customArgumentResolvers = new ArrayList<>();
 
-		@Nullable
-		private ConversionService conversionService;
+		private @Nullable ConversionService conversionService;
 
-		@Nullable
-		private StringValueResolver embeddedValueResolver;
+		private final List<HttpRequestValues.Processor> requestValuesProcessors = new ArrayList<>();
+
+		private @Nullable StringValueResolver embeddedValueResolver;
 
 		private Builder() {
 		}
@@ -149,6 +162,17 @@ public final class HttpServiceProxyFactory {
 		}
 
 		/**
+		 * Provide a function to wrap the configured {@code HttpExchangeAdapter}.
+		 * @param decorator a client adapted to {@link HttpExchangeAdapter}
+		 * @return this same builder instance
+		 * @since 7.0
+		 */
+		public Builder exchangeAdapterDecorator(Function<HttpExchangeAdapter, HttpExchangeAdapter> decorator) {
+			this.exchangeAdapterDecorator = this.exchangeAdapterDecorator.andThen(decorator);
+			return this;
+		}
+
+		/**
 		 * Register a custom argument resolver, invoked ahead of default resolvers.
 		 * @param resolver the resolver to add
 		 * @return this same builder instance
@@ -161,11 +185,23 @@ public final class HttpServiceProxyFactory {
 		/**
 		 * Set the {@link ConversionService} to use where input values need to
 		 * be formatted as Strings.
-		 * <p>By default this is {@link DefaultFormattingConversionService}.
+		 * <p>By default, this is {@link DefaultFormattingConversionService}.
 		 * @return this same builder instance
 		 */
 		public Builder conversionService(ConversionService conversionService) {
 			this.conversionService = conversionService;
+			return this;
+		}
+
+		/**
+		 * Register an {@link HttpRequestValues} processor that can further
+		 * customize request values based on the method and all arguments.
+		 * @param processor the processor to add
+		 * @return this same builder instance
+		 * @since 7.0
+		 */
+		public Builder httpRequestValuesProcessor(HttpRequestValues.Processor processor) {
+			this.requestValuesProcessors.add(processor);
 			return this;
 		}
 
@@ -185,9 +221,11 @@ public final class HttpServiceProxyFactory {
 		 */
 		public HttpServiceProxyFactory build() {
 			Assert.notNull(this.exchangeAdapter, "HttpClientAdapter is required");
+			HttpExchangeAdapter adapterToUse = this.exchangeAdapterDecorator.apply(this.exchangeAdapter);
 
 			return new HttpServiceProxyFactory(
-					this.exchangeAdapter, initArgumentResolvers(), this.embeddedValueResolver);
+					adapterToUse, initArgumentResolvers(), this.requestValuesProcessors,
+					this.embeddedValueResolver);
 		}
 
 		@SuppressWarnings({"DataFlowIssue", "NullAway"})
@@ -233,12 +271,11 @@ public final class HttpServiceProxyFactory {
 		}
 
 		@Override
-		@Nullable
-		public Object invoke(MethodInvocation invocation) throws Throwable {
+		public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 			Method method = invocation.getMethod();
 			HttpServiceMethod httpServiceMethod = this.httpServiceMethods.get(method);
 			if (httpServiceMethod != null) {
-				Object[] arguments = KotlinDetector.isSuspendingFunction(method) ?
+				@Nullable Object[] arguments = KotlinDetector.isSuspendingFunction(method) ?
 						resolveCoroutinesArguments(invocation.getArguments()) : invocation.getArguments();
 				return httpServiceMethod.invoke(arguments);
 			}
@@ -251,12 +288,29 @@ public final class HttpServiceProxyFactory {
 			throw new IllegalStateException("Unexpected method invocation: " + method);
 		}
 
-		private static Object[] resolveCoroutinesArguments(Object[] args) {
+		private static Object[] resolveCoroutinesArguments(@Nullable Object[] args) {
 			Object[] functionArgs = new Object[args.length - 1];
 			System.arraycopy(args, 0, functionArgs, 0, args.length - 1);
 			return functionArgs;
 		}
+	}
 
+
+	/**
+	 * Processor that delegates to a list of other processors.
+	 */
+	private record CompositeHttpRequestValuesProcessor(List<HttpRequestValues.Processor> processors)
+			implements HttpRequestValues.Processor {
+
+		@Override
+		public void process(
+				Method method, MethodParameter[] parameters, @Nullable Object[] arguments,
+				HttpRequestValues.Builder builder) {
+
+			for (HttpRequestValues.Processor processor : this.processors) {
+				processor.process(method, parameters, arguments, builder);
+			}
+		}
 	}
 
 }

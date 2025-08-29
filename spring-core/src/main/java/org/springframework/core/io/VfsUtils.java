@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,8 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -184,13 +185,11 @@ public abstract class VfsUtils {
 		return invokeVfsMethod(VFS_METHOD_GET_ROOT_URL, null, url);
 	}
 
-	@Nullable
-	protected static Object doGetVisitorAttributes() {
+	protected static @Nullable Object doGetVisitorAttributes() {
 		return ReflectionUtils.getField(VISITOR_ATTRIBUTES_FIELD_RECURSE, null);
 	}
 
-	@Nullable
-	protected static String doGetPath(Object resource) {
+	protected static @Nullable String doGetPath(Object resource) {
 		return (String) ReflectionUtils.invokeMethod(VIRTUAL_FILE_METHOD_GET_PATH_NAME, resource);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.expression.spel;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.EvaluationException;
-import org.springframework.lang.Nullable;
 
 /**
  * Root exception for Spring EL related exceptions.
@@ -36,8 +37,7 @@ public class SpelEvaluationException extends EvaluationException {
 
 	private final SpelMessage message;
 
-	@Nullable
-	private final Object[] inserts;
+	private final @Nullable Object[] inserts;
 
 
 	public SpelEvaluationException(SpelMessage message, @Nullable Object... inserts) {
@@ -82,8 +82,7 @@ public class SpelEvaluationException extends EvaluationException {
 	/**
 	 * Return the message inserts.
 	 */
-	@Nullable
-	public Object[] getInserts() {
+	public @Nullable Object @Nullable [] getInserts() {
 		return this.inserts;
 	}
 

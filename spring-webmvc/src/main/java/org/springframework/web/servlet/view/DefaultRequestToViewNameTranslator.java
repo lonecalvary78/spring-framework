@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.web.servlet.view;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.util.ServletRequestPathUtils;
@@ -144,8 +144,7 @@ public class DefaultRequestToViewNameTranslator implements RequestToViewNameTran
 	 * @return the transformed path, with slashes and extensions stripped
 	 * if desired
 	 */
-	@Nullable
-	protected String transformPath(String lookupPath) {
+	protected @Nullable String transformPath(String lookupPath) {
 		String path = lookupPath;
 		if (this.stripLeadingSlash && path.startsWith(SLASH)) {
 			path = path.substring(1);

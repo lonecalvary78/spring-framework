@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
@@ -61,7 +62,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.SmartHttpMessageConverter;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -71,6 +71,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.accept.ApiVersionStrategy;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -97,17 +98,26 @@ class DefaultServerRequest implements ServerRequest {
 
 	private final List<HttpMessageConverter<?>> messageConverters;
 
+	private final @Nullable ApiVersionStrategy versionStrategy;
+
 	private final MultiValueMap<String, String> params;
 
 	private final Map<String, Object> attributes;
 
-	@Nullable
-	private MultiValueMap<String, Part> parts;
+	private @Nullable MultiValueMap<String, Part> parts;
 
 
 	public DefaultServerRequest(HttpServletRequest servletRequest, List<HttpMessageConverter<?>> messageConverters) {
+		this(servletRequest, messageConverters, null);
+	}
+
+	public DefaultServerRequest(
+			HttpServletRequest servletRequest, List<HttpMessageConverter<?>> messageConverters,
+			@Nullable ApiVersionStrategy versionStrategy) {
+
 		this.serverHttpRequest = new ServletServerHttpRequest(servletRequest);
 		this.messageConverters = List.copyOf(messageConverters);
+		this.versionStrategy = versionStrategy;
 
 		this.headers = new DefaultRequestHeaders(this.serverHttpRequest.getHeaders());
 		this.params = CollectionUtils.toMultiValueMap(new ServletParametersMap(servletRequest));
@@ -123,12 +133,6 @@ class DefaultServerRequest implements ServerRequest {
 	@Override
 	public HttpMethod method() {
 		return HttpMethod.valueOf(servletRequest().getMethod());
-	}
-
-	@Override
-	@Deprecated
-	public String methodName() {
-		return servletRequest().getMethod();
 	}
 
 	@Override
@@ -177,6 +181,11 @@ class DefaultServerRequest implements ServerRequest {
 	@Override
 	public List<HttpMessageConverter<?>> messageConverters() {
 		return this.messageConverters;
+	}
+
+	@Override
+	public @Nullable ApiVersionStrategy apiVersionStrategy() {
+		return this.versionStrategy;
 	}
 
 	@Override
@@ -385,8 +394,7 @@ class DefaultServerRequest implements ServerRequest {
 		}
 
 		@Override
-		@Nullable
-		public InetSocketAddress host() {
+		public @Nullable InetSocketAddress host() {
 			return this.httpHeaders.getHost();
 		}
 
@@ -608,7 +616,7 @@ class DefaultServerRequest implements ServerRequest {
 
 		@Override
 		public boolean containsHeader(String name) {
-			return this.headers.containsKey(name);
+			return this.headers.containsHeader(name);
 		}
 
 		@Override
@@ -637,8 +645,7 @@ class DefaultServerRequest implements ServerRequest {
 		}
 
 		@Override
-		@Nullable
-		public String getHeader(String name) {
+		public @Nullable String getHeader(String name) {
 			return this.headers.getFirst(name);
 		}
 
@@ -650,7 +657,7 @@ class DefaultServerRequest implements ServerRequest {
 
 		@Override
 		public Collection<String> getHeaderNames() {
-			return this.headers.keySet();
+			return this.headers.headerNames();
 		}
 
 

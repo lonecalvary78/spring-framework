@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
@@ -54,7 +55,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 
 /**
@@ -85,14 +85,11 @@ public class SourceHttpMessageConverter<T extends Source> extends AbstractHttpMe
 
 	private boolean processExternalEntities = false;
 
-	@Nullable
-	private volatile DocumentBuilderFactory documentBuilderFactory;
+	private volatile @Nullable DocumentBuilderFactory documentBuilderFactory;
 
-	@Nullable
-	private volatile SAXParserFactory saxParserFactory;
+	private volatile @Nullable SAXParserFactory saxParserFactory;
 
-	@Nullable
-	private volatile XMLInputFactory xmlInputFactory;
+	private volatile @Nullable XMLInputFactory xmlInputFactory;
 
 
 	/**
@@ -266,16 +263,14 @@ public class SourceHttpMessageConverter<T extends Source> extends AbstractHttpMe
 	}
 
 	@Override
-	@Nullable
-	protected Long getContentLength(T t, @Nullable MediaType contentType) {
+	protected @Nullable Long getContentLength(T t, @Nullable MediaType contentType) {
 		if (t instanceof DOMSource) {
 			try {
 				CountingOutputStream os = new CountingOutputStream();
 				transform(t, new StreamResult(os));
 				return os.count;
 			}
-			catch (TransformerException ex) {
-				// ignore
+			catch (TransformerException ignored) {
 			}
 		}
 		return null;

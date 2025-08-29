@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,19 +80,6 @@ public interface MethodValidationResult {
 	 * @see #getBeanResults()
 	 */
 	List<ParameterValidationResult> getParameterValidationResults();
-
-	/**
-	 * Return all validation results. This includes both method parameters with
-	 * errors directly on them, and Object method parameters with nested errors
-	 * on their fields and properties.
-	 * @see #getValueResults()
-	 * @see #getBeanResults()
-	 * @deprecated deprecated in favor of {@link #getParameterValidationResults()}
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	default List<ParameterValidationResult> getAllValidationResults() {
-		return getParameterValidationResults();
-	}
 
 	/**
 	 * Return the subset of {@link #getParameterValidationResults() allValidationResults}

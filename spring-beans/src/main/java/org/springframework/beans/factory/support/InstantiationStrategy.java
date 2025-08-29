@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ package org.springframework.beans.factory.support;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.lang.Nullable;
 
 /**
  * Interface responsible for creating instances corresponding to a root bean definition.
@@ -80,7 +81,7 @@ public interface InstantiationStrategy {
 	 * @throws BeansException if the instantiation attempt failed
 	 */
 	Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
-			@Nullable Object factoryBean, Method factoryMethod, Object... args)
+			@Nullable Object factoryBean, Method factoryMethod, @Nullable Object... args)
 			throws BeansException;
 
 	/**

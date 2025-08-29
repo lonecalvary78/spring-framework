@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.validation.beanvalidation;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -37,6 +36,7 @@ import jakarta.validation.metadata.ParameterDescriptor;
 import jakarta.validation.metadata.PropertyDescriptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.aot.hint.MemberCategory;
@@ -47,7 +47,6 @@ import org.springframework.beans.factory.aot.BeanRegistrationCode;
 import org.springframework.beans.factory.support.RegisteredBean;
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -69,8 +68,7 @@ class BeanValidationBeanRegistrationAotProcessor implements BeanRegistrationAotP
 
 
 	@Override
-	@Nullable
-	public BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
+	public @Nullable BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
 		if (beanValidationPresent) {
 			return BeanValidationDelegate.processAheadOfTime(registeredBean);
 		}
@@ -83,11 +81,9 @@ class BeanValidationBeanRegistrationAotProcessor implements BeanRegistrationAotP
 	 */
 	private static class BeanValidationDelegate {
 
-		@Nullable
-		private static final Validator validator = getValidatorIfAvailable();
+		private static final @Nullable Validator validator = getValidatorIfAvailable();
 
-		@Nullable
-		private static Validator getValidatorIfAvailable() {
+		private static @Nullable Validator getValidatorIfAvailable() {
 			try (ValidatorFactory validator = Validation.buildDefaultValidatorFactory()) {
 				return validator.getValidator();
 			}
@@ -97,8 +93,7 @@ class BeanValidationBeanRegistrationAotProcessor implements BeanRegistrationAotP
 			}
 		}
 
-		@Nullable
-		public static BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
+		public static @Nullable BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
 			if (validator == null) {
 				return null;
 			}
@@ -107,7 +102,7 @@ class BeanValidationBeanRegistrationAotProcessor implements BeanRegistrationAotP
 			Set<Class<?>> validatedClasses = new HashSet<>();
 			Set<Class<? extends ConstraintValidator<?, ?>>> constraintValidatorClasses = new HashSet<>();
 
-			processAheadOfTime(beanClass, validatedClasses, constraintValidatorClasses);
+			processAheadOfTime(beanClass, new HashSet<>(), validatedClasses, constraintValidatorClasses);
 
 			if (!validatedClasses.isEmpty() || !constraintValidatorClasses.isEmpty()) {
 				return new AotContribution(validatedClasses, constraintValidatorClasses);
@@ -115,27 +110,38 @@ class BeanValidationBeanRegistrationAotProcessor implements BeanRegistrationAotP
 			return null;
 		}
 
-		private static void processAheadOfTime(Class<?> clazz, Collection<Class<?>> validatedClasses,
-				Collection<Class<? extends ConstraintValidator<?, ?>>> constraintValidatorClasses) {
+		private static void processAheadOfTime(Class<?> clazz, Set<Class<?>> visitedClasses, Set<Class<?>> validatedClasses,
+				Set<Class<? extends ConstraintValidator<?, ?>>> constraintValidatorClasses) {
 
-			Assert.notNull(validator, "Validator can't be null");
+			Assert.notNull(validator, "Validator cannot be null");
+
+			if (!visitedClasses.add(clazz)) {
+				return;
+			}
 
 			BeanDescriptor descriptor;
 			try {
 				descriptor = validator.getConstraintsForClass(clazz);
 			}
-			catch (RuntimeException ex) {
+			catch (RuntimeException | LinkageError ex) {
+				String className = clazz.getName();
 				if (KotlinDetector.isKotlinType(clazz) && ex instanceof ArrayIndexOutOfBoundsException) {
 					// See https://hibernate.atlassian.net/browse/HV-1796 and https://youtrack.jetbrains.com/issue/KT-40857
-					logger.warn("Skipping validation constraint hint inference for class " + clazz +
-							" due to an ArrayIndexOutOfBoundsException at validator level");
+					if (logger.isWarnEnabled()) {
+						logger.warn("Skipping validation constraint hint inference for class " + className +
+								" due to an ArrayIndexOutOfBoundsException at validator level");
+					}
 				}
-				else if (ex instanceof TypeNotPresentException) {
-					logger.debug("Skipping validation constraint hint inference for class " +
-							clazz + " due to a TypeNotPresentException at validator level: " + ex.getMessage());
+				else if (ex instanceof TypeNotPresentException || ex instanceof NoClassDefFoundError) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Skipping validation constraint hint inference for class %s due to a %s for %s"
+								.formatted(className, ex.getClass().getSimpleName(), ex.getMessage()));
+					}
 				}
 				else {
-					logger.warn("Skipping validation constraint hint inference for class " + clazz, ex);
+					if (logger.isWarnEnabled()) {
+						logger.warn("Skipping validation constraint hint inference for class " + className, ex);
+					}
 				}
 				return;
 			}
@@ -149,12 +155,12 @@ class BeanValidationBeanRegistrationAotProcessor implements BeanRegistrationAotP
 
 			ReflectionUtils.doWithFields(clazz, field -> {
 				Class<?> type = field.getType();
-				if (Iterable.class.isAssignableFrom(type) || List.class.isAssignableFrom(type) || Optional.class.isAssignableFrom(type)) {
+				if (Iterable.class.isAssignableFrom(type) || Optional.class.isAssignableFrom(type)) {
 					ResolvableType resolvableType = ResolvableType.forField(field);
 					Class<?> genericType = resolvableType.getGeneric(0).toClass();
 					if (shouldProcess(genericType)) {
 						validatedClasses.add(clazz);
-						processAheadOfTime(genericType, validatedClasses, constraintValidatorClasses);
+						processAheadOfTime(genericType, visitedClasses, validatedClasses, constraintValidatorClasses);
 					}
 				}
 				if (Map.class.isAssignableFrom(type)) {
@@ -163,11 +169,11 @@ class BeanValidationBeanRegistrationAotProcessor implements BeanRegistrationAotP
 					Class<?> valueGenericType = resolvableType.getGeneric(1).toClass();
 					if (shouldProcess(keyGenericType)) {
 						validatedClasses.add(clazz);
-						processAheadOfTime(keyGenericType, validatedClasses, constraintValidatorClasses);
+						processAheadOfTime(keyGenericType, visitedClasses, validatedClasses, constraintValidatorClasses);
 					}
 					if (shouldProcess(valueGenericType)) {
 						validatedClasses.add(clazz);
-						processAheadOfTime(valueGenericType, validatedClasses, constraintValidatorClasses);
+						processAheadOfTime(valueGenericType, visitedClasses, validatedClasses, constraintValidatorClasses);
 					}
 				}
 			});
@@ -227,7 +233,7 @@ class BeanValidationBeanRegistrationAotProcessor implements BeanRegistrationAotP
 		public void applyTo(GenerationContext generationContext, BeanRegistrationCode beanRegistrationCode) {
 			ReflectionHints hints = generationContext.getRuntimeHints().reflection();
 			for (Class<?> validatedClass : this.validatedClasses) {
-				hints.registerType(validatedClass, MemberCategory.DECLARED_FIELDS);
+				hints.registerType(validatedClass, MemberCategory.ACCESS_DECLARED_FIELDS);
 			}
 			for (Class<? extends ConstraintValidator<?, ?>> constraintValidatorClass : this.constraintValidatorClasses) {
 				hints.registerType(constraintValidatorClass, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);

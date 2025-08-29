@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.scheduling.quartz;
 
+import org.jspecify.annotations.Nullable;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.SchedulerRepository;
@@ -24,7 +25,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -40,14 +40,11 @@ import org.springframework.util.Assert;
  */
 public class SchedulerAccessorBean extends SchedulerAccessor implements BeanFactoryAware, InitializingBean {
 
-	@Nullable
-	private String schedulerName;
+	private @Nullable String schedulerName;
 
-	@Nullable
-	private Scheduler scheduler;
+	private @Nullable Scheduler scheduler;
 
-	@Nullable
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import jakarta.jms.Queue;
 import jakarta.jms.QueueReceiver;
 import jakarta.jms.Topic;
 import jakarta.jms.TopicSubscriber;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * JMS MessageConsumer decorator that adapts all calls
@@ -50,14 +49,12 @@ class CachedMessageConsumer implements MessageConsumer, QueueReceiver, TopicSubs
 	}
 
 	@Override
-	@Nullable
-	public Queue getQueue() throws JMSException {
+	public @Nullable Queue getQueue() throws JMSException {
 		return (this.target instanceof QueueReceiver receiver ? receiver.getQueue() : null);
 	}
 
 	@Override
-	@Nullable
-	public Topic getTopic() throws JMSException {
+	public @Nullable Topic getTopic() throws JMSException {
 		return (this.target instanceof TopicSubscriber subscriber ? subscriber.getTopic() : null);
 	}
 

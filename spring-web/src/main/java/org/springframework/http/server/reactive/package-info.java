@@ -5,11 +5,9 @@
  * {@link org.springframework.http.server.reactive.HttpHandler} for processing.
  *
  * <p>Also provides implementations adapting to different runtimes
- * including Servlet containers, Netty + Reactor IO, and Undertow.
+ * including Servlet containers and Netty + Reactor IO.
  */
-@NonNullApi
-@NonNullFields
+@NullMarked
 package org.springframework.http.server.reactive;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+import org.jspecify.annotations.NullMarked;

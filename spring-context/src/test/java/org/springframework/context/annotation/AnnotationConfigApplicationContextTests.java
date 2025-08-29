@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aot.hint.MemberCategory;
@@ -38,7 +39,6 @@ import org.springframework.context.annotation6.Jsr330NamedForScanning;
 import org.springframework.context.testfixture.context.annotation.CglibConfiguration;
 import org.springframework.context.testfixture.context.annotation.LambdaBeanConfiguration;
 import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 import static java.lang.String.format;
@@ -68,13 +68,43 @@ class AnnotationConfigApplicationContextTests {
 	}
 
 	@Test
+	void scanAndRefreshWithFullyQualifiedBeanNames() {
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+		context.setBeanNameGenerator(FullyQualifiedConfigurationBeanNameGenerator.INSTANCE);
+		context.scan("org.springframework.context.annotation6");
+		context.refresh();
+
+		context.getBean(ConfigForScanning.class.getName());
+		context.getBean(ConfigForScanning.class.getName() + ".testBean"); // contributed by ConfigForScanning
+		context.getBean(ComponentForScanning.class.getName());
+		context.getBean(Jsr330NamedForScanning.class.getName());
+		Map<String, Object> beans = context.getBeansWithAnnotation(Configuration.class);
+		assertThat(beans).hasSize(1);
+	}
+
+	@Test
 	void registerAndRefresh() {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 		context.register(Config.class, NameConfig.class);
 		context.refresh();
 
 		context.getBean("testBean");
-		context.getBean("name");
+		assertThat(context.getBean("name")).isEqualTo("foo");
+		assertThat(context.getBean("prefixName")).isEqualTo("barfoo");
+		Map<String, Object> beans = context.getBeansWithAnnotation(Configuration.class);
+		assertThat(beans).hasSize(2);
+	}
+
+	@Test
+	void registerAndRefreshWithFullyQualifiedBeanNames() {
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+		context.setBeanNameGenerator(FullyQualifiedConfigurationBeanNameGenerator.INSTANCE);
+		context.register(Config.class, NameConfig.class);
+		context.refresh();
+
+		context.getBean(Config.class.getName() + ".testBean");
+		assertThat(context.getBean(NameConfig.class.getName() + ".name")).isEqualTo("foo");
+		assertThat(context.getBean(NameConfig.class.getName() + ".prefixName")).isEqualTo("barfoo");
 		Map<String, Object> beans = context.getBeansWithAnnotation(Configuration.class);
 		assertThat(beans).hasSize(2);
 	}
@@ -534,7 +564,7 @@ class AnnotationConfigApplicationContextTests {
 		TypeReference cglibType = TypeReference.of(CglibConfiguration.class.getName() + "$$SpringCGLIB$$0");
 		assertThat(RuntimeHintsPredicates.reflection().onType(cglibType)
 				.withMemberCategories(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-						MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS))
+						MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.ACCESS_DECLARED_FIELDS))
 				.accepts(runtimeHints);
 		assertThat(RuntimeHintsPredicates.reflection().onType(CglibConfiguration.class)
 				.withMemberCategories(MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.INVOKE_DECLARED_METHODS))
@@ -598,6 +628,8 @@ class AnnotationConfigApplicationContextTests {
 	static class NameConfig {
 
 		@Bean String name() { return "foo"; }
+
+		@Bean(autowireCandidate = false) String prefixName() { return "bar" + name(); }
 	}
 
 	@Configuration

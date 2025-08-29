@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ package org.springframework.context.i18n;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.NamedInheritableThreadLocal;
 import org.springframework.core.NamedThreadLocal;
-import org.springframework.lang.Nullable;
 
 /**
  * Simple holder class that associates a LocaleContext instance
@@ -51,12 +52,10 @@ public final class LocaleContextHolder {
 			new NamedInheritableThreadLocal<>("LocaleContext");
 
 	// Shared default locale at the framework level
-	@Nullable
-	private static Locale defaultLocale;
+	private static @Nullable Locale defaultLocale;
 
 	// Shared default time zone at the framework level
-	@Nullable
-	private static TimeZone defaultTimeZone;
+	private static @Nullable TimeZone defaultTimeZone;
 
 
 	private LocaleContextHolder() {
@@ -116,8 +115,7 @@ public final class LocaleContextHolder {
 	 * Return the LocaleContext associated with the current thread, if any.
 	 * @return the current LocaleContext, or {@code null} if none
 	 */
-	@Nullable
-	public static LocaleContext getLocaleContext() {
+	public static @Nullable LocaleContext getLocaleContext() {
 		LocaleContext localeContext = localeContextHolder.get();
 		if (localeContext == null) {
 			localeContext = inheritableLocaleContextHolder.get();

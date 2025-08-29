@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,7 +192,16 @@ class CoroutinesUtilsTests {
 
 	@Test
 	fun invokeSuspendingFunctionWithValueClassParameter() {
-		val method = CoroutinesUtilsTests::class.java.declaredMethods.first { it.name.startsWith("suspendingFunctionWithValueClass") }
+		val method = CoroutinesUtilsTests::class.java.declaredMethods.first { it.name.startsWith("suspendingFunctionWithValueClassParameter") }
+		val mono = CoroutinesUtils.invokeSuspendingFunction(method, this, "foo", null) as Mono
+		runBlocking {
+			Assertions.assertThat(mono.awaitSingle()).isEqualTo("foo")
+		}
+	}
+
+	@Test
+	fun invokeSuspendingFunctionWithNestedValueClassParameter() {
+		val method = CoroutinesUtilsTests::class.java.declaredMethods.first { it.name.startsWith("suspendingFunctionWithNestedValueClassParameter") }
 		val mono = CoroutinesUtils.invokeSuspendingFunction(method, this, "foo", null) as Mono
 		runBlocking {
 			Assertions.assertThat(mono.awaitSingle()).isEqualTo("foo")
@@ -204,7 +213,16 @@ class CoroutinesUtilsTests {
 		val method = CoroutinesUtilsTests::class.java.declaredMethods.first { it.name.startsWith("suspendingFunctionWithValueClassReturnValue") }
 		val mono = CoroutinesUtils.invokeSuspendingFunction(method, this, null) as Mono
 		runBlocking {
-			Assertions.assertThat(mono.awaitSingle()).isEqualTo("foo")
+			Assertions.assertThat(mono.awaitSingle()).isEqualTo(ValueClass("foo"))
+		}
+	}
+
+	@Test
+	fun invokeSuspendingFunctionWithResultOfUnitReturnValue() {
+		val method = CoroutinesUtilsTests::class.java.declaredMethods.first { it.name.startsWith("suspendingFunctionWithResultOfUnitReturnValue") }
+		val mono = CoroutinesUtils.invokeSuspendingFunction(method, this, null) as Mono
+		runBlocking {
+			Assertions.assertThat(mono.awaitSingle()).isEqualTo(Result.success(Unit))
 		}
 	}
 
@@ -314,14 +332,24 @@ class CoroutinesUtilsTests {
 		return null
 	}
 
-	suspend fun suspendingFunctionWithValueClass(value: ValueClass): String {
+	suspend fun suspendingFunctionWithValueClassParameter(value: ValueClass): String {
 		delay(1)
 		return value.value
+	}
+
+	suspend fun suspendingFunctionWithNestedValueClassParameter(value: NestedValueClass): String {
+		delay(1)
+		return value.value.value
 	}
 
 	suspend fun suspendingFunctionWithValueClassReturnValue(): ValueClass {
 		delay(1)
 		return ValueClass("foo")
+	}
+
+	suspend fun suspendingFunctionWithResultOfUnitReturnValue(): Result<Unit> {
+		delay(1)
+		return Result.success(Unit)
 	}
 
 	suspend fun suspendingFunctionWithValueClassWithInit(value: ValueClassWithInit): String {
@@ -367,6 +395,9 @@ class CoroutinesUtilsTests {
 
 	@JvmInline
 	value class ValueClass(val value: String)
+
+	@JvmInline
+	value class NestedValueClass(val value: ValueClass)
 
 	@JvmInline
 	value class ValueClassWithInit(val value: String) {

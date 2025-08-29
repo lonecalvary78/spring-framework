@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.server.PathContainer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.RouteMatcher;
 
@@ -80,8 +81,7 @@ public class PathPatternRouteMatcher implements RouteMatcher {
 	}
 
 	@Override
-	@Nullable
-	public Map<String, String> matchAndExtract(String pattern, Route route) {
+	public @Nullable Map<String, String> matchAndExtract(String pattern, Route route) {
 		PathPattern.PathMatchInfo info = getPathPattern(pattern).matchAndExtract(getPathContainer(route));
 		return info != null ? info.getUriVariables() : null;
 	}

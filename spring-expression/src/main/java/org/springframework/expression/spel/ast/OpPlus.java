@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.expression.spel.ast;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.asm.MethodVisitor;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationException;
@@ -29,7 +31,6 @@ import org.springframework.expression.spel.CodeFlow;
 import org.springframework.expression.spel.ExpressionState;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 

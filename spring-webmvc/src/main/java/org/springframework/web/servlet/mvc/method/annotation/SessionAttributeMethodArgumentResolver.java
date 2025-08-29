@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.web.servlet.mvc.method.annotation;
 
 import jakarta.servlet.ServletException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.SessionAttribute;
@@ -49,8 +49,7 @@ public class SessionAttributeMethodArgumentResolver extends AbstractNamedValueMe
 	}
 
 	@Override
-	@Nullable
-	protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) {
+	protected @Nullable Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) {
 		return request.getAttribute(name, RequestAttributes.SCOPE_SESSION);
 	}
 

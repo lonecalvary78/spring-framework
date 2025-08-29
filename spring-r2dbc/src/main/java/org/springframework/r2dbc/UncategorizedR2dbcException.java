@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.r2dbc;
 
 import io.r2dbc.spi.R2dbcException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.dao.UncategorizedDataAccessException;
-import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when we can't classify a {@link R2dbcException} into
@@ -32,8 +32,7 @@ import org.springframework.lang.Nullable;
 public class UncategorizedR2dbcException extends UncategorizedDataAccessException {
 
 	/** SQL that led to the problem. */
-	@Nullable
-	private final String sql;
+	private final @Nullable String sql;
 
 
 	/**
@@ -51,16 +50,14 @@ public class UncategorizedR2dbcException extends UncategorizedDataAccessExceptio
 	/**
 	 * Return the wrapped {@link R2dbcException}.
 	 */
-	@Nullable
-	public R2dbcException getR2dbcException() {
+	public @Nullable R2dbcException getR2dbcException() {
 		return (R2dbcException) getCause();
 	}
 
 	/**
 	 * Return the SQL that led to the problem (if known).
 	 */
-	@Nullable
-	public String getSql() {
+	public @Nullable String getSql() {
 		return this.sql;
 	}
 

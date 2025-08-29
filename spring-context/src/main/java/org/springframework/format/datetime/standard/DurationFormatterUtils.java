@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,16 @@ import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.format.annotation.DurationFormat;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Support {@code Duration} parsing and printing in several styles, as listed in
  * {@link DurationFormat.Style}.
+ *
  * <p>Some styles may not enforce any unit to be present, defaulting to {@code DurationFormat.Unit#MILLIS}
  * in that case. Methods in this class offer overloads that take a {@link DurationFormat.Unit} to
  * be used as a fall-back instead of the ultimate MILLIS default.
@@ -39,8 +41,38 @@ import org.springframework.util.StringUtils;
  */
 public abstract class DurationFormatterUtils {
 
-	private DurationFormatterUtils() {
-		// singleton
+	private static final Pattern ISO_8601_PATTERN = Pattern.compile("^[+-]?[pP].*$");
+
+	private static final Pattern SIMPLE_PATTERN = Pattern.compile("^([+-]?\\d+)([a-zA-Z]{0,2})$");
+
+	private static final Pattern COMPOSITE_PATTERN = Pattern.compile("^([+-]?)\\(?\\s?(\\d+d)?\\s?(\\d+h)?\\s?(\\d+m)?" +
+			"\\s?(\\d+s)?\\s?(\\d+ms)?\\s?(\\d+us)?\\s?(\\d+ns)?\\)?$");
+
+
+	/**
+	 * Print the specified duration in the specified style.
+	 * @param value the value to print
+	 * @param style the style to print in
+	 * @return the printed result
+	 */
+	public static String print(Duration value, DurationFormat.Style style) {
+		return print(value, style, null);
+	}
+
+	/**
+	 * Print the specified duration in the specified style using the given unit.
+	 * @param value the value to print
+	 * @param style the style to print in
+	 * @param unit the unit to use for printing, if relevant ({@code null} will default
+	 * to ms)
+	 * @return the printed result
+	 */
+	public static String print(Duration value, DurationFormat.Style style, DurationFormat.@Nullable Unit unit) {
+		return switch (style) {
+			case ISO8601 -> value.toString();
+			case SIMPLE -> printSimple(value, unit);
+			case COMPOSITE -> printComposite(value);
+		};
 	}
 
 	/**
@@ -61,63 +93,13 @@ public abstract class DurationFormatterUtils {
 	 * will default to ms)
 	 * @return a duration
 	 */
-	public static Duration parse(String value, DurationFormat.Style style, @Nullable DurationFormat.Unit unit) {
+	public static Duration parse(String value, DurationFormat.Style style, DurationFormat.@Nullable Unit unit) {
 		Assert.hasText(value, () -> "Value must not be empty");
 		return switch (style) {
 			case ISO8601 -> parseIso8601(value);
 			case SIMPLE -> parseSimple(value, unit);
 			case COMPOSITE -> parseComposite(value);
 		};
-	}
-
-	/**
-	 * Print the specified duration in the specified style.
-	 * @param value the value to print
-	 * @param style the style to print in
-	 * @return the printed result
-	 */
-	public static String print(Duration value, DurationFormat.Style style) {
-		return print(value, style, null);
-	}
-
-	/**
-	 * Print the specified duration in the specified style using the given unit.
-	 * @param value the value to print
-	 * @param style the style to print in
-	 * @param unit the unit to use for printing, if relevant ({@code null} will default
-	 * to ms)
-	 * @return the printed result
-	 */
-	public static String print(Duration value, DurationFormat.Style style, @Nullable DurationFormat.Unit unit) {
-		return switch (style) {
-			case ISO8601 -> value.toString();
-			case SIMPLE -> printSimple(value, unit);
-			case COMPOSITE -> printComposite(value);
-		};
-	}
-
-	/**
-	 * Detect the style then parse the value to return a duration.
-	 * @param value the value to parse
-	 * @return the parsed duration
-	 * @throws IllegalArgumentException if the value is not a known style or cannot be
-	 * parsed
-	 */
-	public static Duration detectAndParse(String value) {
-		return detectAndParse(value, null);
-	}
-
-	/**
-	 * Detect the style then parse the value to return a duration.
-	 * @param value the value to parse
-	 * @param unit the duration unit to use if the value doesn't specify one ({@code null}
-	 * will default to ms)
-	 * @return the parsed duration
-	 * @throws IllegalArgumentException if the value is not a known style or cannot be
-	 * parsed
-	 */
-	public static Duration detectAndParse(String value, @Nullable DurationFormat.Unit unit) {
-		return parse(value, detect(value), unit);
 	}
 
 	/**
@@ -141,10 +123,30 @@ public abstract class DurationFormatterUtils {
 		throw new IllegalArgumentException("'" + value + "' is not a valid duration, cannot detect any known style");
 	}
 
-	private static final Pattern ISO_8601_PATTERN = Pattern.compile("^[+-]?[pP].*$");
-	private static final Pattern SIMPLE_PATTERN = Pattern.compile("^([+-]?\\d+)([a-zA-Z]{0,2})$");
-	private static final Pattern COMPOSITE_PATTERN = Pattern.compile("^([+-]?)\\(?\\s?(\\d+d)?\\s?(\\d+h)?\\s?(\\d+m)?"
-			+ "\\s?(\\d+s)?\\s?(\\d+ms)?\\s?(\\d+us)?\\s?(\\d+ns)?\\)?$");
+	/**
+	 * Detect the style then parse the value to return a duration.
+	 * @param value the value to parse
+	 * @return the parsed duration
+	 * @throws IllegalArgumentException if the value is not a known style or cannot be
+	 * parsed
+	 */
+	public static Duration detectAndParse(String value) {
+		return detectAndParse(value, null);
+	}
+
+	/**
+	 * Detect the style then parse the value to return a duration.
+	 * @param value the value to parse
+	 * @param unit the duration unit to use if the value doesn't specify one ({@code null}
+	 * will default to ms)
+	 * @return the parsed duration
+	 * @throws IllegalArgumentException if the value is not a known style or cannot be
+	 * parsed
+	 */
+	public static Duration detectAndParse(String value, DurationFormat.@Nullable Unit unit) {
+		return parse(value, detect(value), unit);
+	}
+
 
 	private static Duration parseIso8601(String value) {
 		try {
@@ -155,7 +157,12 @@ public abstract class DurationFormatterUtils {
 		}
 	}
 
-	private static Duration parseSimple(String text, @Nullable DurationFormat.Unit fallbackUnit) {
+	private static String printSimple(Duration duration, DurationFormat.@Nullable Unit unit) {
+		unit = (unit == null ? DurationFormat.Unit.MILLIS : unit);
+		return unit.print(duration);
+	}
+
+	private static Duration parseSimple(String text, DurationFormat.@Nullable Unit fallbackUnit) {
 		try {
 			Matcher matcher = SIMPLE_PATTERN.matcher(text);
 			Assert.state(matcher.matches(), "Does not match simple duration pattern");
@@ -168,34 +175,6 @@ public abstract class DurationFormatterUtils {
 		}
 		catch (Exception ex) {
 			throw new IllegalArgumentException("'" + text + "' is not a valid simple duration", ex);
-		}
-	}
-
-	private static String printSimple(Duration duration, @Nullable DurationFormat.Unit unit) {
-		unit = (unit == null ? DurationFormat.Unit.MILLIS : unit);
-		return unit.print(duration);
-	}
-
-	private static Duration parseComposite(String text) {
-		try {
-			Matcher matcher = COMPOSITE_PATTERN.matcher(text);
-			Assert.state(matcher.matches() && matcher.groupCount() > 1, "Does not match composite duration pattern");
-			String sign = matcher.group(1);
-			boolean negative = sign != null && sign.equals("-");
-
-			Duration result = Duration.ZERO;
-			DurationFormat.Unit[] units = DurationFormat.Unit.values();
-			for (int i = 2; i < matcher.groupCount() + 1; i++) {
-				String segment = matcher.group(i);
-				if (StringUtils.hasText(segment)) {
-					DurationFormat.Unit unit = units[units.length - i + 1];
-					result = result.plus(unit.parse(segment.replace(unit.asSuffix(), "")));
-				}
-			}
-			return negative ? result.negated() : result;
-		}
-		catch (Exception ex) {
-			throw new IllegalArgumentException("'" + text + "' is not a valid composite duration", ex);
 		}
 	}
 
@@ -241,6 +220,29 @@ public abstract class DurationFormatterUtils {
 			}
 		}
 		return result.toString();
+	}
+
+	private static Duration parseComposite(String text) {
+		try {
+			Matcher matcher = COMPOSITE_PATTERN.matcher(text);
+			Assert.state(matcher.matches() && matcher.groupCount() > 1, "Does not match composite duration pattern");
+			String sign = matcher.group(1);
+			boolean negative = sign != null && sign.equals("-");
+
+			Duration result = Duration.ZERO;
+			DurationFormat.Unit[] units = DurationFormat.Unit.values();
+			for (int i = 2; i < matcher.groupCount() + 1; i++) {
+				String segment = matcher.group(i);
+				if (StringUtils.hasText(segment)) {
+					DurationFormat.Unit unit = units[units.length - i + 1];
+					result = result.plus(unit.parse(segment.replace(unit.asSuffix(), "")));
+				}
+			}
+			return negative ? result.negated() : result;
+		}
+		catch (Exception ex) {
+			throw new IllegalArgumentException("'" + text + "' is not a valid composite duration", ex);
+		}
 	}
 
 }

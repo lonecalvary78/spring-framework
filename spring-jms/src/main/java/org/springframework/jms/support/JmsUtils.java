@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import jakarta.jms.QueueRequestor;
 import jakarta.jms.Session;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jms.InvalidClientIDException;
 import org.springframework.jms.InvalidDestinationException;
@@ -39,7 +40,6 @@ import org.springframework.jms.ResourceAllocationException;
 import org.springframework.jms.TransactionInProgressException;
 import org.springframework.jms.TransactionRolledBackException;
 import org.springframework.jms.UncategorizedJmsException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -241,8 +241,7 @@ public abstract class JmsUtils {
 	 * @return the descriptive message String
 	 * @see jakarta.jms.JMSException#getLinkedException()
 	 */
-	@Nullable
-	public static String buildExceptionMessage(JMSException ex) {
+	public static @Nullable String buildExceptionMessage(JMSException ex) {
 		String message = ex.getMessage();
 		Exception linkedEx = ex.getLinkedException();
 		if (linkedEx != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -32,7 +33,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 import org.springframework.util.ClassUtils;
@@ -48,6 +48,13 @@ import org.springframework.util.ClassUtils;
  * @see MockitoSpyBean @MockitoSpyBean
  */
 public class MockitoResetTestExecutionListener extends AbstractTestExecutionListener {
+
+	/**
+	 * The {@link #getOrder() order} value for this listener
+	 * ({@code Ordered.LOWEST_PRECEDENCE - 100}): {@value}.
+	 * @since 6.2.3
+	 */
+	public static final int ORDER = Ordered.LOWEST_PRECEDENCE - 100;
 
 	private static final Log logger = LogFactory.getLog(MockitoResetTestExecutionListener.class);
 
@@ -69,16 +76,18 @@ public class MockitoResetTestExecutionListener extends AbstractTestExecutionList
 	 * @see #mockitoPresent
 	 * @see #isEnabled()
 	 */
-	@Nullable
-	private static volatile Boolean mockitoInitialized;
+	private static volatile @Nullable Boolean mockitoInitialized;
 
 
 	/**
-	 * Returns {@code Ordered.LOWEST_PRECEDENCE - 100}.
+	 * Returns {@value #ORDER}, which ensures that the
+	 * {@code MockitoResetTestExecutionListener} is ordered after all standard
+	 * {@code TestExecutionListener} implementations.
+	 * @see #ORDER
 	 */
 	@Override
 	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE - 100;
+		return ORDER;
 	}
 
 	@Override
@@ -116,7 +125,7 @@ public class MockitoResetTestExecutionListener extends AbstractTestExecutionList
 			}
 		}
 		try {
-			beanFactory.getBean(MockitoBeans.class).resetAll();
+			beanFactory.getBean(MockBeans.class).resetAll(reset);
 		}
 		catch (NoSuchBeanDefinitionException ex) {
 			// Continue
@@ -126,8 +135,7 @@ public class MockitoResetTestExecutionListener extends AbstractTestExecutionList
 		}
 	}
 
-	@Nullable
-	private static Object getBean(ConfigurableListableBeanFactory beanFactory, String beanName) {
+	private static @Nullable Object getBean(ConfigurableListableBeanFactory beanFactory, String beanName) {
 		try {
 			if (isStandardBeanOrSingletonFactoryBean(beanFactory, beanName)) {
 				return beanFactory.getBean(beanName);

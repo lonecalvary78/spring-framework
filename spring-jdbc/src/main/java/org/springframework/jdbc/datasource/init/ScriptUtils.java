@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -258,18 +258,29 @@ public abstract class ScriptUtils {
 				for (String statement : statements) {
 					stmtNumber++;
 					try {
-						stmt.execute(statement);
-						int rowsAffected = stmt.getUpdateCount();
+						boolean hasResultSet = stmt.execute(statement);
+						int updateCount = -1;
 						if (logger.isDebugEnabled()) {
-							logger.debug(rowsAffected + " returned as update count for SQL: " + statement);
-							SQLWarning warningToLog = stmt.getWarnings();
-							while (warningToLog != null) {
-								logger.debug("SQLWarning ignored: SQL state '" + warningToLog.getSQLState() +
-										"', error code '" + warningToLog.getErrorCode() +
-										"', message [" + warningToLog.getMessage() + "]");
-								warningToLog = warningToLog.getNextWarning();
-							}
+							logSqlWarnings(stmt);
 						}
+						do {
+							if (hasResultSet) {
+								// We invoke getResultSet() to ensure the JDBC driver processes
+								// it, but we intentionally ignore the returned ResultSet since
+								// we cannot do anything meaningful with it here.
+								stmt.getResultSet();
+								if (logger.isDebugEnabled()) {
+									logger.debug("ResultSet returned for SQL: " + statement);
+								}
+							}
+							else {
+								updateCount = stmt.getUpdateCount();
+								if (updateCount >= 0 && logger.isDebugEnabled()) {
+									logger.debug(updateCount + " returned as update count for SQL: " + statement);
+								}
+							}
+							hasResultSet = stmt.getMoreResults();
+						} while (hasResultSet || updateCount != -1);
 					}
 					catch (SQLException ex) {
 						boolean dropStatement = StringUtils.startsWithIgnoreCase(statement.trim(), "drop");
@@ -307,6 +318,16 @@ public abstract class ScriptUtils {
 		}
 	}
 
+	private static void logSqlWarnings(Statement stmt) throws SQLException {
+		SQLWarning warningToLog = stmt.getWarnings();
+		while (warningToLog != null) {
+			logger.debug("SQLWarning ignored: SQL state '" + warningToLog.getSQLState() +
+					"', error code '" + warningToLog.getErrorCode() +
+					"', message [" + warningToLog.getMessage() + "]");
+			warningToLog = warningToLog.getNextWarning();
+		}
+	}
+
 	/**
 	 * Read a script from the provided resource, using the supplied comment prefixes
 	 * and statement separator, and build a {@code String} containing the lines.
@@ -330,7 +351,7 @@ public abstract class ScriptUtils {
 		}
 	}
 
-	private static String readScript(LineNumberReader lineNumberReader, @Nullable String[] commentPrefixes,
+	private static String readScript(LineNumberReader lineNumberReader, String @Nullable [] commentPrefixes,
 			@Nullable String separator, @Nullable String blockCommentEndDelimiter) throws IOException {
 
 		String currentStatement = lineNumberReader.readLine();

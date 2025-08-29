@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.messaging.handler.annotation.reactive;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
@@ -26,7 +28,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.ValueConstants;
 import org.springframework.messaging.handler.invocation.reactive.SyncHandlerMethodArgumentResolver;
@@ -55,11 +56,9 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements SyncHa
 
 	private final ConversionService conversionService;
 
-	@Nullable
-	private final ConfigurableBeanFactory configurableBeanFactory;
+	private final @Nullable ConfigurableBeanFactory configurableBeanFactory;
 
-	@Nullable
-	private final BeanExpressionContext expressionContext;
+	private final @Nullable BeanExpressionContext expressionContext;
 
 	private final Map<MethodParameter, NamedValueInfo> namedValueInfoCache = new ConcurrentHashMap<>(256);
 
@@ -81,8 +80,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements SyncHa
 
 
 	@Override
-	@Nullable
-	public Object resolveArgumentValue(MethodParameter parameter, Message<?> message) {
+	public @Nullable Object resolveArgumentValue(MethodParameter parameter, Message<?> message) {
 		NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
 		MethodParameter nestedParameter = parameter.nestedIfOptional();
 
@@ -167,8 +165,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements SyncHa
 	 * Resolve the given annotation-specified value,
 	 * potentially containing placeholders and expressions.
 	 */
-	@Nullable
-	private Object resolveEmbeddedValuesAndExpressions(String value) {
+	private @Nullable Object resolveEmbeddedValuesAndExpressions(String value) {
 		if (this.configurableBeanFactory == null || this.expressionContext == null) {
 			return value;
 		}
@@ -187,8 +184,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements SyncHa
 	 * @param name the name of the value being resolved
 	 * @return the resolved argument. May be {@code null}
 	 */
-	@Nullable
-	protected abstract Object resolveArgumentInternal(MethodParameter parameter, Message<?> message, String name);
+	protected abstract @Nullable Object resolveArgumentInternal(MethodParameter parameter, Message<?> message, String name);
 
 	/**
 	 * Invoked when a value is required, but {@link #resolveArgumentInternal}
@@ -205,8 +201,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements SyncHa
 	 * Specifically for booleans method parameters, use {@link Boolean#FALSE}.
 	 * Also raise an ISE for primitive types.
 	 */
-	@Nullable
-	private Object handleNullValue(String name, @Nullable Object value, Class<?> paramType) {
+	private @Nullable Object handleNullValue(String name, @Nullable Object value, Class<?> paramType) {
 		if (value == null) {
 			if (paramType == boolean.class) {
 				return Boolean.FALSE;
@@ -231,8 +226,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements SyncHa
 
 		private final boolean required;
 
-		@Nullable
-		private final String defaultValue;
+		private final @Nullable String defaultValue;
 
 		protected NamedValueInfo(String name, boolean required, @Nullable String defaultValue) {
 			this.name = name;

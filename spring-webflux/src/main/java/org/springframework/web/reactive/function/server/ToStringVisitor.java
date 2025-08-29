@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,6 +102,8 @@ class ToStringVisitor implements RouterFunctions.Visitor, RequestPredicates.Visi
 		this.builder.append(pattern);
 	}
 
+	@SuppressWarnings("removal")
+	@Deprecated(since = "7.0", forRemoval = true)
 	@Override
 	public void pathExtension(String extension) {
 		this.builder.append(String.format("*.%s", extension));
@@ -115,6 +117,11 @@ class ToStringVisitor implements RouterFunctions.Visitor, RequestPredicates.Visi
 	@Override
 	public void queryParam(String name, String value) {
 		this.builder.append(String.format("?%s == %s", name, value));
+	}
+
+	@Override
+	public void version(String version) {
+		this.builder.append(String.format("version: %s", version));
 	}
 
 	@Override

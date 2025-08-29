@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,7 +141,7 @@ class WebSessionIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		String value = response.getHeaders().getFirst("Set-Cookie");
 		assertThat(value).isNotNull();
-		assertThat(value).as("Actual value: " + value).contains("Max-Age=0");
+		assertThat(value).as("Actual value: " + value).containsAnyOf("Expires=Thu, 01 Jan 1970", "Max-Age=0");
 	}
 
 	@ParameterizedHttpServerTest
@@ -189,7 +189,7 @@ class WebSessionIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		String value = response.getHeaders().getFirst("Set-Cookie");
 		assertThat(value).isNotNull();
-		assertThat(value).as("Actual value: " + value).contains("Max-Age=0");
+		assertThat(value).as("Actual value: " + value).containsAnyOf("Expires=Thu, 01 Jan 1970", "Max-Age=0");
 	}
 
 	private String extractSessionId(HttpHeaders headers) {

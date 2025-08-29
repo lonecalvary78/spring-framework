@@ -22,7 +22,6 @@ xref:web/webmvc/mvc-controller/ann-advice.adoc[@ControllerAdvice] that handles a
 and any `ErrorResponseException`, and renders an error response with a body.
 
 
-
 [[mvc-ann-rest-exceptions-render]]
 == Render
 [.small]#xref:web/webflux/ann-rest-exceptions.adoc#webflux-ann-rest-exceptions-render[See equivalent in the Reactive stack]#
@@ -37,7 +36,7 @@ already set.
 "application/problem+json" over "application/json" when rendering a `ProblemDetail`,
 and also falls back on it if no compatible media type is found.
 
-To enable RFC 9457 responses for Spring WebFlux exceptions and for any
+To enable RFC 9457 responses for Spring MVC exceptions and for any
 `ErrorResponseException`, extend `ResponseEntityExceptionHandler` and declare it as an
 xref:web/webmvc/mvc-controller/ann-advice.adoc[@ControllerAdvice] in Spring configuration. The handler
 has an `@ExceptionHandler` method that handles any `ErrorResponse` exception, which
@@ -47,7 +46,6 @@ use a protected method to map any exception to a `ProblemDetail`.
 You can register `ErrorResponse` interceptors through the
 xref:web/webmvc/mvc-config.adoc[MVC Config] with a `WebMvcConfigurer`. Use that to intercept
 any RFC 9457 response and take some action.
-
 
 
 [[mvc-ann-rest-exceptions-non-standard]]
@@ -67,7 +65,6 @@ The copy constructor in `ProblemDetail` allows a subclass to make it easy to be 
 from an existing `ProblemDetail`. This could be done centrally, for example, from an
 `@ControllerAdvice` such as `ResponseEntityExceptionHandler` that re-creates the
 `ProblemDetail` of an exception into a subclass with the additional non-standard fields.
-
 
 
 [[mvc-ann-rest-exceptions-i18n]]
@@ -195,7 +192,6 @@ xref:core/validation/beanvalidation.adoc#validation-beanvalidation-spring-method
 for more details.
 
 
-
 [[mvc-ann-rest-exceptions-client]]
 == Client Handling
 [.small]#xref:web/webflux/ann-rest-exceptions.adoc#webflux-ann-rest-exceptions-client[See equivalent in the Reactive stack]#
@@ -204,6 +200,3 @@ A client application can catch `WebClientResponseException`, when using the `Web
 or `RestClientResponseException` when using the `RestTemplate`, and use their
 `getResponseBodyAs` methods to decode the error response body to any target type such as
 `ProblemDetail`, or a subclass of `ProblemDetail`.
-
-
-

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -33,7 +34,6 @@ import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -183,8 +183,7 @@ public final class UrlHandlerFilter implements WebFilter {
 
 			private final List<PathPattern> pathPatterns;
 
-			@Nullable
-			private List<Function<ServerHttpRequest, Mono<Void>>> interceptors;
+			private @Nullable List<Function<ServerHttpRequest, Mono<Void>>> interceptors;
 
 			private DefaultTrailingSlashSpec(String[] patterns) {
 				this.pathPatterns = Arrays.stream(patterns)

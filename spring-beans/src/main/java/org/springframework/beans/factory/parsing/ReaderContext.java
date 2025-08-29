@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.beans.factory.parsing;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 
 /**
  * Context that gets passed along a bean definition reading process,
@@ -203,8 +204,7 @@ public class ReaderContext {
 	 * @see #getSourceExtractor()
 	 * @see SourceExtractor#extractSource
 	 */
-	@Nullable
-	public Object extractSource(Object sourceCandidate) {
+	public @Nullable Object extractSource(Object sourceCandidate) {
 		return this.sourceExtractor.extractSource(sourceCandidate, this.resource);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Miscellaneous utility methods for number conversion and parsing.
@@ -236,7 +236,7 @@ public abstract class NumberUtils {
 	 * @see #convertNumberToTargetClass
 	 * @see #parseNumber(String, Class)
 	 */
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public static <T extends Number> T parseNumber(
 			String text, Class<T> targetClass, @Nullable NumberFormat numberFormat) {
 

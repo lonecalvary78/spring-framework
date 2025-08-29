@@ -1,10 +1,8 @@
 /**
  * Core support for integrating the <em>Spring TestContext Framework</em>
- * with the JUnit Jupiter extension model in JUnit 5.
+ * with the JUnit Jupiter testing framework.
  */
-@NonNullApi
-@NonNullFields
+@NullMarked
 package org.springframework.test.context.junit.jupiter;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+import org.jspecify.annotations.NullMarked;

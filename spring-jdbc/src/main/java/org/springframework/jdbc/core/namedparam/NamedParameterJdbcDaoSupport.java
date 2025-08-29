@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.jdbc.core.namedparam;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
-import org.springframework.lang.Nullable;
 
 /**
  * Extension of JdbcDaoSupport that exposes a NamedParameterJdbcTemplate as well.
@@ -27,11 +28,14 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 2.0
  * @see NamedParameterJdbcTemplate
+ * @deprecated as of 7.0, in favor of direct injection of {@link NamedParameterJdbcTemplate}
+ * or {@link org.springframework.jdbc.core.simple.JdbcClient}
  */
+@Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public class NamedParameterJdbcDaoSupport extends JdbcDaoSupport {
 
-	@Nullable
-	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+	private @Nullable NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 
 	/**
@@ -48,8 +52,7 @@ public class NamedParameterJdbcDaoSupport extends JdbcDaoSupport {
 	/**
 	 * Return a NamedParameterJdbcTemplate wrapping the configured JdbcTemplate.
 	 */
-	@Nullable
-	public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate() {
+	public @Nullable NamedParameterJdbcTemplate getNamedParameterJdbcTemplate() {
 		return this.namedParameterJdbcTemplate;
 	}
 

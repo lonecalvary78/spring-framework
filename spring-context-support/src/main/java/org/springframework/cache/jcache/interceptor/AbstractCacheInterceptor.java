@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.AbstractCacheInvoker;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.CacheOperationInvocationContext;
 import org.springframework.cache.interceptor.CacheOperationInvoker;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -51,8 +51,7 @@ abstract class AbstractCacheInterceptor<O extends AbstractJCacheOperation<A>, A 
 	}
 
 
-	@Nullable
-	protected abstract Object invoke(CacheOperationInvocationContext<O> context, CacheOperationInvoker invoker)
+	protected abstract @Nullable Object invoke(CacheOperationInvocationContext<O> context, CacheOperationInvoker invoker)
 			throws Throwable;
 
 
@@ -75,8 +74,7 @@ abstract class AbstractCacheInterceptor<O extends AbstractJCacheOperation<A>, A 
 	 * <p>Throw an {@link IllegalStateException} if the collection holds more than one element
 	 * @return the single element, or {@code null} if the collection is empty
 	 */
-	@Nullable
-	static Cache extractFrom(Collection<? extends Cache> caches) {
+	static @Nullable Cache extractFrom(Collection<? extends Cache> caches) {
 		if (CollectionUtils.isEmpty(caches)) {
 			return null;
 		}

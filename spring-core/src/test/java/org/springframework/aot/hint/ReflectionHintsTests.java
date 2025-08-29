@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +37,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
  * @author Stephane Nicoll
  * @author Sebastien Deleuze
  */
+@SuppressWarnings("removal")
 class ReflectionHintsTests {
 
 	private final ReflectionHints reflectionHints = new ReflectionHints();
@@ -216,10 +217,10 @@ class ReflectionHintsTests {
 				typeHint -> typeHint.withMembers(MemberCategory.INTROSPECT_PUBLIC_METHODS));
 		assertThat(this.reflectionHints.typeHints()).hasSize(2)
 				.noneMatch(typeHint -> typeHint.getType().getCanonicalName().equals(Serializable.class.getCanonicalName()))
-				.anyMatch(typeHint -> typeHint.getType().getCanonicalName().equals(SecondInterface.class.getCanonicalName())
-						&& typeHint.getMemberCategories().contains(MemberCategory.INTROSPECT_PUBLIC_METHODS))
-				.anyMatch(typeHint -> typeHint.getType().getCanonicalName().equals(FirstInterface.class.getCanonicalName())
-						&& typeHint.getMemberCategories().contains(MemberCategory.INTROSPECT_PUBLIC_METHODS));
+				.anyMatch(typeHint -> typeHint.getType().getCanonicalName().equals(SecondInterface.class.getCanonicalName()) &&
+						typeHint.getMemberCategories().contains(MemberCategory.INTROSPECT_PUBLIC_METHODS))
+				.anyMatch(typeHint -> typeHint.getType().getCanonicalName().equals(FirstInterface.class.getCanonicalName()) &&
+						typeHint.getMemberCategories().contains(MemberCategory.INTROSPECT_PUBLIC_METHODS));
 	}
 
 	private void assertTestTypeMethodHints(Consumer<ExecutableHint> methodHint) {
@@ -245,8 +246,7 @@ class ReflectionHintsTests {
 	@SuppressWarnings("unused")
 	static class TestType {
 
-		@Nullable
-		private String field;
+		private @Nullable String field;
 
 		void setName(String name) {
 

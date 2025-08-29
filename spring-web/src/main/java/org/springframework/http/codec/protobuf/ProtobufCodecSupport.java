@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.http.codec.protobuf;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.MimeType;
 
 /**
@@ -32,6 +33,7 @@ public abstract class ProtobufCodecSupport {
 
 	static final MimeType[] MIME_TYPES = new MimeType[]{
 			new MimeType("application", "x-protobuf"),
+			new MimeType("application", "*+x-protobuf"),
 			new MimeType("application", "octet-stream"),
 			new MimeType("application", "vnd.google.protobuf")
 	};

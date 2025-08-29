@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Container for a model and a view for use with {@link FragmentsRendering} and
- * multi-view rendering. For full page rendering with a single model and view,
- * use {@link Rendering}.
+ * Container for a model and a view pair. For use with {@link FragmentsRendering}.
  *
  * @author Rossen Stoyanchev
  * @since 6.2
@@ -36,14 +35,11 @@ import org.springframework.util.CollectionUtils;
  */
 public final class Fragment {
 
-	@Nullable
-	private final String viewName;
+	private final @Nullable String viewName;
 
-	@Nullable
-	private final View view;
+	private final @Nullable View view;
 
-	@Nullable
-	private Map<String, Object> model;
+	private @Nullable Map<String, Object> model;
 
 
 	private Fragment(@Nullable String viewName, @Nullable View view, @Nullable Map<String, Object> model) {
@@ -63,8 +59,7 @@ public final class Fragment {
 	/**
 	 * Return the view name of the Fragment, or {@code null} if not set.
 	 */
-	@Nullable
-	public String viewName() {
+	public @Nullable String viewName() {
 		return this.viewName;
 	}
 
@@ -91,9 +86,7 @@ public final class Fragment {
 		if (CollectionUtils.isEmpty(model.asMap())) {
 			return;
 		}
-		if (this.model == null) {
-			this.model = new LinkedHashMap<>();
-		}
+		this.model = new LinkedHashMap<>(this.model != null ? this.model : Collections.emptyMap());
 		model.asMap().forEach((key, value) -> this.model.putIfAbsent(key, value));
 	}
 

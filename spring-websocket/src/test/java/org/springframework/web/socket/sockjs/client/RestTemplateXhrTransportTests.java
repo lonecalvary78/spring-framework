@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.task.SyncTaskExecutor;
@@ -33,7 +34,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -50,7 +50,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.sockjs.frame.Jackson2SockJsMessageCodec;
+import org.springframework.web.socket.sockjs.frame.JacksonJsonSockJsMessageCodec;
 import org.springframework.web.socket.sockjs.frame.SockJsFrame;
 import org.springframework.web.socket.sockjs.transport.TransportType;
 
@@ -69,7 +69,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  */
 class RestTemplateXhrTransportTests {
 
-	private static final Jackson2SockJsMessageCodec CODEC = new Jackson2SockJsMessageCodec();
+	private static final JacksonJsonSockJsMessageCodec CODEC = new JacksonJsonSockJsMessageCodec();
 
 	private final WebSocketHandler webSocketHandler = mock();
 
@@ -114,7 +114,7 @@ class RestTemplateXhrTransportTests {
 		Message<byte[]> message = MessageBuilder.createMessage("body".getBytes(UTF_8), headers);
 		byte[] bytes = new StompEncoder().encode(message);
 		TextMessage textMessage = new TextMessage(bytes);
-		SockJsFrame frame = SockJsFrame.messageFrame(new Jackson2SockJsMessageCodec(), textMessage.getPayload());
+		SockJsFrame frame = SockJsFrame.messageFrame(new JacksonJsonSockJsMessageCodec(), textMessage.getPayload());
 
 		String body = """
 				o

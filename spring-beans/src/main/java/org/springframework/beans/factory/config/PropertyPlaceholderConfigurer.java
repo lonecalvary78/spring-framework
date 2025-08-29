@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ package org.springframework.beans.factory.config;
 import java.util.Map;
 import java.util.Properties;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.core.SpringProperties;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.PropertyPlaceholderHelper;
 import org.springframework.util.PropertyPlaceholderHelper.PlaceholderResolver;
@@ -51,11 +52,13 @@ import org.springframework.util.StringValueResolver;
  * @see #setSystemPropertiesModeName
  * @see PlaceholderConfigurerSupport
  * @see PropertyOverrideConfigurer
- * @deprecated as of 5.2; use {@code org.springframework.context.support.PropertySourcesPlaceholderConfigurer}
- * instead which is more flexible through taking advantage of the {@link org.springframework.core.env.Environment}
- * and {@link org.springframework.core.env.PropertySource} mechanisms.
+ * @deprecated as of 5.2, to be removed in 8.0;
+ * use {@code org.springframework.context.support.PropertySourcesPlaceholderConfigurer}
+ * instead which is more flexible through taking advantage of the
+ * {@link org.springframework.core.env.Environment} and
+ * {@link org.springframework.core.env.PropertySource} mechanisms.
  */
-@Deprecated
+@Deprecated(since = "5.2", forRemoval = true)
 public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport {
 
 	/** Never check system properties. */
@@ -153,8 +156,7 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	 * @see System#getProperty
 	 * @see #resolvePlaceholder(String, java.util.Properties)
 	 */
-	@Nullable
-	protected String resolvePlaceholder(String placeholder, Properties props, int systemPropertiesMode) {
+	protected @Nullable String resolvePlaceholder(String placeholder, Properties props, int systemPropertiesMode) {
 		String propVal = null;
 		if (systemPropertiesMode == SYSTEM_PROPERTIES_MODE_OVERRIDE) {
 			propVal = resolveSystemProperty(placeholder);
@@ -181,8 +183,7 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	 * @return the resolved value, of {@code null} if none
 	 * @see #setSystemPropertiesMode
 	 */
-	@Nullable
-	protected String resolvePlaceholder(String placeholder, Properties props) {
+	protected @Nullable String resolvePlaceholder(String placeholder, Properties props) {
 		return props.getProperty(placeholder);
 	}
 
@@ -195,8 +196,7 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	 * @see System#getProperty(String)
 	 * @see System#getenv(String)
 	 */
-	@Nullable
-	protected String resolveSystemProperty(String key) {
+	protected @Nullable String resolveSystemProperty(String key) {
 		try {
 			String value = System.getProperty(key);
 			if (value == null && this.searchSystemEnvironment) {
@@ -240,8 +240,7 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 		}
 
 		@Override
-		@Nullable
-		public String resolveStringValue(String strVal) throws BeansException {
+		public @Nullable String resolveStringValue(String strVal) throws BeansException {
 			String resolved = this.helper.replacePlaceholders(strVal, this.resolver);
 			if (trimValues) {
 				resolved = resolved.trim();
@@ -260,8 +259,7 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 		}
 
 		@Override
-		@Nullable
-		public String resolvePlaceholder(String placeholderName) {
+		public @Nullable String resolvePlaceholder(String placeholderName) {
 			return PropertyPlaceholderConfigurer.this.resolvePlaceholder(placeholderName,
 					this.props, systemPropertiesMode);
 		}

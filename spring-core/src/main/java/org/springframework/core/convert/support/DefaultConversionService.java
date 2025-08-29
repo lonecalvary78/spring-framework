@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,11 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.lang.Nullable;
 
 /**
  * A specialization of {@link GenericConversionService} configured by default
@@ -42,8 +43,7 @@ import org.springframework.lang.Nullable;
  */
 public class DefaultConversionService extends GenericConversionService {
 
-	@Nullable
-	private static volatile DefaultConversionService sharedInstance;
+	private static volatile @Nullable DefaultConversionService sharedInstance;
 
 
 	/**
@@ -91,6 +91,8 @@ public class DefaultConversionService extends GenericConversionService {
 		addCollectionConverters(converterRegistry);
 
 		converterRegistry.addConverter(new ByteBufferConverter((ConversionService) converterRegistry));
+		converterRegistry.addConverter(new DateToInstantConverter());
+		converterRegistry.addConverter(new InstantToDateConverter());
 		converterRegistry.addConverter(new StringToTimeZoneConverter());
 		converterRegistry.addConverter(new ZoneIdToTimeZoneConverter());
 		converterRegistry.addConverter(new ZonedDateTimeToCalendarConverter());
@@ -99,6 +101,7 @@ public class DefaultConversionService extends GenericConversionService {
 		converterRegistry.addConverter(new IdToEntityConverter((ConversionService) converterRegistry));
 		converterRegistry.addConverter(new FallbackObjectToStringConverter());
 		converterRegistry.addConverter(new ObjectToOptionalConverter((ConversionService) converterRegistry));
+		converterRegistry.addConverter(new OptionalToObjectConverter((ConversionService) converterRegistry));
 	}
 
 	/**

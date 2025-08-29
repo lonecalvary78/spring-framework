@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.lang.Nullable;
 
 /**
  * Implementation of {@link ClientHttpResponse} that can not only check if
@@ -37,8 +38,7 @@ import org.springframework.lang.Nullable;
  */
 class IntrospectingClientHttpResponse extends ClientHttpResponseDecorator {
 
-	@Nullable
-	private PushbackInputStream pushbackInputStream;
+	private @Nullable PushbackInputStream pushbackInputStream;
 
 
 	public IntrospectingClientHttpResponse(ClientHttpResponse response) {

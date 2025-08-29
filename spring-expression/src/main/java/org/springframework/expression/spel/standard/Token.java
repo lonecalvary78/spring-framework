@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.expression.spel.standard;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Holder for a kind of token, the associated data, and its position in the input
@@ -29,8 +29,7 @@ class Token {
 
 	final TokenKind kind;
 
-	@Nullable
-	final String data;
+	final @Nullable String data;
 
 	final int startPos;
 
@@ -55,7 +54,7 @@ class Token {
 	 * @param startPos the exact start position
 	 * @param endPos the index of the last character
 	 */
-	Token(TokenKind tokenKind, @Nullable char[] tokenData, int startPos, int endPos) {
+	Token(TokenKind tokenKind, char @Nullable [] tokenData, int startPos, int endPos) {
 		this.kind = tokenKind;
 		this.data = (tokenData != null ? new String(tokenData) : null);
 		this.startPos = startPos;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.AfterAdvice;
 import org.springframework.aop.framework.AopConfigException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -131,8 +131,7 @@ public class ThrowsAdviceInterceptor implements MethodInterceptor, AfterAdvice {
 
 
 	@Override
-	@Nullable
-	public Object invoke(MethodInvocation mi) throws Throwable {
+	public @Nullable Object invoke(MethodInvocation mi) throws Throwable {
 		try {
 			return mi.proceed();
 		}
@@ -150,8 +149,7 @@ public class ThrowsAdviceInterceptor implements MethodInterceptor, AfterAdvice {
 	 * @param exception the exception thrown
 	 * @return a handler for the given exception type, or {@code null} if none found
 	 */
-	@Nullable
-	private Method getExceptionHandler(Throwable exception) {
+	private @Nullable Method getExceptionHandler(Throwable exception) {
 		Class<?> exceptionClass = exception.getClass();
 		if (logger.isTraceEnabled()) {
 			logger.trace("Trying to find handler for exception of type [" + exceptionClass.getName() + "]");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package org.springframework.scheduling.config;
 
+import io.micrometer.observation.tck.TestObservationRegistry;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.scheduling.SchedulingAwareRunnable;
+import org.springframework.scheduling.support.ScheduledMethodRunnable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -70,6 +74,18 @@ class TaskTests {
 		assertThat(executionOutcome.executionTime()).isInThePast();
 		assertThat(executionOutcome.status()).isEqualTo(TaskExecutionOutcome.Status.ERROR);
 		assertThat(executionOutcome.throwable()).isInstanceOf(IllegalStateException.class);
+	}
+
+	@Test
+	void shouldDelegateToSchedulingAwareRunnable() throws Exception {
+		ScheduledMethodRunnable methodRunnable = new ScheduledMethodRunnable(new TestRunnable(),
+				TestRunnable.class.getMethod("run"), "myScheduler", TestObservationRegistry::create);
+		Task task = new Task(methodRunnable);
+
+		assertThat(task.getRunnable()).isInstanceOf(SchedulingAwareRunnable.class);
+		SchedulingAwareRunnable actual = (SchedulingAwareRunnable) task.getRunnable();
+		assertThat(actual.getQualifier()).isEqualTo(methodRunnable.getQualifier());
+		assertThat(actual.isLongLived()).isEqualTo(methodRunnable.isLongLived());
 	}
 
 

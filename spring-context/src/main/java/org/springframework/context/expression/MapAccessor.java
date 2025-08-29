@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.context.expression;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.asm.MethodVisitor;
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
@@ -25,7 +27,6 @@ import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
 import org.springframework.expression.spel.CodeFlow;
 import org.springframework.expression.spel.CompilablePropertyAccessor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

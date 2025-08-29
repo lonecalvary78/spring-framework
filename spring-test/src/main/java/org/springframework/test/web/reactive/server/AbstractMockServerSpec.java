@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.http.server.reactive.SslInfo;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
@@ -31,20 +33,20 @@ import org.springframework.web.server.session.WebSessionManager;
  * Base class for implementations of {@link WebTestClient.MockServerSpec}.
  *
  * @author Rossen Stoyanchev
+ * @author Sam Brannen
  * @since 5.0
  * @param <B> a self reference to the builder type
  */
 abstract class AbstractMockServerSpec<B extends WebTestClient.MockServerSpec<B>>
 		implements WebTestClient.MockServerSpec<B> {
 
-	@Nullable
-	private List<WebFilter> filters;
+	private @Nullable List<WebFilter> filters;
 
-	@Nullable
-	private WebSessionManager sessionManager;
+	private @Nullable WebSessionManager sessionManager;
 
-	@Nullable
-	private List<MockServerConfigurer> configurers;
+	private @Nullable SslInfo sslInfo;
+
+	private @Nullable List<MockServerConfigurer> configurers;
 
 
 	AbstractMockServerSpec() {
@@ -65,6 +67,12 @@ abstract class AbstractMockServerSpec<B extends WebTestClient.MockServerSpec<B>>
 	@Override
 	public <T extends B> T webSessionManager(WebSessionManager sessionManager) {
 		this.sessionManager = sessionManager;
+		return self();
+	}
+
+	@Override
+	public <T extends B> T sslInfo(@Nullable SslInfo info) {
+		this.sslInfo = info;
 		return self();
 	}
 
@@ -93,7 +101,7 @@ abstract class AbstractMockServerSpec<B extends WebTestClient.MockServerSpec<B>>
 		if (!CollectionUtils.isEmpty(this.configurers)) {
 			this.configurers.forEach(configurer -> configurer.beforeServerCreated(builder));
 		}
-		return new DefaultWebTestClientBuilder(builder);
+		return new DefaultWebTestClientBuilder(builder, this.sslInfo);
 	}
 
 	/**

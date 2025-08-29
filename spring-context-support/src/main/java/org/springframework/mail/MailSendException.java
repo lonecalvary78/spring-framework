@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -36,8 +37,7 @@ public class MailSendException extends MailException {
 
 	private final transient Map<Object, Exception> failedMessages;
 
-	@Nullable
-	private final Exception[] messageExceptions;
+	private final Exception @Nullable [] messageExceptions;
 
 
 	/**
@@ -124,8 +124,7 @@ public class MailSendException extends MailException {
 
 
 	@Override
-	@Nullable
-	public String getMessage() {
+	public @Nullable String getMessage() {
 		if (ObjectUtils.isEmpty(this.messageExceptions)) {
 			return super.getMessage();
 		}

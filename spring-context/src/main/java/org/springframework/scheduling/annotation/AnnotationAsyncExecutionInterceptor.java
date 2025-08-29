@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ package org.springframework.scheduling.annotation;
 import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.interceptor.AsyncExecutionInterceptor;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Specialization of {@link AsyncExecutionInterceptor} that delegates method execution to
@@ -79,8 +80,7 @@ public class AnnotationAsyncExecutionInterceptor extends AsyncExecutionIntercept
 	 * @see #determineAsyncExecutor(Method)
 	 */
 	@Override
-	@Nullable
-	protected String getExecutorQualifier(Method method) {
+	protected @Nullable String getExecutorQualifier(Method method) {
 		// Maintainer's note: changes made here should also be made in
 		// AnnotationAsyncExecutionAspect#getExecutorQualifier
 		Async async = AnnotatedElementUtils.findMergedAnnotation(method, Async.class);

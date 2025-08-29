@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.Mergeable;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -45,16 +46,18 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.ApiVersionFormatter;
+import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -82,39 +85,29 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 
 	private final HttpMethod method;
 
-	@Nullable
-	private String uriTemplate;
+	private @Nullable String uriTemplate;
 
-	@Nullable
-	private URI uri;
+	private @Nullable URI uri;
 
 	private String contextPath = "";
 
 	private String servletPath = "";
 
-	@Nullable
-	private String pathInfo = "";
+	private @Nullable String pathInfo = "";
 
-	@Nullable
-	private Boolean secure;
+	private @Nullable Boolean secure;
 
-	@Nullable
-	private Principal principal;
+	private @Nullable Principal principal;
 
-	@Nullable
-	private MockHttpSession session;
+	private @Nullable MockHttpSession session;
 
-	@Nullable
-	private String remoteAddress;
+	private @Nullable String remoteAddress;
 
-	@Nullable
-	private String characterEncoding;
+	private @Nullable String characterEncoding;
 
-	@Nullable
-	private byte[] content;
+	private byte @Nullable [] content;
 
-	@Nullable
-	private String contentType;
+	private @Nullable String contentType;
 
 	private final MultiValueMap<String, Object> headers = new LinkedMultiValueMap<>();
 
@@ -127,6 +120,10 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 	private final List<Cookie> cookies = new ArrayList<>();
 
 	private final List<Locale> locales = new ArrayList<>();
+
+	private @Nullable Object version;
+
+	private @Nullable ApiVersionInserter versionInserter;
 
 	private final Map<String, Object> requestAttributes = new LinkedHashMap<>();
 
@@ -161,7 +158,7 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 	/**
 	 * Specify the URI for the request using a URI template and URI variables.
 	 */
-	public B uri(String uriTemplate, Object... uriVariables) {
+	public B uri(String uriTemplate, @Nullable Object... uriVariables) {
 		return updateUri(initUri(uriTemplate, uriVariables), uriTemplate);
 	}
 
@@ -171,7 +168,7 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 		return self();
 	}
 
-	private static URI initUri(String uri, Object[] vars) {
+	private static URI initUri(String uri, @Nullable Object[] vars) {
 		Assert.notNull(uri, "'uri' must not be null");
 		Assert.isTrue(uri.isEmpty() || uri.startsWith("/") || uri.startsWith("http://") || uri.startsWith("https://"),
 				() -> "'uri' should start with a path or be a complete HTTP URI: " + uri);
@@ -345,7 +342,7 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 	 * @param values one or more header values
 	 */
 	public B header(String name, Object... values) {
-		addToMultiValueMap(this.headers, name, values);
+		this.headers.addAll(name, Arrays.asList(values));
 		return self();
 	}
 
@@ -375,7 +372,7 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 	 * @param values one or more values
 	 */
 	public B param(String name, String... values) {
-		addToMultiValueMap(this.parameters, name, values);
+		this.parameters.addAll(name, Arrays.asList(values));
 		return self();
 	}
 
@@ -476,6 +473,34 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 		if (locale != null) {
 			this.locales.add(locale);
 		}
+		return self();
+	}
+
+	/**
+	 * Set an API version for the request. The version is inserted into the
+	 * request by the {@link #apiVersionInserter(ApiVersionInserter) configured}
+	 * {@code ApiVersionInserter}.
+	 * @param version the API version of the request; this can be a String or
+	 * some Object that can be formatted the inserter, e.g. through an
+	 * {@link ApiVersionFormatter}.
+	 * @since 7.0
+	 */
+	public B apiVersion(Object version) {
+		this.version = version;
+		return self();
+	}
+
+	/**
+	 * Configure an {@link ApiVersionInserter} to abstract how an API version
+	 * specified via {@link #apiVersion(Object)} is inserted into the request.
+	 * An inserter may typically be set once (more centrally) via
+	 * {@link org.springframework.test.web.servlet.setup.ConfigurableMockMvcBuilder#defaultRequest(RequestBuilder)}, or
+	 * {@link org.springframework.test.web.servlet.setup.ConfigurableMockMvcBuilder#apiVersionInserter(ApiVersionInserter)}.
+	 * @param versionInserter the inserter to use
+	 * @since 7.0
+	 */
+	public B apiVersionInserter(ApiVersionInserter versionInserter) {
+		this.versionInserter = versionInserter;
 		return self();
 	}
 
@@ -672,6 +697,14 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 			}
 		}
 
+		if (this.version == null) {
+			this.version = parentBuilder.version;
+		}
+
+		if (this.versionInserter == null) {
+			this.versionInserter = parentBuilder.versionInserter;
+		}
+
 		for (Map.Entry<String, Object> entry : parentBuilder.requestAttributes.entrySet()) {
 			String attributeName = entry.getKey();
 			if (!this.requestAttributes.containsKey(attributeName)) {
@@ -710,7 +743,15 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 	 */
 	@Override
 	public final MockHttpServletRequest buildRequest(ServletContext servletContext) {
-		Assert.notNull(this.uri, "'uri' is required");
+
+		URI uri = this.uri;
+		Assert.notNull(uri, "'uri' is required");
+
+		if (this.version != null) {
+			Assert.state(this.versionInserter != null, "No ApiVersionInserter");
+			uri = this.versionInserter.insertVersion(this.version, uri);
+		}
+
 		MockHttpServletRequest request = createServletRequest(servletContext);
 
 		request.setAsyncSupported(true);
@@ -718,17 +759,17 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 
 		request.setUriTemplate(this.uriTemplate);
 
-		String requestUri = this.uri.getRawPath();
+		String requestUri = uri.getRawPath();
 		request.setRequestURI(requestUri);
 
-		if (this.uri.getScheme() != null) {
-			request.setScheme(this.uri.getScheme());
+		if (uri.getScheme() != null) {
+			request.setScheme(uri.getScheme());
 		}
-		if (this.uri.getHost() != null) {
-			request.setServerName(this.uri.getHost());
+		if (uri.getHost() != null) {
+			request.setServerName(uri.getHost());
 		}
-		if (this.uri.getPort() != -1) {
-			request.setServerPort(this.uri.getPort());
+		if (uri.getPort() != -1) {
+			request.setServerPort(uri.getPort());
 		}
 
 		updatePathRequestProperties(request, requestUri);
@@ -750,6 +791,13 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 		request.setContent(this.content);
 		request.setContentType(this.contentType);
 
+		if (this.version != null) {
+			Assert.state(this.versionInserter != null, "No ApiVersionInserter");
+			HttpHeaders httpHeaders = new HttpHeaders();
+			this.versionInserter.insertVersion(this.version, httpHeaders);
+			httpHeaders.forEach((name, values) -> values.forEach(value -> this.headers.add(name, value)));
+		}
+
 		this.headers.forEach((name, values) -> {
 			for (Object value : values) {
 				request.addHeader(name, value);
@@ -763,7 +811,7 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 			request.addHeader(HttpHeaders.CONTENT_LENGTH, this.content.length);
 		}
 
-		String query = this.uri.getRawQuery();
+		String query = uri.getRawQuery();
 		if (!this.queryParams.isEmpty()) {
 			String str = UriComponentsBuilder.newInstance().queryParams(this.queryParams).build().encode().getQuery();
 			query = StringUtils.hasLength(query) ? (query + "&" + str) : str;
@@ -771,13 +819,9 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 		if (query != null) {
 			request.setQueryString(query);
 		}
-		addRequestParams(request, UriComponentsBuilder.fromUri(this.uri).build().getQueryParams());
 
-		this.parameters.forEach((name, values) -> {
-			for (String value : values) {
-				request.addParameter(name, value);
-			}
-		});
+		addRequestParams(request, UriComponentsBuilder.fromUri(uri).build().getQueryParams());
+		this.parameters.forEach((name, values) -> request.addParameter(name, values.toArray(new String[0])));
 
 		if (!this.formFields.isEmpty()) {
 			if (this.content != null && this.content.length > 0) {
@@ -867,10 +911,12 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 	}
 
 	private void addRequestParams(MockHttpServletRequest request, MultiValueMap<String, String> map) {
-		map.forEach((key, values) -> values.forEach(value -> {
-			value = (value != null ? UriUtils.decode(value, StandardCharsets.UTF_8) : null);
-			request.addParameter(UriUtils.decode(key, StandardCharsets.UTF_8), value);
-		}));
+		map.forEach((key, values) ->
+				request.addParameter(
+						UriUtils.decode(key, StandardCharsets.UTF_8),
+						values.stream()
+								.map(value -> value != null ? UriUtils.decode(value, StandardCharsets.UTF_8) : null)
+								.toArray(String[]::new)));
 	}
 
 	private byte[] writeFormData(MediaType mediaType, Charset charset) {
@@ -944,19 +990,10 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 		return request;
 	}
 
-
 	private static void addToMap(Map<String, Object> map, String name, Object value) {
 		Assert.hasLength(name, "'name' must not be empty");
 		Assert.notNull(value, "'value' must not be null");
 		map.put(name, value);
-	}
-
-	private static <T> void addToMultiValueMap(MultiValueMap<String, T> map, String name, T[] values) {
-		Assert.hasLength(name, "'name' must not be empty");
-		Assert.notEmpty(values, "'values' must not be empty");
-		for (T value : values) {
-			map.add(name, value);
-		}
 	}
 
 }

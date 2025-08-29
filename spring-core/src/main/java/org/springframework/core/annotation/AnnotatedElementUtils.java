@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.MergedAnnotation.Adapt;
 import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
-import org.springframework.lang.Nullable;
 import org.springframework.util.MultiValueMap;
 
 /**
@@ -35,9 +36,13 @@ import org.springframework.util.MultiValueMap;
  * repeatable annotations on {@link AnnotatedElement AnnotatedElements}.
  *
  * <p>{@code AnnotatedElementUtils} defines the public API for Spring's
- * meta-annotation programming model with support for <em>annotation attribute
- * overrides</em>. If you do not need support for annotation attribute
- * overrides, consider using {@link AnnotationUtils} instead.
+ * meta-annotation programming model with support for attribute aliases and
+ * <em>annotation attribute overrides</em> configured via {@link AliasFor @AliasFor}.
+ * Note, however, that {@code AnnotatedElementUtils} is effectively a facade for
+ * the {@link MergedAnnotations} API. For fine-grained support consider using the
+ * {@code MergedAnnotations} API directly. If you do not need support for
+ * {@code @AliasFor} or merged annotations, consider using {@link AnnotationUtils}
+ * instead.
  *
  * <p>Note that the features of this class are not provided by the JDK's
  * introspection facilities themselves.
@@ -87,6 +92,7 @@ import org.springframework.util.MultiValueMap;
  * @since 4.0
  * @see AliasFor
  * @see AnnotationAttributes
+ * @see MergedAnnotations
  * @see AnnotationUtils
  * @see BridgeMethodResolver
  */
@@ -94,12 +100,12 @@ public abstract class AnnotatedElementUtils {
 
 	/**
 	 * Build an adapted {@link AnnotatedElement} for the given annotations,
-	 * typically for use with other methods on {@link AnnotatedElementUtils}.
+	 * typically for use with other methods in {@link AnnotatedElementUtils}.
 	 * @param annotations the annotations to expose through the {@code AnnotatedElement}
 	 * @since 4.3
 	 */
 	public static AnnotatedElement forAnnotations(Annotation... annotations) {
-		return new AnnotatedElementForAnnotations(annotations);
+		return AnnotatedElementAdapter.from(annotations);
 	}
 
 	/**
@@ -231,8 +237,8 @@ public abstract class AnnotatedElementUtils {
 	 * the annotation hierarchy <em>above</em> the supplied {@code element} and
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both
-	 * within a single annotation and within the annotation hierarchy.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method delegates to {@link #getMergedAnnotationAttributes(AnnotatedElement, String)}.
 	 * @param element the annotated element
 	 * @param annotationType the annotation type to find
@@ -243,8 +249,7 @@ public abstract class AnnotatedElementUtils {
 	 * @see #getMergedAnnotation(AnnotatedElement, Class)
 	 * @see #findMergedAnnotation(AnnotatedElement, Class)
 	 */
-	@Nullable
-	public static AnnotationAttributes getMergedAnnotationAttributes(
+	public static @Nullable AnnotationAttributes getMergedAnnotationAttributes(
 			AnnotatedElement element, Class<? extends Annotation> annotationType) {
 
 		MergedAnnotation<?> mergedAnnotation = getAnnotations(element)
@@ -257,8 +262,8 @@ public abstract class AnnotatedElementUtils {
 	 * the annotation hierarchy <em>above</em> the supplied {@code element} and
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both
-	 * within a single annotation and within the annotation hierarchy.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method delegates to {@link #getMergedAnnotationAttributes(AnnotatedElement, String, boolean, boolean)},
 	 * supplying {@code false} for {@code classValuesAsString} and {@code nestedAnnotationsAsMap}.
 	 * @param element the annotated element
@@ -270,8 +275,7 @@ public abstract class AnnotatedElementUtils {
 	 * @see #findMergedAnnotation(AnnotatedElement, Class)
 	 * @see #getAllAnnotationAttributes(AnnotatedElement, String)
 	 */
-	@Nullable
-	public static AnnotationAttributes getMergedAnnotationAttributes(AnnotatedElement element,
+	public static @Nullable AnnotationAttributes getMergedAnnotationAttributes(AnnotatedElement element,
 			String annotationName) {
 
 		return getMergedAnnotationAttributes(element, annotationName, false, false);
@@ -282,9 +286,8 @@ public abstract class AnnotatedElementUtils {
 	 * the annotation hierarchy <em>above</em> the supplied {@code element} and
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy.
-	 * <p>Attributes from lower levels in the annotation hierarchy override attributes
-	 * of the same name from higher levels, and {@link AliasFor @AliasFor} semantics are
-	 * fully supported, both within a single annotation and within the annotation hierarchy.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>In contrast to {@link #getAllAnnotationAttributes}, the search algorithm used by
 	 * this method will stop searching the annotation hierarchy once the first annotation
 	 * of the specified {@code annotationName} has been found. As a consequence,
@@ -303,8 +306,7 @@ public abstract class AnnotatedElementUtils {
 	 * @see #findMergedAnnotationAttributes(AnnotatedElement, String, boolean, boolean)
 	 * @see #getAllAnnotationAttributes(AnnotatedElement, String, boolean, boolean)
 	 */
-	@Nullable
-	public static AnnotationAttributes getMergedAnnotationAttributes(AnnotatedElement element,
+	public static @Nullable AnnotationAttributes getMergedAnnotationAttributes(AnnotatedElement element,
 			String annotationName, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
 
 		MergedAnnotation<?> mergedAnnotation = getAnnotations(element)
@@ -318,16 +320,15 @@ public abstract class AnnotatedElementUtils {
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy, and synthesize
 	 * the result back into an annotation of the specified {@code annotationType}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both
-	 * within a single annotation and within the annotation hierarchy.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * @param element the annotated element
 	 * @param annotationType the annotation type to find
 	 * @return the merged, synthesized {@code Annotation}, or {@code null} if not found
 	 * @since 4.2
 	 * @see #findMergedAnnotation(AnnotatedElement, Class)
 	 */
-	@Nullable
-	public static <A extends Annotation> A getMergedAnnotation(AnnotatedElement element, Class<A> annotationType) {
+	public static <A extends Annotation> @Nullable A getMergedAnnotation(AnnotatedElement element, Class<A> annotationType) {
 		// Shortcut: directly present on the element, with no merging needed?
 		if (AnnotationFilter.PLAIN.matches(annotationType) ||
 				AnnotationsScanner.hasPlainJavaAnnotationsOnly(element)) {
@@ -346,8 +347,8 @@ public abstract class AnnotatedElementUtils {
 	 * <em>matching</em> attributes from annotations in lower levels of the annotation
 	 * hierarchy and synthesize the results back into an annotation of the specified
 	 * {@code annotationType}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within a
-	 * single annotation and within annotation hierarchies.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element (never {@code null})
@@ -373,8 +374,8 @@ public abstract class AnnotatedElementUtils {
 	 * <em>matching</em> attributes from annotations in lower levels of the
 	 * annotation hierarchy and synthesize the results back into an annotation
 	 * of the corresponding {@code annotationType}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within a
-	 * single annotation and within annotation hierarchies.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element (never {@code null})
@@ -400,9 +401,9 @@ public abstract class AnnotatedElementUtils {
 	 * hierarchy and synthesize the results back into an annotation of the specified
 	 * {@code annotationType}.
 	 * <p>The container type that holds the repeatable annotations will be looked up
-	 * via {@link java.lang.annotation.Repeatable}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within a
-	 * single annotation and within annotation hierarchies.
+	 * via {@link java.lang.annotation.Repeatable @Repeatable}.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element (never {@code null})
@@ -429,8 +430,8 @@ public abstract class AnnotatedElementUtils {
 	 * <em>matching</em> attributes from annotations in lower levels of the annotation
 	 * hierarchy and synthesize the results back into an annotation of the specified
 	 * {@code annotationType}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within a
-	 * single annotation and within annotation hierarchies.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>get semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * <p><strong>WARNING</strong>: if the supplied {@code containerType} is not
@@ -441,13 +442,17 @@ public abstract class AnnotatedElementUtils {
 	 * support such a use case, favor {@link #getMergedRepeatableAnnotations(AnnotatedElement, Class)}
 	 * over this method or alternatively use the {@link MergedAnnotations} API
 	 * directly in conjunction with {@link RepeatableContainers} that are
-	 * {@linkplain RepeatableContainers#and(Class, Class) composed} to support
-	 * multiple repeatable annotation types.
+	 * {@linkplain RepeatableContainers#plus(Class, Class) composed} to support
+	 * multiple repeatable annotation types &mdash; for example:
+	 * <pre class="code">
+	 * RepeatableContainers.standardRepeatables()
+	 *     .plus(MyRepeatable1.class, MyContainer1.class)
+	 *     .plus(MyRepeatable2.class, MyContainer2.class);</pre>
 	 * @param element the annotated element (never {@code null})
-	 * @param annotationType the annotation type to find (never {@code null})
-	 * @param containerType the type of the container that holds the annotations;
-	 * may be {@code null} if the container type should be looked up via
-	 * {@link java.lang.annotation.Repeatable}
+	 * @param annotationType the repeatable annotation type to find (never {@code null})
+	 * @param containerType the type of the container that holds the repeatable
+	 * annotations; may be {@code null} if the container type should be looked up
+	 * via {@link java.lang.annotation.Repeatable @Repeatable}
 	 * @return the set of all merged repeatable {@code Annotations} found,
 	 * or an empty set if none were found
 	 * @throws IllegalArgumentException if the {@code element} or {@code annotationType}
@@ -462,7 +467,7 @@ public abstract class AnnotatedElementUtils {
 			AnnotatedElement element, Class<A> annotationType,
 			@Nullable Class<? extends Annotation> containerType) {
 
-		return getRepeatableAnnotations(element, containerType, annotationType)
+		return getRepeatableAnnotations(element, annotationType, containerType)
 				.stream(annotationType)
 				.collect(MergedAnnotationCollectors.toAnnotationSet());
 	}
@@ -481,8 +486,7 @@ public abstract class AnnotatedElementUtils {
 	 * attributes from all annotations found, or {@code null} if not found
 	 * @see #getAllAnnotationAttributes(AnnotatedElement, String, boolean, boolean)
 	 */
-	@Nullable
-	public static MultiValueMap<String, Object> getAllAnnotationAttributes(
+	public static @Nullable MultiValueMap<String, @Nullable Object> getAllAnnotationAttributes(
 			AnnotatedElement element, String annotationName) {
 
 		return getAllAnnotationAttributes(element, annotationName, false, false);
@@ -506,8 +510,7 @@ public abstract class AnnotatedElementUtils {
 	 * @return a {@link MultiValueMap} keyed by attribute name, containing the annotation
 	 * attributes from all annotations found, or {@code null} if not found
 	 */
-	@Nullable
-	public static MultiValueMap<String, Object> getAllAnnotationAttributes(AnnotatedElement element,
+	public static @Nullable MultiValueMap<String, @Nullable Object> getAllAnnotationAttributes(AnnotatedElement element,
 			String annotationName, final boolean classValuesAsString, final boolean nestedAnnotationsAsMap) {
 
 		Adapt[] adaptations = Adapt.values(classValuesAsString, nestedAnnotationsAsMap);
@@ -546,10 +549,8 @@ public abstract class AnnotatedElementUtils {
 	 * the annotation hierarchy <em>above</em> the supplied {@code element} and
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy.
-	 * <p>Attributes from lower levels in the annotation hierarchy override
-	 * attributes of the same name from higher levels, and
-	 * {@link AliasFor @AliasFor} semantics are fully supported, both
-	 * within a single annotation and within the annotation hierarchy.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>In contrast to {@link #getAllAnnotationAttributes}, the search algorithm
 	 * used by this method will stop searching the annotation hierarchy once the
 	 * first annotation of the specified {@code annotationType} has been found.
@@ -568,8 +569,7 @@ public abstract class AnnotatedElementUtils {
 	 * @see #findMergedAnnotation(AnnotatedElement, Class)
 	 * @see #getMergedAnnotationAttributes(AnnotatedElement, String, boolean, boolean)
 	 */
-	@Nullable
-	public static AnnotationAttributes findMergedAnnotationAttributes(AnnotatedElement element,
+	public static @Nullable AnnotationAttributes findMergedAnnotationAttributes(AnnotatedElement element,
 			Class<? extends Annotation> annotationType, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
 
 		MergedAnnotation<?> mergedAnnotation = findAnnotations(element)
@@ -582,10 +582,8 @@ public abstract class AnnotatedElementUtils {
 	 * the annotation hierarchy <em>above</em> the supplied {@code element} and
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy.
-	 * <p>Attributes from lower levels in the annotation hierarchy override
-	 * attributes of the same name from higher levels, and
-	 * {@link AliasFor @AliasFor} semantics are fully supported, both
-	 * within a single annotation and within the annotation hierarchy.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>In contrast to {@link #getAllAnnotationAttributes}, the search
 	 * algorithm used by this method will stop searching the annotation
 	 * hierarchy once the first annotation of the specified
@@ -604,8 +602,7 @@ public abstract class AnnotatedElementUtils {
 	 * @see #findMergedAnnotation(AnnotatedElement, Class)
 	 * @see #getMergedAnnotationAttributes(AnnotatedElement, String, boolean, boolean)
 	 */
-	@Nullable
-	public static AnnotationAttributes findMergedAnnotationAttributes(AnnotatedElement element,
+	public static @Nullable AnnotationAttributes findMergedAnnotationAttributes(AnnotatedElement element,
 			String annotationName, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
 
 		MergedAnnotation<?> mergedAnnotation = findAnnotations(element)
@@ -619,8 +616,8 @@ public abstract class AnnotatedElementUtils {
 	 * merge that annotation's attributes with <em>matching</em> attributes from
 	 * annotations in lower levels of the annotation hierarchy, and synthesize
 	 * the result back into an annotation of the specified {@code annotationType}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both
-	 * within a single annotation and within the annotation hierarchy.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>find semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element
@@ -631,8 +628,7 @@ public abstract class AnnotatedElementUtils {
 	 * @see #findMergedAnnotationAttributes(AnnotatedElement, String, boolean, boolean)
 	 * @see #getMergedAnnotationAttributes(AnnotatedElement, Class)
 	 */
-	@Nullable
-	public static <A extends Annotation> A findMergedAnnotation(AnnotatedElement element, Class<A> annotationType) {
+	public static <A extends Annotation> @Nullable A findMergedAnnotation(AnnotatedElement element, Class<A> annotationType) {
 		// Shortcut: directly present on the element, with no merging needed?
 		if (AnnotationFilter.PLAIN.matches(annotationType) ||
 				AnnotationsScanner.hasPlainJavaAnnotationsOnly(element)) {
@@ -651,8 +647,8 @@ public abstract class AnnotatedElementUtils {
 	 * <em>matching</em> attributes from annotations in lower levels of the annotation
 	 * hierarchy and synthesize the results back into an annotation of the specified
 	 * {@code annotationType}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within a
-	 * single annotation and within annotation hierarchies.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>find semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element (never {@code null})
@@ -676,8 +672,8 @@ public abstract class AnnotatedElementUtils {
 	 * <em>matching</em> attributes from annotations in lower levels of the
 	 * annotation hierarchy and synthesize the results back into an annotation
 	 * of the corresponding {@code annotationType}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within a
-	 * single annotation and within annotation hierarchies.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>find semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element (never {@code null})
@@ -702,9 +698,9 @@ public abstract class AnnotatedElementUtils {
 	 * hierarchy and synthesize the results back into an annotation of the specified
 	 * {@code annotationType}.
 	 * <p>The container type that holds the repeatable annotations will be looked up
-	 * via {@link java.lang.annotation.Repeatable}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within a
-	 * single annotation and within annotation hierarchies.
+	 * via {@link java.lang.annotation.Repeatable @Repeatable}.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>find semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * @param element the annotated element (never {@code null})
@@ -731,8 +727,8 @@ public abstract class AnnotatedElementUtils {
 	 * <em>matching</em> attributes from annotations in lower levels of the annotation
 	 * hierarchy and synthesize the results back into an annotation of the specified
 	 * {@code annotationType}.
-	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within a
-	 * single annotation and within annotation hierarchies.
+	 * <p>{@link AliasFor @AliasFor} semantics are fully supported, both within
+	 * a single annotation and within the annotation hierarchy.
 	 * <p>This method follows <em>find semantics</em> as described in the
 	 * {@linkplain AnnotatedElementUtils class-level javadoc}.
 	 * <p><strong>WARNING</strong>: if the supplied {@code containerType} is not
@@ -743,13 +739,17 @@ public abstract class AnnotatedElementUtils {
 	 * support such a use case, favor {@link #findMergedRepeatableAnnotations(AnnotatedElement, Class)}
 	 * over this method or alternatively use the {@link MergedAnnotations} API
 	 * directly in conjunction with {@link RepeatableContainers} that are
-	 * {@linkplain RepeatableContainers#and(Class, Class) composed} to support
-	 * multiple repeatable annotation types.
+	 * {@linkplain RepeatableContainers#plus(Class, Class) composed} to support
+	 * multiple repeatable annotation types &mdash; for example:
+	 * <pre class="code">
+	 * RepeatableContainers.standardRepeatables()
+	 *     .plus(MyRepeatable1.class, MyContainer1.class)
+	 *     .plus(MyRepeatable2.class, MyContainer2.class);</pre>
 	 * @param element the annotated element (never {@code null})
-	 * @param annotationType the annotation type to find (never {@code null})
-	 * @param containerType the type of the container that holds the annotations;
-	 * may be {@code null} if the container type should be looked up via
-	 * {@link java.lang.annotation.Repeatable}
+	 * @param annotationType the repeatable annotation type to find (never {@code null})
+	 * @param containerType the type of the container that holds the repeatable
+	 * annotations; may be {@code null} if the container type should be looked up
+	 * via {@link java.lang.annotation.Repeatable @Repeatable}
 	 * @return the set of all merged repeatable {@code Annotations} found,
 	 * or an empty set if none were found
 	 * @throws IllegalArgumentException if the {@code element} or {@code annotationType}
@@ -763,7 +763,7 @@ public abstract class AnnotatedElementUtils {
 	public static <A extends Annotation> Set<A> findMergedRepeatableAnnotations(AnnotatedElement element,
 			Class<A> annotationType, @Nullable Class<? extends Annotation> containerType) {
 
-		return findRepeatableAnnotations(element, containerType, annotationType)
+		return findRepeatableAnnotations(element, annotationType, containerType)
 				.stream(annotationType)
 				.sorted(highAggregateIndexesFirst())
 				.collect(MergedAnnotationCollectors.toAnnotationSet());
@@ -774,11 +774,11 @@ public abstract class AnnotatedElementUtils {
 	}
 
 	private static MergedAnnotations getRepeatableAnnotations(AnnotatedElement element,
-			@Nullable Class<? extends Annotation> containerType, Class<? extends Annotation> annotationType) {
+			Class<? extends Annotation> annotationType, @Nullable Class<? extends Annotation> containerType) {
 
 		RepeatableContainers repeatableContainers;
 		if (containerType == null) {
-			// Invoke RepeatableContainers.of() in order to adhere to the contract of
+			// Invoke RepeatableContainers.explicitRepeatable() in order to adhere to the contract of
 			// getMergedRepeatableAnnotations() which states that an IllegalArgumentException
 			// will be thrown if the container cannot be resolved.
 			//
@@ -787,11 +787,11 @@ public abstract class AnnotatedElementUtils {
 			// annotation types).
 			//
 			// See https://github.com/spring-projects/spring-framework/issues/20279
-			RepeatableContainers.of(annotationType, null);
+			RepeatableContainers.explicitRepeatable(annotationType, null);
 			repeatableContainers = RepeatableContainers.standardRepeatables();
 		}
 		else {
-			repeatableContainers = RepeatableContainers.of(annotationType, containerType);
+			repeatableContainers = RepeatableContainers.explicitRepeatable(annotationType, containerType);
 		}
 		return MergedAnnotations.from(element, SearchStrategy.INHERITED_ANNOTATIONS, repeatableContainers);
 	}
@@ -801,11 +801,11 @@ public abstract class AnnotatedElementUtils {
 	}
 
 	private static MergedAnnotations findRepeatableAnnotations(AnnotatedElement element,
-			@Nullable Class<? extends Annotation> containerType, Class<? extends Annotation> annotationType) {
+			Class<? extends Annotation> annotationType, @Nullable Class<? extends Annotation> containerType) {
 
 		RepeatableContainers repeatableContainers;
 		if (containerType == null) {
-			// Invoke RepeatableContainers.of() in order to adhere to the contract of
+			// Invoke RepeatableContainers.explicitRepeatable() in order to adhere to the contract of
 			// findMergedRepeatableAnnotations() which states that an IllegalArgumentException
 			// will be thrown if the container cannot be resolved.
 			//
@@ -814,17 +814,16 @@ public abstract class AnnotatedElementUtils {
 			// annotation types).
 			//
 			// See https://github.com/spring-projects/spring-framework/issues/20279
-			RepeatableContainers.of(annotationType, null);
+			RepeatableContainers.explicitRepeatable(annotationType, null);
 			repeatableContainers = RepeatableContainers.standardRepeatables();
 		}
 		else {
-			repeatableContainers = RepeatableContainers.of(annotationType, containerType);
+			repeatableContainers = RepeatableContainers.explicitRepeatable(annotationType, containerType);
 		}
 		return MergedAnnotations.from(element, SearchStrategy.TYPE_HIERARCHY, repeatableContainers);
 	}
 
-	@Nullable
-	private static MultiValueMap<String, Object> nullIfEmpty(MultiValueMap<String, Object> map) {
+	private static @Nullable MultiValueMap<String, Object> nullIfEmpty(MultiValueMap<String, Object> map) {
 		return (map.isEmpty() ? null : map);
 	}
 
@@ -832,50 +831,13 @@ public abstract class AnnotatedElementUtils {
 		return Comparator.<MergedAnnotation<A>> comparingInt(MergedAnnotation::getAggregateIndex).reversed();
 	}
 
-	@Nullable
-	private static AnnotationAttributes getAnnotationAttributes(MergedAnnotation<?> annotation,
+	private static @Nullable AnnotationAttributes getAnnotationAttributes(MergedAnnotation<?> annotation,
 			boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
 
 		if (!annotation.isPresent()) {
 			return null;
 		}
 		return annotation.asAnnotationAttributes(Adapt.values(classValuesAsString, nestedAnnotationsAsMap));
-	}
-
-
-	/**
-	 * Adapted {@link AnnotatedElement} that holds specific annotations.
-	 */
-	private static class AnnotatedElementForAnnotations implements AnnotatedElement {
-
-		private final Annotation[] annotations;
-
-		AnnotatedElementForAnnotations(Annotation... annotations) {
-			this.annotations = annotations;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		@Nullable
-		public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-			for (Annotation annotation : this.annotations) {
-				if (annotation.annotationType() == annotationClass) {
-					return (T) annotation;
-				}
-			}
-			return null;
-		}
-
-		@Override
-		public Annotation[] getAnnotations() {
-			return this.annotations.clone();
-		}
-
-		@Override
-		public Annotation[] getDeclaredAnnotations() {
-			return this.annotations.clone();
-		}
-
 	}
 
 }

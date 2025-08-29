@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
@@ -32,7 +34,6 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StreamUtils;
@@ -182,13 +183,12 @@ public class ResourceRegionHttpMessageConverter extends AbstractGenericHttpMessa
 			try {
 				in.close();
 			}
-			catch (IOException ex) {
-				// ignore
+			catch (IOException ignored) {
 			}
 		}
 	}
 
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Not null assertion performed in StreamUtils#copyRange
 	private void writeResourceRegionCollection(Collection<ResourceRegion> resourceRegions,
 			HttpOutputMessage outputMessage) throws IOException {
 
@@ -243,8 +243,7 @@ public class ResourceRegionHttpMessageConverter extends AbstractGenericHttpMessa
 					in.close();
 				}
 			}
-			catch (IOException ex) {
-				// ignore
+			catch (IOException ignored) {
 			}
 		}
 

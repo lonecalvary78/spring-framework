@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.context.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.EmbeddedValueResolverAware;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringValueResolver;
 
 /**
@@ -29,8 +30,7 @@ import org.springframework.util.StringValueResolver;
  */
 public class EmbeddedValueResolutionSupport implements EmbeddedValueResolverAware {
 
-	@Nullable
-	private StringValueResolver embeddedValueResolver;
+	private @Nullable StringValueResolver embeddedValueResolver;
 
 
 	@Override
@@ -44,8 +44,7 @@ public class EmbeddedValueResolutionSupport implements EmbeddedValueResolverAwar
 	 * @return the resolved value, or always the original value if no resolver is available
 	 * @see #setEmbeddedValueResolver
 	 */
-	@Nullable
-	protected String resolveEmbeddedValue(String value) {
+	protected @Nullable String resolveEmbeddedValue(String value) {
 		return (this.embeddedValueResolver != null ? this.embeddedValueResolver.resolveStringValue(value) : value);
 	}
 

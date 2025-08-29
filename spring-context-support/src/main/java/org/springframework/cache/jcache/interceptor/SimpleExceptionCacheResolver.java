@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,13 @@ package org.springframework.cache.jcache.interceptor;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.interceptor.AbstractCacheResolver;
 import org.springframework.cache.interceptor.BasicOperation;
 import org.springframework.cache.interceptor.CacheOperationInvocationContext;
 import org.springframework.cache.interceptor.CacheResolver;
-import org.springframework.lang.Nullable;
 
 /**
  * A simple {@link CacheResolver} that resolves the exception cache
@@ -42,8 +43,7 @@ public class SimpleExceptionCacheResolver extends AbstractCacheResolver {
 	}
 
 	@Override
-	@Nullable
-	protected Collection<String> getCacheNames(CacheOperationInvocationContext<?> context) {
+	protected @Nullable Collection<String> getCacheNames(CacheOperationInvocationContext<?> context) {
 		BasicOperation operation = context.getOperation();
 		if (!(operation instanceof CacheResultOperation cacheResultOperation)) {
 			throw new IllegalStateException("Could not extract exception cache name from " + operation);

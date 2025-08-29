@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.Scope;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -75,8 +75,7 @@ public class ServletContextScope implements Scope, DisposableBean {
 	}
 
 	@Override
-	@Nullable
-	public Object remove(String name) {
+	public @Nullable Object remove(String name) {
 		Object scopedObject = this.servletContext.getAttribute(name);
 		if (scopedObject != null) {
 			synchronized (this.destructionCallbacks) {
@@ -96,19 +95,6 @@ public class ServletContextScope implements Scope, DisposableBean {
 			this.destructionCallbacks.put(name, callback);
 		}
 	}
-
-	@Override
-	@Nullable
-	public Object resolveContextualObject(String key) {
-		return null;
-	}
-
-	@Override
-	@Nullable
-	public String getConversationId() {
-		return null;
-	}
-
 
 	/**
 	 * Invoke all registered destruction callbacks.

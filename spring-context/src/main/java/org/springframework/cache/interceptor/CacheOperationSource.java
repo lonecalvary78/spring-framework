@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.cache.interceptor;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -72,7 +73,6 @@ public interface CacheOperationSource {
 	 * the declaring class of the method must be used)
 	 * @return all cache operations for this method, or {@code null} if none found
 	 */
-	@Nullable
-	Collection<CacheOperation> getCacheOperations(Method method, @Nullable Class<?> targetClass);
+	@Nullable Collection<CacheOperation> getCacheOperations(Method method, @Nullable Class<?> targetClass);
 
 }

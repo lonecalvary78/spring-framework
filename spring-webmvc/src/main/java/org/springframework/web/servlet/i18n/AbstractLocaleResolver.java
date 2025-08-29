@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.web.servlet.i18n;
 
 import java.util.Locale;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.web.servlet.LocaleResolver;
 
 /**
@@ -32,8 +33,7 @@ import org.springframework.web.servlet.LocaleResolver;
  */
 public abstract class AbstractLocaleResolver implements LocaleResolver {
 
-	@Nullable
-	private Locale defaultLocale;
+	private @Nullable Locale defaultLocale;
 
 
 	/**
@@ -48,8 +48,7 @@ public abstract class AbstractLocaleResolver implements LocaleResolver {
 	 * Get the default {@link Locale} that this resolver is supposed to fall back
 	 * to, if any.
 	 */
-	@Nullable
-	protected Locale getDefaultLocale() {
+	protected @Nullable Locale getDefaultLocale() {
 		return this.defaultLocale;
 	}
 

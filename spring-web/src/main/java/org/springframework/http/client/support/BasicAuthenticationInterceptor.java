@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,13 @@ package org.springframework.http.client.support;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link ClientHttpRequestInterceptor} to apply a given HTTP Basic Authentication
@@ -73,7 +74,7 @@ public class BasicAuthenticationInterceptor implements ClientHttpRequestIntercep
 			HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
 
 		HttpHeaders headers = request.getHeaders();
-		if (!headers.containsKey(HttpHeaders.AUTHORIZATION)) {
+		if (!headers.containsHeader(HttpHeaders.AUTHORIZATION)) {
 			headers.setBasicAuth(this.encodedCredentials);
 		}
 		return execution.execute(request, body);

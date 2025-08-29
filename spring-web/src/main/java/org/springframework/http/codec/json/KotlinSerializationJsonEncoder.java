@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import kotlinx.serialization.json.Json;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,18 +30,17 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.KotlinSerializationStringEncoder;
-import org.springframework.lang.Nullable;
 import org.springframework.util.MimeType;
 
 /**
  * Encode from an {@code Object} stream to a byte stream of JSON objects using
  * <a href="https://github.com/Kotlin/kotlinx.serialization">kotlinx.serialization</a>.
- *
- * <p>This encoder can be used to bind {@code @Serializable} Kotlin classes,
- * <a href="https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/polymorphism.md#open-polymorphism">open polymorphic serialization</a>
- * is not supported.
  * It supports {@code application/json}, {@code application/x-ndjson} and {@code application/*+json} with
  * various character sets, {@code UTF-8} being the default.
+ *
+ * <p>As of Spring Framework 7.0,
+ * <a href="https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/polymorphism.md#open-polymorphism">open polymorphism</a>
+ * is supported.
  *
  * @author Sebastien Deleuze
  * @author Iain Henderson

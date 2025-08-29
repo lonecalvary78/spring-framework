@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,9 +99,10 @@ public enum MockReset {
 	}
 
 	/**
-	 * Get the {@link MockReset} associated with the given mock.
-	 * @param mock the source mock
-	 * @return the reset type (never {@code null})
+	 * Get the {@link MockReset} strategy associated with the given mock.
+	 * @param mock the mock
+	 * @return the reset strategy for the given mock, or {@link MockReset#NONE}
+	 * if no strategy is associated with the given mock
 	 */
 	static MockReset get(Object mock) {
 		MockingDetails mockingDetails = Mockito.mockingDetails(mock);

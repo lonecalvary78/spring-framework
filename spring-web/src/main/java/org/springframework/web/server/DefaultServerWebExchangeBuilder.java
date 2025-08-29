@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ package org.springframework.web.server;
 import java.security.Principal;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -36,14 +36,11 @@ class DefaultServerWebExchangeBuilder implements ServerWebExchange.Builder {
 
 	private final ServerWebExchange delegate;
 
-	@Nullable
-	private ServerHttpRequest request;
+	private @Nullable ServerHttpRequest request;
 
-	@Nullable
-	private ServerHttpResponse response;
+	private @Nullable ServerHttpResponse response;
 
-	@Nullable
-	private Mono<Principal> principalMono;
+	private @Nullable Mono<Principal> principalMono;
 
 
 	DefaultServerWebExchangeBuilder(ServerWebExchange delegate) {
@@ -89,14 +86,11 @@ class DefaultServerWebExchangeBuilder implements ServerWebExchange.Builder {
 	 */
 	private static class MutativeDecorator extends ServerWebExchangeDecorator {
 
-		@Nullable
-		private final ServerHttpRequest request;
+		private final @Nullable ServerHttpRequest request;
 
-		@Nullable
-		private final ServerHttpResponse response;
+		private final @Nullable ServerHttpResponse response;
 
-		@Nullable
-		private final Mono<Principal> principalMono;
+		private final @Nullable Mono<Principal> principalMono;
 
 		public MutativeDecorator(ServerWebExchange delegate, @Nullable ServerHttpRequest request,
 				@Nullable ServerHttpResponse response, @Nullable Mono<Principal> principalMono) {

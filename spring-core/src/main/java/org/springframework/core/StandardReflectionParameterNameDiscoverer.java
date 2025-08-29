@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link ParameterNameDiscoverer} implementation which uses JDK 8's reflection facilities
@@ -39,19 +39,16 @@ import org.springframework.lang.Nullable;
 public class StandardReflectionParameterNameDiscoverer implements ParameterNameDiscoverer {
 
 	@Override
-	@Nullable
-	public String[] getParameterNames(Method method) {
+	public @Nullable String @Nullable [] getParameterNames(Method method) {
 		return getParameterNames(method.getParameters());
 	}
 
 	@Override
-	@Nullable
-	public String[] getParameterNames(Constructor<?> ctor) {
+	public @Nullable String @Nullable [] getParameterNames(Constructor<?> ctor) {
 		return getParameterNames(ctor.getParameters());
 	}
 
-	@Nullable
-	private String[] getParameterNames(Parameter[] parameters) {
+	private String @Nullable [] getParameterNames(Parameter[] parameters) {
 		String[] parameterNames = new String[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter param = parameters[i];

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ import java.util.function.Function;
 import io.netty.channel.ChannelOption;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.http.HttpMethod;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -49,33 +49,30 @@ public class ReactorClientHttpRequestFactory implements ClientHttpRequestFactory
 	private static final Log logger = LogFactory.getLog(ReactorClientHttpRequestFactory.class);
 
 	private static final Function<HttpClient, HttpClient> defaultInitializer =
-			client -> client.compress(true).responseTimeout(Duration.ofSeconds(10));
+			client -> client.compress(true)
+					.responseTimeout(Duration.ofSeconds(10))
+					.proxyWithSystemProperties();
 
 
-	@Nullable
-	private final ReactorResourceFactory resourceFactory;
+	private final @Nullable ReactorResourceFactory resourceFactory;
 
-	@Nullable
-	private final Function<HttpClient, HttpClient> mapper;
+	private final @Nullable Function<HttpClient, HttpClient> mapper;
 
-	@Nullable
-	private Integer connectTimeout;
+	private @Nullable Integer connectTimeout;
 
-	@Nullable
-	private Duration readTimeout;
+	private @Nullable Duration readTimeout;
 
-	@Nullable
-	private Duration exchangeTimeout;
+	private @Nullable Duration exchangeTimeout;
 
-	@Nullable
-	private volatile HttpClient httpClient;
+	private volatile @Nullable HttpClient httpClient;
 
 	private final Object lifecycleMonitor = new Object();
 
 
 	/**
 	 * Constructor with default client, created via {@link HttpClient#create()},
-	 * and with {@link HttpClient#compress compression} enabled.
+	 * and with {@link HttpClient#compress compression} and
+	 * {@link HttpClient#proxyWithSystemProperties() proxyWithSystemProperties} enabled.
 	 */
 	public ReactorClientHttpRequestFactory() {
 		this(defaultInitializer.apply(HttpClient.create()));
@@ -178,36 +175,6 @@ public class ReactorClientHttpRequestFactory implements ClientHttpRequestFactory
 	 */
 	public void setReadTimeout(long readTimeout) {
 		setReadTimeout(Duration.ofMillis(readTimeout));
-	}
-
-	/**
-	 * Set the timeout for the HTTP exchange in milliseconds.
-	 * <p>By default, as of 6.2 this is no longer set.
-	 * @see #setConnectTimeout(int)
-	 * @see #setReadTimeout(Duration)
-	 * @see <a href="https://projectreactor.io/docs/netty/release/reference/index.html#timeout-configuration">Timeout Configuration</a>
-	 * @deprecated as of 6.2 and no longer set by default (previously 5 seconds)
-	 * in favor of using Reactor Netty HttpClient timeout configuration.
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public void setExchangeTimeout(long exchangeTimeout) {
-		Assert.isTrue(exchangeTimeout > 0, "Timeout must be a positive value");
-		this.exchangeTimeout = Duration.ofMillis(exchangeTimeout);
-	}
-
-	/**
-	 * Variant of {@link #setExchangeTimeout(long)} with a Duration value.
-	 * <p>By default, as of 6.2 this is no longer set.
-	 * @see #setConnectTimeout(int)
-	 * @see #setReadTimeout(Duration)
-	 * @see <a href="https://projectreactor.io/docs/netty/release/reference/index.html#timeout-configuration">Timeout Configuration</a>
-	 * @deprecated as of 6.2 and no longer set by default (previously 5 seconds)
-	 * in favor of using Reactor Netty HttpClient timeout configuration.
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public void setExchangeTimeout(Duration exchangeTimeout) {
-		Assert.notNull(exchangeTimeout, "ExchangeTimeout must not be null");
-		setExchangeTimeout((int) exchangeTimeout.toMillis());
 	}
 
 

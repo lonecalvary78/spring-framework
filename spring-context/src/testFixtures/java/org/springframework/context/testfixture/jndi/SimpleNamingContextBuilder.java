@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import javax.naming.spi.NamingManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -88,8 +88,7 @@ import org.springframework.util.ReflectionUtils;
 public class SimpleNamingContextBuilder implements InitialContextFactoryBuilder {
 
 	/** An instance of this class bound to JNDI. */
-	@Nullable
-	private static volatile SimpleNamingContextBuilder activated;
+	private static volatile @Nullable SimpleNamingContextBuilder activated;
 
 	private static boolean initialized = false;
 
@@ -101,8 +100,7 @@ public class SimpleNamingContextBuilder implements InitialContextFactoryBuilder 
 	 * @return the current SimpleNamingContextBuilder instance,
 	 * or {@code null} if none
 	 */
-	@Nullable
-	public static SimpleNamingContextBuilder getCurrentContextBuilder() {
+	public static @Nullable SimpleNamingContextBuilder getCurrentContextBuilder() {
 		return activated;
 	}
 

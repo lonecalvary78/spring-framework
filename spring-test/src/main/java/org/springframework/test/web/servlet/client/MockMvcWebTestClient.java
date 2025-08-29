@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ package org.springframework.test.web.servlet.client;
 import java.util.function.Supplier;
 
 import jakarta.servlet.Filter;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.test.web.reactive.server.ExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.DispatcherServletCustomizer;
@@ -38,6 +38,7 @@ import org.springframework.test.web.servlet.setup.MockMvcConfigurer;
 import org.springframework.test.web.servlet.setup.RouterFunctionMockMvcBuilder;
 import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder;
 import org.springframework.validation.Validator;
+import org.springframework.web.accept.ApiVersionStrategy;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -87,7 +88,7 @@ public interface MockMvcWebTestClient {
 	 * to initialize {@link MockMvc}.
 	 */
 	static ControllerSpec bindToController(Object... controllers) {
-		return new StandaloneMockMvcSpec(controllers);
+		return new MockMvcWebTestClientSpecs.StandaloneMockMvcSpec(controllers);
 	}
 
 	/**
@@ -99,7 +100,7 @@ public interface MockMvcWebTestClient {
 	 * @since 6.2
 	 */
 	static RouterFunctionSpec bindToRouterFunction(RouterFunction<?>... routerFunctions) {
-		return new RouterFunctionMockMvcSpec(routerFunctions);
+		return new MockMvcWebTestClientSpecs.RouterFunctionMockMvcSpec(routerFunctions);
 	}
 
 	/**
@@ -111,7 +112,7 @@ public interface MockMvcWebTestClient {
 	 * to initialize {@code MockMvc}.
 	 */
 	static MockMvcServerSpec<?> bindToApplicationContext(WebApplicationContext context) {
-		return new ApplicationContextMockMvcSpec(context);
+		return new MockMvcWebTestClientSpecs.ApplicationContextMockMvcSpec(context);
 	}
 
 	/**
@@ -285,6 +286,14 @@ public interface MockMvcWebTestClient {
 		ControllerSpec conversionService(FormattingConversionService conversionService);
 
 		/**
+		 * Set the {@link ApiVersionStrategy} to use when mapping requests.
+		 * <p>This is delegated to
+		 * {@link StandaloneMockMvcBuilder#setApiVersionStrategy(ApiVersionStrategy)}.
+		 * @since 7.0
+		 */
+		ControllerSpec apiVersionStrategy(ApiVersionStrategy versionStrategy);
+
+		/**
 		 * Add global interceptors.
 		 * <p>This is delegated to
 		 * {@link StandaloneMockMvcBuilder#addInterceptors(HandlerInterceptor...)}.
@@ -297,7 +306,7 @@ public interface MockMvcWebTestClient {
 		 * {@link StandaloneMockMvcBuilder#addMappedInterceptors(String[], HandlerInterceptor...)}.
 		 */
 		ControllerSpec mappedInterceptors(
-				@Nullable String[] pathPatterns, HandlerInterceptor... interceptors);
+				String @Nullable [] pathPatterns, HandlerInterceptor... interceptors);
 
 		/**
 		 * Set a ContentNegotiationManager.
@@ -371,16 +380,6 @@ public interface MockMvcWebTestClient {
 		ControllerSpec patternParser(PathPatternParser parser);
 
 		/**
-		 * Whether to match trailing slashes.
-		 * <p>This is delegated to
-		 * {@link StandaloneMockMvcBuilder#setUseTrailingSlashPatternMatch(boolean)}.
-		 * @deprecated as of 6.0, see
-		 * {@link PathPatternParser#setMatchOptionalTrailingSeparator(boolean)}
-		 */
-		@Deprecated(since = "6.0")
-		ControllerSpec useTrailingSlashPatternMatch(boolean useTrailingSlashPatternMatch);
-
-		/**
 		 * Configure placeholder values to use.
 		 * <p>This is delegated to
 		 * {@link StandaloneMockMvcBuilder#addPlaceholderValue(String, String)}.
@@ -424,7 +423,7 @@ public interface MockMvcWebTestClient {
 		 * {@link RouterFunctionMockMvcBuilder#addMappedInterceptors(String[], HandlerInterceptor...)}.
 		 */
 		RouterFunctionSpec mappedInterceptors(
-				@Nullable String[] pathPatterns, HandlerInterceptor... interceptors);
+				String @Nullable [] pathPatterns, HandlerInterceptor... interceptors);
 
 		/**
 		 * Specify the timeout value for async execution.

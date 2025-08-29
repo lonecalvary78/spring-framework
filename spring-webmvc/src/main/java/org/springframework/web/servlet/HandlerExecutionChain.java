@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -62,7 +62,7 @@ public class HandlerExecutionChain {
 	 * @param interceptors the array of interceptors to apply
 	 * (in the given order) before the handler itself executes
 	 */
-	public HandlerExecutionChain(Object handler, @Nullable HandlerInterceptor... interceptors) {
+	public HandlerExecutionChain(Object handler, HandlerInterceptor @Nullable ... interceptors) {
 		this(handler, (interceptors != null ? Arrays.asList(interceptors) : Collections.emptyList()));
 	}
 
@@ -118,8 +118,7 @@ public class HandlerExecutionChain {
 	 * Return the array of interceptors to apply (in the given order).
 	 * @return the array of HandlerInterceptors instances (may be {@code null})
 	 */
-	@Nullable
-	public HandlerInterceptor[] getInterceptors() {
+	public HandlerInterceptor @Nullable [] getInterceptors() {
 		return (!this.interceptorList.isEmpty() ? this.interceptorList.toArray(new HandlerInterceptor[0]) : null);
 	}
 

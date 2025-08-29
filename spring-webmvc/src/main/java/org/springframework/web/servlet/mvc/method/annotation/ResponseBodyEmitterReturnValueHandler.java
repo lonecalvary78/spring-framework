@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ReactiveAdapterRegistry;
@@ -47,7 +48,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.server.DelegatingServerHttpResponse;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.accept.ContentNegotiationManager;
@@ -135,7 +135,7 @@ public class ResponseBodyEmitterReturnValueHandler implements HandlerMethodRetur
 	 * @param executor for blocking I/O writes of items emitted from reactive types
 	 * @param manager for detecting streaming media types
 	 * @param viewResolvers resolvers for fragment stream rendering
-	 * @param localeResolver localeResolver for fragment stream rendering
+	 * @param localeResolver the {@link LocaleResolver} for fragment stream rendering
 	 * @since 6.2
 	 */
 	public ResponseBodyEmitterReturnValueHandler(
@@ -169,8 +169,11 @@ public class ResponseBodyEmitterReturnValueHandler implements HandlerMethodRetur
 				ResolvableType.forMethodParameter(returnType).getGeneric().resolve() :
 				returnType.getParameterType();
 
-		return (bodyType != null && (ResponseBodyEmitter.class.isAssignableFrom(bodyType) ||
-				this.reactiveHandler.isReactiveType(bodyType)));
+		return (bodyType != null && supportsBodyType(bodyType));
+	}
+
+	boolean supportsBodyType(Class<?> bodyType) {
+		return (ResponseBodyEmitter.class.isAssignableFrom(bodyType) || this.reactiveHandler.isReactiveType(bodyType));
 	}
 
 	@Override
@@ -186,10 +189,12 @@ public class ResponseBodyEmitterReturnValueHandler implements HandlerMethodRetur
 		HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
 		Assert.state(response != null, "No HttpServletResponse");
 		ServerHttpResponse outputMessage = new ServletServerHttpResponse(response);
+		MediaType contentType = null;
 
 		if (returnValue instanceof ResponseEntity<?> responseEntity) {
 			response.setStatus(responseEntity.getStatusCode().value());
 			outputMessage.getHeaders().putAll(responseEntity.getHeaders());
+			contentType = responseEntity.getHeaders().getContentType();
 			returnValue = responseEntity.getBody();
 			returnType = returnType.nested();
 			if (returnValue == null) {
@@ -207,7 +212,7 @@ public class ResponseBodyEmitterReturnValueHandler implements HandlerMethodRetur
 			emitter = responseBodyEmitter;
 		}
 		else {
-			emitter = this.reactiveHandler.handleValue(returnValue, returnType, mavContainer, webRequest);
+			emitter = this.reactiveHandler.handleValue(returnValue, returnType, contentType, mavContainer, webRequest);
 			if (emitter == null) {
 				// We're not streaming; write headers without committing response
 				outputMessage.getHeaders().forEach((headerName, headerValues) -> {
@@ -393,7 +398,7 @@ public class ResponseBodyEmitterReturnValueHandler implements HandlerMethodRetur
 				FragmentHttpServletResponse fragmentResponse =
 						new FragmentHttpServletResponse(this.response, this.charset);
 
-				FragmentsRendering render = FragmentsRendering.with(List.of(modelAndView)).build();
+				FragmentsRendering render = FragmentsRendering.fragments(List.of(modelAndView)).build();
 				render.resolveNestedViews(this::resolveViewName, this.locale);
 				render.render(modelAndView.getModel(), this.request, fragmentResponse);
 
@@ -404,15 +409,14 @@ public class ResponseBodyEmitterReturnValueHandler implements HandlerMethodRetur
 				throw ex;
 			}
 			catch (Exception ex) {
-				throw new RuntimeException("Failed to render " + modelAndView, ex);
+				throw new IllegalStateException("Failed to render " + modelAndView, ex);
 			}
 			finally {
 				RequestContextHolder.resetRequestAttributes();
 			}
 		}
 
-		@Nullable
-		public View resolveViewName(String viewName, Locale locale) throws Exception {
+		public @Nullable View resolveViewName(String viewName, Locale locale) throws Exception {
 			for (ViewResolver resolver : this.viewResolvers) {
 				View view = resolver.resolveViewName(viewName, locale);
 				if (view != null) {

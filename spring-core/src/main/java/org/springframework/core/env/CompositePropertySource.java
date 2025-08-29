@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -34,7 +35,10 @@ import org.springframework.util.StringUtils;
  *
  * <p>As of Spring 4.1.2, this class extends {@link EnumerablePropertySource} instead
  * of plain {@link PropertySource}, exposing {@link #getPropertyNames()} based on the
- * accumulated property names from all contained sources (as far as possible).
+ * accumulated property names from all contained sources - and failing with an
+ * {@code IllegalStateException} against any non-{@code EnumerablePropertySource}.
+ * <b>When used through the {@code EnumerablePropertySource} contract, all contained
+ * sources are expected to be of type {@code EnumerablePropertySource} as well.</b>
  *
  * @author Chris Beams
  * @author Juergen Hoeller
@@ -56,8 +60,7 @@ public class CompositePropertySource extends EnumerablePropertySource<Object> {
 
 
 	@Override
-	@Nullable
-	public Object getProperty(String name) {
+	public @Nullable Object getProperty(String name) {
 		for (PropertySource<?> propertySource : this.propertySources) {
 			Object candidate = propertySource.getProperty(name);
 			if (candidate != null) {

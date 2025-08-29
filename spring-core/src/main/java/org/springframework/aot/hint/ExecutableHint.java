@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -113,8 +114,7 @@ public final class ExecutableHint extends MemberHint implements Comparable<Execu
 
 		private final List<TypeReference> parameterTypes;
 
-		@Nullable
-		private ExecutableMode mode;
+		private @Nullable ExecutableMode mode;
 
 
 		Builder(String name, List<TypeReference> parameterTypes) {

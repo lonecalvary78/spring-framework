@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.CompositeByteBuf;
 import io.rsocket.metadata.WellKnownMimeType;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.ReactiveAdapter;
@@ -35,7 +36,6 @@ import org.springframework.core.codec.Encoder;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeType;
@@ -63,8 +63,7 @@ final class MetadataEncoder {
 
 	private final ByteBufAllocator allocator;
 
-	@Nullable
-	private String route;
+	private @Nullable String route;
 
 	private final List<MetadataEntry> metadataEntries = new ArrayList<>(4);
 
@@ -107,8 +106,7 @@ final class MetadataEncoder {
 		Matcher matcher = VARS_PATTERN.matcher(route);
 		while (matcher.find()) {
 			Assert.isTrue(index < routeVars.length, () -> "No value for variable '" + matcher.group(1) + "'");
-			String value = routeVars[index].toString();
-			value = value.contains(".") ? value.replaceAll("\\.", "%2E") : value;
+			String value = routeVars[index].toString().replace(".", "%2E");
 			matcher.appendReplacement(sb, value);
 			index++;
 		}
@@ -155,7 +153,7 @@ final class MetadataEncoder {
 	 * Add route and/or metadata, both optional.
 	 */
 	public MetadataEncoder metadataAndOrRoute(@Nullable Map<Object, MimeType> metadata,
-			@Nullable String route, @Nullable Object[] vars) {
+			@Nullable String route, Object @Nullable [] vars) {
 
 		if (route != null) {
 			this.route = expand(route, vars != null ? vars : new Object[0]);

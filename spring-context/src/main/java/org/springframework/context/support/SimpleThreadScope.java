@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.Scope;
 import org.springframework.core.NamedThreadLocal;
-import org.springframework.lang.Nullable;
 
 /**
  * A simple thread-backed {@link Scope} implementation.
@@ -72,8 +72,7 @@ public class SimpleThreadScope implements Scope {
 	}
 
 	@Override
-	@Nullable
-	public Object remove(String name) {
+	public @Nullable Object remove(String name) {
 		Map<String, Object> scope = this.threadScope.get();
 		return scope.remove(name);
 	}
@@ -82,12 +81,6 @@ public class SimpleThreadScope implements Scope {
 	public void registerDestructionCallback(String name, Runnable callback) {
 		logger.warn("SimpleThreadScope does not support destruction callbacks. " +
 				"Consider using RequestScope in a web environment.");
-	}
-
-	@Override
-	@Nullable
-	public Object resolveContextualObject(String key) {
-		return null;
 	}
 
 	@Override

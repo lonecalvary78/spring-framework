@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ResolvableType;
 import org.springframework.javapoet.AnnotationSpec;
 import org.springframework.javapoet.AnnotationSpec.Builder;
@@ -30,7 +32,6 @@ import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.FieldSpec;
 import org.springframework.javapoet.MethodSpec;
 import org.springframework.javapoet.TypeSpec;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.expression;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.lang.Nullable;
 
 /**
  * A method resolver attempts to locate a method and returns a
@@ -50,8 +51,7 @@ public interface MethodResolver {
 	 * @return a {@code MethodExecutor} that can invoke the method, or {@code null}
 	 * if the method cannot be found
 	 */
-	@Nullable
-	MethodExecutor resolve(EvaluationContext context, Object targetObject, String name,
+	@Nullable MethodExecutor resolve(EvaluationContext context, Object targetObject, String name,
 			List<TypeDescriptor> argumentTypes) throws AccessException;
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@ package org.springframework.http.server.reactive;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Operators;
 
 import org.springframework.core.log.LogDelegateFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Rossen Stoyanchev
  * @since 5.0
  */
-@SuppressWarnings("NullAway")
+@SuppressWarnings("NullAway") // Dataflow analysis limitation
 class WriteResultPublisher implements Publisher<Void> {
 
 	/**
@@ -53,13 +53,11 @@ class WriteResultPublisher implements Publisher<Void> {
 
 	private final Runnable cancelTask;
 
-	@Nullable
-	private volatile Subscriber<? super Void> subscriber;
+	private volatile @Nullable Subscriber<? super Void> subscriber;
 
 	private volatile boolean completedBeforeSubscribed;
 
-	@Nullable
-	private volatile Throwable errorBeforeSubscribed;
+	private volatile @Nullable Throwable errorBeforeSubscribed;
 
 	private final String logPrefix;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
@@ -50,13 +51,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.SmartHttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.accept.ApiVersionStrategy;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.util.UriBuilder;
@@ -74,6 +75,8 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 
 	private final List<HttpMessageConverter<?>> messageConverters;
 
+	private final @Nullable ApiVersionStrategy versionStrategy;
+
 	private HttpMethod method;
 
 	private URI uri;
@@ -86,8 +89,7 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 
 	private final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
-	@Nullable
-	private InetSocketAddress remoteAddress;
+	private @Nullable InetSocketAddress remoteAddress;
 
 	private byte[] body = new byte[0];
 
@@ -96,6 +98,7 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 		Assert.notNull(other, "ServerRequest must not be null");
 		this.servletRequest = other.servletRequest();
 		this.messageConverters = new ArrayList<>(other.messageConverters());
+		this.versionStrategy = other.apiVersionStrategy();
 		this.method = other.method();
 		this.uri = other.uri();
 		headers(headers -> headers.addAll(other.headers().asHttpHeaders()));
@@ -204,7 +207,8 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 	@Override
 	public ServerRequest build() {
 		return new BuiltServerRequest(this.servletRequest, this.method, this.uri, this.headers, this.cookies,
-				this.attributes, this.params, this.remoteAddress, this.body, this.messageConverters);
+				this.attributes, this.params, this.remoteAddress, this.body,
+				this.messageConverters, this.versionStrategy);
 	}
 
 
@@ -226,15 +230,18 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 
 		private final List<HttpMessageConverter<?>> messageConverters;
 
+		private final @Nullable ApiVersionStrategy versionStrategy;
+
 		private final MultiValueMap<String, String> params;
 
-		@Nullable
-		private final InetSocketAddress remoteAddress;
+		private final @Nullable InetSocketAddress remoteAddress;
 
 		public BuiltServerRequest(HttpServletRequest servletRequest, HttpMethod method, URI uri,
 				HttpHeaders headers, MultiValueMap<String, Cookie> cookies,
 				Map<String, Object> attributes, MultiValueMap<String, String> params,
-				@Nullable InetSocketAddress remoteAddress, byte[] body, List<HttpMessageConverter<?>> messageConverters) {
+				@Nullable InetSocketAddress remoteAddress, byte[] body,
+				List<HttpMessageConverter<?>> messageConverters,
+				@Nullable ApiVersionStrategy versionStrategy) {
 
 			this.servletRequest = servletRequest;
 			this.method = method;
@@ -246,17 +253,12 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 			this.remoteAddress = remoteAddress;
 			this.body = body;
 			this.messageConverters = messageConverters;
+			this.versionStrategy = versionStrategy;
 		}
 
 		@Override
 		public HttpMethod method() {
 			return this.method;
-		}
-
-		@Override
-		@Deprecated
-		public String methodName() {
-			return this.method.name();
 		}
 
 		@Override
@@ -295,6 +297,11 @@ class DefaultServerRequestBuilder implements ServerRequest.Builder {
 		@Override
 		public List<HttpMessageConverter<?>> messageConverters() {
 			return this.messageConverters;
+		}
+
+		@Override
+		public @Nullable ApiVersionStrategy apiVersionStrategy() {
+			return this.versionStrategy;
 		}
 
 		@Override

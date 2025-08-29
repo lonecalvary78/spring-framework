@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.core.log.LogMessage;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -48,10 +48,11 @@ class SpringFactoriesLoaderRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
-		ClassLoader classLoaderToUse = (classLoader != null ? classLoader :
-				SpringFactoriesLoaderRuntimeHints.class.getClassLoader());
-		for (String resourceLocation : RESOURCE_LOCATIONS) {
-			registerHints(hints, classLoaderToUse, resourceLocation);
+		ClassLoader classLoaderToUse = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
+		if (classLoaderToUse != null) {
+			for (String resourceLocation : RESOURCE_LOCATIONS) {
+				registerHints(hints, classLoaderToUse, resourceLocation);
+			}
 		}
 	}
 
@@ -90,8 +91,7 @@ class SpringFactoriesLoaderRuntimeHints implements RuntimeHintsRegistrar {
 		}
 	}
 
-	@Nullable
-	private Class<?> resolveClassName(ClassLoader classLoader, String factoryClassName) {
+	private @Nullable Class<?> resolveClassName(ClassLoader classLoader, String factoryClassName) {
 		try {
 			Class<?> clazz = ClassUtils.resolveClassName(factoryClassName, classLoader);
 			// Force resolution of all constructors to cache

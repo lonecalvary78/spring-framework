@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,8 +175,7 @@ class ScheduledAnnotationBeanPostProcessorObservabilityTests {
 	}
 
 	private TestObservationRegistryAssert.TestObservationRegistryAssertReturningObservationContextAssert assertThatTaskObservation() {
-		return TestObservationRegistryAssert.assertThat(this.observationRegistry)
-				.hasObservationWithNameEqualTo("tasks.scheduled.execution").that();
+		return assertThat(this.observationRegistry).hasObservationWithNameEqualTo("tasks.scheduled.execution").that();
 	}
 
 

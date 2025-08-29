@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -219,8 +220,7 @@ public abstract class AbstractRequestExpectationManager implements RequestExpect
 		/**
 		 * Return a matching expectation, or {@code null} if none match.
 		 */
-		@Nullable
-		public RequestExpectation findExpectation(ClientHttpRequest request) throws IOException {
+		public @Nullable RequestExpectation findExpectation(ClientHttpRequest request) throws IOException {
 			for (RequestExpectation expectation : this.expectations) {
 				try {
 					expectation.match(request);

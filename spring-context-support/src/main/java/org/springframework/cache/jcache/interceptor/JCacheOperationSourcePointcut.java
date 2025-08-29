@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ package org.springframework.cache.jcache.interceptor;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.support.StaticMethodMatcherPointcut;
 import org.springframework.cache.CacheManager;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -35,8 +36,7 @@ import org.springframework.util.ObjectUtils;
 @SuppressWarnings("serial")
 final class JCacheOperationSourcePointcut extends StaticMethodMatcherPointcut implements Serializable {
 
-	@Nullable
-	private JCacheOperationSource cacheOperationSource;
+	private @Nullable JCacheOperationSource cacheOperationSource;
 
 
 	public JCacheOperationSourcePointcut() {
@@ -85,8 +85,7 @@ final class JCacheOperationSourcePointcut extends StaticMethodMatcherPointcut im
 			return (cacheOperationSource == null || cacheOperationSource.isCandidateClass(clazz));
 		}
 
-		@Nullable
-		private JCacheOperationSource getCacheOperationSource() {
+		private @Nullable JCacheOperationSource getCacheOperationSource() {
 			return cacheOperationSource;
 		}
 

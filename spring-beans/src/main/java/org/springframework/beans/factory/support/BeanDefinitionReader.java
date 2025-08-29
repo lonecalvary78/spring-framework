@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.springframework.beans.factory.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.lang.Nullable;
 
 /**
  * Simple interface for bean definition readers that specifies load methods with
@@ -28,10 +29,6 @@ import org.springframework.lang.Nullable;
  * <p>Concrete bean definition readers can of course add additional
  * load and register methods for bean definitions, specific to
  * their bean definition format.
- *
- * <p>Note that a bean definition reader does not have to implement
- * this interface. It only serves as a suggestion for bean definition
- * readers that want to follow standard naming conventions.
  *
  * @author Juergen Hoeller
  * @since 1.1
@@ -63,8 +60,7 @@ public interface BeanDefinitionReader {
 	 * @see #loadBeanDefinitions(String)
 	 * @see org.springframework.core.io.support.ResourcePatternResolver
 	 */
-	@Nullable
-	ResourceLoader getResourceLoader();
+	@Nullable ResourceLoader getResourceLoader();
 
 	/**
 	 * Return the class loader to use for bean classes.
@@ -72,8 +68,7 @@ public interface BeanDefinitionReader {
 	 * but rather to just register bean definitions with class names,
 	 * with the corresponding classes to be resolved later (or never).
 	 */
-	@Nullable
-	ClassLoader getBeanClassLoader();
+	@Nullable ClassLoader getBeanClassLoader();
 
 	/**
 	 * Return the {@link BeanNameGenerator} to use for anonymous beans

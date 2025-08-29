@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.transaction.support;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -54,8 +55,7 @@ public interface CallbackPreferringPlatformTransactionManager extends PlatformTr
 	 * @throws TransactionException in case of initialization, rollback, or system errors
 	 * @throws RuntimeException if thrown by the TransactionCallback
 	 */
-	@Nullable
-	<T> T execute(@Nullable TransactionDefinition definition, TransactionCallback<T> callback)
+	<T> @Nullable T execute(@Nullable TransactionDefinition definition, TransactionCallback<T> callback)
 			throws TransactionException;
 
 }

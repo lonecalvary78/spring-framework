@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.messaging.core;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 
@@ -35,36 +37,22 @@ public abstract class AbstractMessageReceivingTemplate<D> extends AbstractMessag
 		implements MessageReceivingOperations<D> {
 
 	@Override
-	@Nullable
-	public Message<?> receive() {
+	public @Nullable Message<?> receive() throws MessagingException {
 		return doReceive(getRequiredDefaultDestination());
 	}
 
 	@Override
-	@Nullable
-	public Message<?> receive(D destination) {
+	public @Nullable Message<?> receive(D destination) throws MessagingException {
 		return doReceive(destination);
 	}
 
-	/**
-	 * Actually receive a message from the given destination.
-	 * @param destination the target destination
-	 * @return the received message, possibly {@code null} if the message could not
-	 * be received, for example due to a timeout
-	 */
-	@Nullable
-	protected abstract Message<?> doReceive(D destination);
-
-
 	@Override
-	@Nullable
-	public <T> T receiveAndConvert(Class<T> targetClass) {
+	public <T> @Nullable T receiveAndConvert(Class<T> targetClass) throws MessagingException {
 		return receiveAndConvert(getRequiredDefaultDestination(), targetClass);
 	}
 
 	@Override
-	@Nullable
-	public <T> T receiveAndConvert(D destination, Class<T> targetClass) {
+	public <T> @Nullable T receiveAndConvert(D destination, Class<T> targetClass) throws MessagingException {
 		Message<?> message = doReceive(destination);
 		if (message != null) {
 			return doConvert(message, targetClass);
@@ -81,8 +69,7 @@ public abstract class AbstractMessageReceivingTemplate<D> extends AbstractMessag
 	 * @return the converted payload of the reply message (never {@code null})
 	 */
 	@SuppressWarnings("unchecked")
-	@Nullable
-	protected <T> T doConvert(Message<?> message, Class<T> targetClass) {
+	protected <T> @Nullable T doConvert(Message<?> message, Class<T> targetClass) {
 		MessageConverter messageConverter = getMessageConverter();
 		T value = (T) messageConverter.fromMessage(message, targetClass);
 		if (value == null) {
@@ -91,5 +78,13 @@ public abstract class AbstractMessageReceivingTemplate<D> extends AbstractMessag
 		}
 		return value;
 	}
+
+	/**
+	 * Actually receive a message from the given destination.
+	 * @param destination the target destination
+	 * @return the received message, possibly {@code null} if the message could not
+	 * be received, for example due to a timeout
+	 */
+	protected abstract @Nullable Message<?> doReceive(D destination);
 
 }

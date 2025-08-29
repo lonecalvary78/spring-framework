@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public abstract class AbstractRequestMappingIntegrationTests extends AbstractHtt
 	}
 
 	private void addHeaders(RequestEntity.HeadersBuilder<?> builder, HttpHeaders headers) {
-		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : headers.headerSet()) {
 			for (String value : entry.getValue()) {
 				builder.header(entry.getKey(), value);
 			}

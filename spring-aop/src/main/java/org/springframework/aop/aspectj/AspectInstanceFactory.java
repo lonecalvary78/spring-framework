@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.aop.aspectj;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
 
 /**
  * Interface implemented to provide an instance of an AspectJ aspect.
@@ -44,7 +45,6 @@ public interface AspectInstanceFactory extends Ordered {
 	 * @return the aspect class loader (or {@code null} for the bootstrap loader)
 	 * @see org.springframework.util.ClassUtils#getDefaultClassLoader()
 	 */
-	@Nullable
-	ClassLoader getAspectClassLoader();
+	@Nullable ClassLoader getAspectClassLoader();
 
 }

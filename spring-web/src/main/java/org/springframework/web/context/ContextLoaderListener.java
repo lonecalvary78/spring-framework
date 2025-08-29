@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package org.springframework.web.context;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Bootstrap listener to start up and shut down Spring's root {@link WebApplicationContext}.
@@ -39,8 +38,7 @@ import org.springframework.lang.Nullable;
  */
 public class ContextLoaderListener extends ContextLoader implements ServletContextListener {
 
-	@Nullable
-	private ServletContext servletContext;
+	private @Nullable ServletContext servletContext;
 
 
 	/**
@@ -91,7 +89,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 * <li>{@code ServletContext} and {@code ServletConfig} objects will be delegated to
 	 * the application context</li>
 	 * <li>{@link #customizeContext} will be called</li>
-	 * <li>Any {@link org.springframework.context.ApplicationContextInitializer ApplicationContextInitializer org.springframework.context.ApplicationContextInitializer ApplicationContextInitializers}
+	 * <li>Any {@link org.springframework.context.ApplicationContextInitializer ApplicationContextInitializers}
 	 * specified through the "contextInitializerClasses" init-param will be applied.</li>
 	 * <li>{@link org.springframework.context.ConfigurableApplicationContext#refresh refresh()} will be called</li>
 	 * </ul>

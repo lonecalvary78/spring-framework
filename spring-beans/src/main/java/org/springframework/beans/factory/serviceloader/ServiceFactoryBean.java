@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.beans.factory.serviceloader;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link org.springframework.beans.factory.FactoryBean} that exposes the
@@ -44,8 +45,7 @@ public class ServiceFactoryBean extends AbstractServiceLoaderBasedFactoryBean im
 	}
 
 	@Override
-	@Nullable
-	public Class<?> getObjectType() {
+	public @Nullable Class<?> getObjectType() {
 		return getServiceType();
 	}
 

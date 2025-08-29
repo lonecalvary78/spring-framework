@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import org.eclipse.persistence.sessions.DatabaseLogin;
 import org.eclipse.persistence.sessions.UnitOfWork;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jdbc.datasource.ConnectionHandle;
-import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.DefaultJpaDialect;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -96,8 +96,7 @@ public class EclipseLinkJpaDialect extends DefaultJpaDialect {
 
 
 	@Override
-	@Nullable
-	public Object beginTransaction(EntityManager entityManager, TransactionDefinition definition)
+	public @Nullable Object beginTransaction(EntityManager entityManager, TransactionDefinition definition)
 			throws PersistenceException, SQLException, TransactionException {
 
 		int currentIsolationLevel = definition.getIsolationLevel();
@@ -172,8 +171,7 @@ public class EclipseLinkJpaDialect extends DefaultJpaDialect {
 
 		private final EntityManager entityManager;
 
-		@Nullable
-		private Connection connection;
+		private @Nullable Connection connection;
 
 		public EclipseLinkConnectionHandle(EntityManager entityManager) {
 			this.entityManager = entityManager;

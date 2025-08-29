@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import jakarta.servlet.ServletException;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.support.AopUtils;
@@ -31,7 +32,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.testfixture.beans.ITestBean;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.testfixture.CallCountingTransactionManager;
@@ -158,8 +158,7 @@ class AdvisorAutoProxyCreatorIntegrationTests {
 		try {
 			rb.echoException(new ServletException());
 		}
-		catch (ServletException ex) {
-
+		catch (ServletException ignored) {
 		}
 		assertThat(txMan.commits).as("Transaction counts match").isEqualTo(1);
 	}
@@ -272,7 +271,7 @@ class OrderedTxCheckAdvisor extends StaticMethodMatcherPointcutAdvisor implement
 					TransactionInterceptor.currentTransactionStatus();
 					throw new RuntimeException("Shouldn't have a transaction");
 				}
-				catch (NoTransactionException ex) {
+				catch (NoTransactionException ignored) {
 					// this is Ok
 				}
 			}

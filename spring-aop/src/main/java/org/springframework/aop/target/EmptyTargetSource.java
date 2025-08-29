@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.aop.target;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.TargetSource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -71,8 +72,7 @@ public final class EmptyTargetSource implements TargetSource, Serializable {
 	// Instance implementation
 	//---------------------------------------------------------------------
 
-	@Nullable
-	private final Class<?> targetClass;
+	private final @Nullable Class<?> targetClass;
 
 	private final boolean isStatic;
 
@@ -94,8 +94,7 @@ public final class EmptyTargetSource implements TargetSource, Serializable {
 	 * Always returns the specified target Class, or {@code null} if none.
 	 */
 	@Override
-	@Nullable
-	public Class<?> getTargetClass() {
+	public @Nullable Class<?> getTargetClass() {
 		return this.targetClass;
 	}
 
@@ -111,8 +110,7 @@ public final class EmptyTargetSource implements TargetSource, Serializable {
 	 * Always returns {@code null}.
 	 */
 	@Override
-	@Nullable
-	public Object getTarget() {
+	public @Nullable Object getTarget() {
 		return null;
 	}
 

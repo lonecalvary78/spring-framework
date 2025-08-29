@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.observation.ClientRequestObservationContext;
 import org.springframework.http.client.observation.ClientRequestObservationConvention;
 import org.springframework.http.client.observation.DefaultClientRequestObservationConvention;
-import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.StreamUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,8 +70,6 @@ class RestClientObservationTests {
 
 	private final ClientHttpResponse response = mock();
 
-	private final HttpMessageConverter<String> converter = mock();
-
 	private RestClient client;
 
 
@@ -83,33 +81,45 @@ class RestClientObservationTests {
 
 	RestClient.Builder createBuilder() {
 		return RestClient.builder()
-				.messageConverters(converters -> converters.add(0, this.converter))
+				.baseUrl("https://example.com/base")
+				.configureMessageConverters(converters -> converters.customMessageConverter(new StringHttpMessageConverter()))
 				.requestFactory(this.requestFactory)
 				.observationRegistry(this.observationRegistry);
 	}
 
 	@Test
 	void shouldContributeTemplateWhenUriVariables() throws Exception {
-		mockSentRequest(GET, "https://example.com/hotels/42/bookings/21");
+		mockSentRequest(GET, "https://example.com/base/hotels/42/bookings/21");
 		mockResponseStatus(HttpStatus.OK);
 
-		client.get().uri("https://example.com/hotels/{hotel}/bookings/{booking}", "42", "21")
+		client.get().uri("/hotels/{hotel}/bookings/{booking}", "42", "21")
 				.retrieve().toBodilessEntity();
 
-		assertThatHttpObservation().hasLowCardinalityKeyValue("uri", "/hotels/{hotel}/bookings/{booking}");
+		assertThatHttpObservation().hasLowCardinalityKeyValue("uri", "/base/hotels/{hotel}/bookings/{booking}");
 	}
 
 	@Test
 	void shouldContributeTemplateWhenMap() throws Exception {
-		mockSentRequest(GET, "https://example.com/hotels/42/bookings/21");
+		mockSentRequest(GET, "https://example.com/base/hotels/42/bookings/21");
 		mockResponseStatus(HttpStatus.OK);
 
 		Map<String, String> vars = Map.of("hotel", "42", "booking", "21");
 
-		client.get().uri("https://example.com/hotels/{hotel}/bookings/{booking}", vars)
+		client.get().uri("/hotels/{hotel}/bookings/{booking}", vars)
 				.retrieve().toBodilessEntity();
 
-		assertThatHttpObservation().hasLowCardinalityKeyValue("uri", "/hotels/{hotel}/bookings/{booking}");
+		assertThatHttpObservation().hasLowCardinalityKeyValue("uri", "/base/hotels/{hotel}/bookings/{booking}");
+	}
+
+	@Test
+	void shouldContributeTemplateWhenFunction() throws Exception {
+		mockSentRequest(GET, "https://example.com/base/hotels/42/bookings/21");
+		mockResponseStatus(HttpStatus.OK);
+
+		client.get().uri("/hotels/{hotel}/bookings/{booking}", builder -> builder.build("42", "21"))
+				.retrieve().toBodilessEntity();
+
+		assertThatHttpObservation().hasLowCardinalityKeyValue("uri", "/base/hotels/{hotel}/bookings/{booking}");
 	}
 
 	@Test
@@ -178,8 +188,7 @@ class RestClientObservationTests {
 
 		restClient.get().uri("https://example.org").retrieve().toBodilessEntity();
 
-		TestObservationRegistryAssert.assertThat(this.observationRegistry)
-				.hasObservationWithNameEqualTo("custom.requests");
+		assertThat(this.observationRegistry).hasObservationWithNameEqualTo("custom.requests");
 	}
 
 	@Test
@@ -192,7 +201,7 @@ class RestClientObservationTests {
 		assertThatExceptionOfType(RestClientException.class).isThrownBy(() ->
 				client.get().uri(url).retrieve().body(User.class));
 
-		assertThatHttpObservation().hasLowCardinalityKeyValue("exception", "RestClientException");
+		assertThatHttpObservation().hasLowCardinalityKeyValue("exception", "UnknownContentTypeException");
 	}
 
 	@Test
@@ -289,9 +298,8 @@ class RestClientObservationTests {
 
 
 	private TestObservationRegistryAssert.TestObservationRegistryAssertReturningObservationContextAssert assertThatHttpObservation() {
-		TestObservationRegistryAssert.assertThat(this.observationRegistry).hasNumberOfObservationsWithNameEqualTo("http.client.requests",1);
-		return TestObservationRegistryAssert.assertThat(this.observationRegistry)
-				.hasObservationWithNameEqualTo("http.client.requests").that();
+		assertThat(this.observationRegistry).hasNumberOfObservationsWithNameEqualTo("http.client.requests",1);
+		return assertThat(this.observationRegistry).hasObservationWithNameEqualTo("http.client.requests").that();
 	}
 
 	static class ContextAssertionObservationHandler implements ObservationHandler<ClientRequestObservationContext> {
@@ -335,12 +343,12 @@ class RestClientObservationTests {
 		}
 
 		@Override
-		public boolean hasError(ClientHttpResponse response) throws IOException {
+		public boolean hasError(ClientHttpResponse response) {
 			return true;
 		}
 
 		@Override
-		public void handleError(ClientHttpResponse response) throws IOException {
+		public void handleError(URI uri, HttpMethod httpMethod, ClientHttpResponse response) {
 			assertThat(this.observationRegistry.getCurrentObservationScope()).isNotNull();
 		}
 	}

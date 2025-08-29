@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package org.springframework.beans;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -71,8 +73,7 @@ public class DirectFieldAccessor extends AbstractNestablePropertyAccessor {
 
 
 	@Override
-	@Nullable
-	protected FieldPropertyHandler getLocalPropertyHandler(String propertyName) {
+	protected @Nullable FieldPropertyHandler getLocalPropertyHandler(String propertyName) {
 		FieldPropertyHandler propertyHandler = this.fieldMap.get(propertyName);
 		if (propertyHandler == null) {
 			Field field = ReflectionUtils.findField(getWrappedClass(), propertyName);
@@ -132,19 +133,17 @@ public class DirectFieldAccessor extends AbstractNestablePropertyAccessor {
 		}
 
 		@Override
-		@Nullable
-		public TypeDescriptor nested(int level) {
+		public @Nullable TypeDescriptor nested(int level) {
 			return TypeDescriptor.nested(this.field, level);
 		}
 
 		@Override
-		@Nullable
-		public Object getValue() throws Exception {
+		public @Nullable Object getValue() throws Exception {
 			try {
 				ReflectionUtils.makeAccessible(this.field);
 				return this.field.get(getWrappedInstance());
 			}
-			catch (IllegalAccessException ex) {
+			catch (IllegalAccessException | InaccessibleObjectException ex) {
 				throw new InvalidPropertyException(getWrappedClass(),
 						this.field.getName(), "Field is not accessible", ex);
 			}
@@ -156,7 +155,7 @@ public class DirectFieldAccessor extends AbstractNestablePropertyAccessor {
 				ReflectionUtils.makeAccessible(this.field);
 				this.field.set(getWrappedInstance(), value);
 			}
-			catch (IllegalAccessException ex) {
+			catch (IllegalAccessException | InaccessibleObjectException ex) {
 				throw new InvalidPropertyException(getWrappedClass(), this.field.getName(),
 						"Field is not accessible", ex);
 			}

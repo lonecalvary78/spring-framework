@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.transaction.support;
 
 import java.io.Serializable;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.util.Assert;
 
@@ -68,8 +69,7 @@ public abstract class DelegatingTransactionDefinition implements TransactionDefi
 	}
 
 	@Override
-	@Nullable
-	public String getName() {
+	public @Nullable String getName() {
 		return this.targetDefinition.getName();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.lang.Nullable;
 
 /**
  * SQL "function" wrapper for a query that returns a single row of results.
@@ -50,7 +51,7 @@ import org.springframework.lang.Nullable;
  * @param <T> the result type
  * @see StoredProcedure
  */
-public class SqlFunction<T> extends MappingSqlQuery<T> {
+public class SqlFunction<T> extends MappingSqlQuery<@Nullable T> {
 
 	private final SingleColumnRowMapper<T> rowMapper = new SingleColumnRowMapper<>();
 
@@ -64,7 +65,6 @@ public class SqlFunction<T> extends MappingSqlQuery<T> {
 	 * @see #compile
 	 */
 	public SqlFunction() {
-		setRowsExpected(1);
 	}
 
 	/**
@@ -74,7 +74,6 @@ public class SqlFunction<T> extends MappingSqlQuery<T> {
 	 * @param sql the SQL to execute
 	 */
 	public SqlFunction(DataSource ds, String sql) {
-		setRowsExpected(1);
 		setDataSource(ds);
 		setSql(sql);
 	}
@@ -88,7 +87,6 @@ public class SqlFunction<T> extends MappingSqlQuery<T> {
 	 * @see java.sql.Types
 	 */
 	public SqlFunction(DataSource ds, String sql, int[] types) {
-		setRowsExpected(1);
 		setDataSource(ds);
 		setSql(sql);
 		setTypes(types);
@@ -105,7 +103,6 @@ public class SqlFunction<T> extends MappingSqlQuery<T> {
 	 * @see java.sql.Types
 	 */
 	public SqlFunction(DataSource ds, String sql, int[] types, Class<T> resultType) {
-		setRowsExpected(1);
 		setDataSource(ds);
 		setSql(sql);
 		setTypes(types);
@@ -129,8 +126,7 @@ public class SqlFunction<T> extends MappingSqlQuery<T> {
 	 * of rows returned, this is treated as an error.
 	 */
 	@Override
-	@Nullable
-	protected T mapRow(ResultSet rs, int rowNum) throws SQLException {
+	protected @Nullable T mapRow(ResultSet rs, int rowNum) throws SQLException {
 		return this.rowMapper.mapRow(rs, rowNum);
 	}
 
@@ -172,8 +168,7 @@ public class SqlFunction<T> extends MappingSqlQuery<T> {
 	 * returning the value as an object.
 	 * @return the value of the function
 	 */
-	@Nullable
-	public Object runGeneric() {
+	public @Nullable Object runGeneric() {
 		return findObject((Object[]) null, null);
 	}
 
@@ -182,8 +177,7 @@ public class SqlFunction<T> extends MappingSqlQuery<T> {
 	 * @param parameter single int parameter
 	 * @return the value of the function as an Object
 	 */
-	@Nullable
-	public Object runGeneric(int parameter) {
+	public @Nullable Object runGeneric(int parameter) {
 		return findObject(parameter);
 	}
 
@@ -195,8 +189,7 @@ public class SqlFunction<T> extends MappingSqlQuery<T> {
 	 * @return the value of the function, as an Object
 	 * @see #execute(Object[])
 	 */
-	@Nullable
-	public Object runGeneric(Object[] parameters) {
+	public @Nullable Object runGeneric(Object[] parameters) {
 		return findObject(parameters);
 	}
 

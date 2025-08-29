@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -47,6 +47,7 @@ import org.springframework.web.socket.sockjs.frame.SockJsMessageCodec;
  *
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
+ * @author Sebastien Deleuze
  * @since 4.1
  */
 public abstract class AbstractClientSockJsSession implements WebSocketSession {
@@ -61,23 +62,10 @@ public abstract class AbstractClientSockJsSession implements WebSocketSession {
 
 	private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-	@Nullable
-	private volatile State state = State.NEW;
+	private volatile @Nullable State state = State.NEW;
 
-	@Nullable
-	private volatile CloseStatus closeStatus;
+	private volatile @Nullable CloseStatus closeStatus;
 
-
-	/**
-	 * Create a new {@code AbstractClientSockJsSession}.
-	 * @deprecated as of 6.0, in favor of {@link #AbstractClientSockJsSession(TransportRequest, WebSocketHandler, CompletableFuture)}
-	 */
-	@Deprecated(since = "6.0", forRemoval = true)
-	@SuppressWarnings("removal")
-	protected AbstractClientSockJsSession(TransportRequest request, WebSocketHandler handler,
-			org.springframework.util.concurrent.SettableListenableFuture<WebSocketSession> connectFuture) {
-		this(request, handler, connectFuture.completable());
-	}
 
 	protected AbstractClientSockJsSession(TransportRequest request, WebSocketHandler handler,
 			CompletableFuture<WebSocketSession> connectFuture) {
@@ -112,8 +100,7 @@ public abstract class AbstractClientSockJsSession implements WebSocketSession {
 	}
 
 	@Override
-	@Nullable
-	public Principal getPrincipal() {
+	public @Nullable Principal getPrincipal() {
 		return this.request.getUser();
 	}
 
@@ -282,7 +269,7 @@ public abstract class AbstractClientSockJsSession implements WebSocketSession {
 			try {
 				messages = getMessageCodec().decode(frameData);
 			}
-			catch (IOException ex) {
+			catch (RuntimeException | IOException ex) {
 				if (logger.isErrorEnabled()) {
 					logger.error("Failed to decode data for SockJS \"message\" frame: " + frame + " in " + this, ex);
 				}

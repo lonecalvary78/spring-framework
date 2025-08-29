@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.web.server;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.Nullable;
 
 /**
  * Exception for errors that fit response status 400 (bad request) for use in
@@ -31,8 +32,7 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class ServerWebInputException extends ResponseStatusException {
 
-	@Nullable
-	private final MethodParameter parameter;
+	private final @Nullable MethodParameter parameter;
 
 
 	/**
@@ -62,7 +62,7 @@ public class ServerWebInputException extends ResponseStatusException {
 	 * @since 6.0
 	 */
 	protected ServerWebInputException(String reason, @Nullable MethodParameter parameter, @Nullable Throwable cause,
-			@Nullable String messageDetailCode, @Nullable Object[] messageDetailArguments) {
+			@Nullable String messageDetailCode, Object @Nullable [] messageDetailArguments) {
 
 		super(HttpStatus.BAD_REQUEST, reason, cause, messageDetailCode, messageDetailArguments);
 		this.parameter = parameter;
@@ -72,8 +72,7 @@ public class ServerWebInputException extends ResponseStatusException {
 	/**
 	 * Return the {@code MethodParameter} associated with this error, if any.
 	 */
-	@Nullable
-	public MethodParameter getMethodParameter() {
+	public @Nullable MethodParameter getMethodParameter() {
 		return this.parameter;
 	}
 

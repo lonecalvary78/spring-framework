@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import java.io.Writer;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.jsp.JspWriter;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Mock implementation of the {@link jakarta.servlet.jsp.JspWriter} class.
@@ -36,8 +35,7 @@ public class MockJspWriter extends JspWriter {
 
 	private final HttpServletResponse response;
 
-	@Nullable
-	private PrintWriter targetWriter;
+	private @Nullable PrintWriter targetWriter;
 
 
 	/**

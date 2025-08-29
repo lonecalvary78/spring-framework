@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package org.springframework.web;
 
 import java.net.URI;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link RuntimeException} that implements {@link ErrorResponse} to expose
@@ -48,8 +49,7 @@ public class ErrorResponseException extends NestedRuntimeException implements Er
 
 	private final String messageDetailCode;
 
-	@Nullable
-	private final Object[] messageDetailArguments;
+	private final Object @Nullable [] messageDetailArguments;
 
 
 	/**
@@ -82,7 +82,7 @@ public class ErrorResponseException extends NestedRuntimeException implements Er
 	 */
 	public ErrorResponseException(
 			HttpStatusCode status, ProblemDetail body, @Nullable Throwable cause,
-			@Nullable String messageDetailCode, @Nullable Object[] messageDetailArguments) {
+			@Nullable String messageDetailCode, Object @Nullable [] messageDetailArguments) {
 
 		super(null, cause);
 		this.status = status;
@@ -111,7 +111,7 @@ public class ErrorResponseException extends NestedRuntimeException implements Er
 	 * Set the {@link ProblemDetail#setType(URI) type} field of the response body.
 	 * @param type the problem type
 	 */
-	public void setType(URI type) {
+	public void setType(@Nullable URI type) {
 		this.body.setType(type);
 	}
 
@@ -165,8 +165,7 @@ public class ErrorResponseException extends NestedRuntimeException implements Er
 	}
 
 	@Override
-	@Nullable
-	public Object[] getDetailMessageArguments() {
+	public Object @Nullable [] getDetailMessageArguments() {
 		return this.messageDetailArguments;
 	}
 

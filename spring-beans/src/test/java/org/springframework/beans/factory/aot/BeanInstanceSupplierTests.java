@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.support.AnnotationConsumer;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 
 import org.springframework.beans.factory.BeanCurrentlyInCreationException;
 import org.springframework.beans.factory.ObjectProvider;
@@ -62,7 +63,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.function.ThrowingBiFunction;
 import org.springframework.util.function.ThrowingFunction;
-import org.springframework.util.function.ThrowingSupplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -103,8 +103,8 @@ class BeanInstanceSupplierTests {
 		RegisteredBean registerBean = source.registerBean(this.beanFactory);
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> resolver.get(registerBean)).withMessage(
-						"Constructor with parameter types [java.io.InputStream] cannot be found on "
-								+ SingleArgConstructor.class.getName());
+						"Constructor with parameter types [java.io.InputStream] cannot be found on " +
+								SingleArgConstructor.class.getName());
 	}
 
 	@Test
@@ -151,8 +151,8 @@ class BeanInstanceSupplierTests {
 		RegisteredBean registerBean = source.registerBean(this.beanFactory);
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> resolver.get(registerBean)).withMessage(
-						"Factory method 'single' with parameter types [java.io.InputStream] declared on class "
-								+ SingleArgFactory.class.getName() + " cannot be found");
+						"Factory method 'single' with parameter types [java.io.InputStream] declared on class " +
+								SingleArgFactory.class.getName() + " cannot be found");
 	}
 
 	@Test
@@ -177,16 +177,6 @@ class BeanInstanceSupplierTests {
 		BeanInstanceSupplier<Object> resolver = BeanInstanceSupplier.forConstructor();
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> resolver.withGenerator((ThrowingFunction<RegisteredBean, Object>) null))
-				.withMessage("'generator' must not be null");
-	}
-
-	@Test
-	@Deprecated
-	@SuppressWarnings("removal")
-	void withGeneratorWhenSupplierIsNullThrowsException() {
-		BeanInstanceSupplier<Object> resolver = BeanInstanceSupplier.forConstructor();
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> resolver.withGenerator((ThrowingSupplier<Object>) null))
 				.withMessage("'generator' must not be null");
 	}
 
@@ -233,18 +223,6 @@ class BeanInstanceSupplierTests {
 		RegisteredBean registerBean = registrar.registerBean(this.beanFactory);
 		BeanInstanceSupplier<String> resolver = BeanInstanceSupplier.<String>forConstructor(String.class)
 				.withGenerator(registeredBean -> "1");
-		assertThat(resolver.get(registerBean)).isInstanceOf(String.class).isEqualTo("1");
-	}
-
-	@Test
-	@Deprecated
-	@SuppressWarnings("removal")
-	void getWithGeneratorCallsSupplier() {
-		BeanRegistrar registrar = new BeanRegistrar(SingleArgConstructor.class);
-		this.beanFactory.registerSingleton("one", "1");
-		RegisteredBean registerBean = registrar.registerBean(this.beanFactory);
-		BeanInstanceSupplier<String> resolver = BeanInstanceSupplier.<String>forConstructor(String.class)
-				.withGenerator(() -> "1");
 		assertThat(resolver.get(registerBean)).isInstanceOf(String.class).isEqualTo("1");
 	}
 
@@ -691,7 +669,7 @@ class BeanInstanceSupplierTests {
 		}
 
 		@Override
-		public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+		public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
 			return this.source.provideArguments(context);
 		}
 	}

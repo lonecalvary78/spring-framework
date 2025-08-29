@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import javax.annotation.meta.TypeQualifierDefault;
  * @author Sebastien Deleuze
  * @author Juergen Hoeller
  * @since 5.0
+ * @deprecated use {@link org.jspecify.annotations.NullMarked} instead
  * @see NonNullFields
  * @see Nullable
  * @see NonNull
@@ -47,5 +48,6 @@ import javax.annotation.meta.TypeQualifierDefault;
 @Documented
 @Nonnull
 @TypeQualifierDefault({ElementType.METHOD, ElementType.PARAMETER})
+@Deprecated(since = "7.0")
 public @interface NonNullApi {
 }

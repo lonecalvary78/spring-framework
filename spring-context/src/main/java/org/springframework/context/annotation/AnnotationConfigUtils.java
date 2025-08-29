@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.aop.framework.autoproxy.AutoProxyUtils;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -35,7 +38,6 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -117,9 +119,6 @@ public abstract class AnnotationConfigUtils {
 	private static final boolean jakartaAnnotationsPresent =
 			ClassUtils.isPresent("jakarta.annotation.PostConstruct", classLoader);
 
-	private static final boolean jsr250Present =
-			ClassUtils.isPresent("javax.annotation.PostConstruct", classLoader);
-
 	private static final boolean jpaPresent =
 			ClassUtils.isPresent("jakarta.persistence.EntityManagerFactory", classLoader) &&
 					ClassUtils.isPresent(PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME, classLoader);
@@ -169,8 +168,7 @@ public abstract class AnnotationConfigUtils {
 		}
 
 		// Check for Jakarta Annotations support, and if present add the CommonAnnotationBeanPostProcessor.
-		if ((jakartaAnnotationsPresent || jsr250Present) &&
-				!registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+		if (jakartaAnnotationsPresent && !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));
@@ -214,8 +212,7 @@ public abstract class AnnotationConfigUtils {
 		return new BeanDefinitionHolder(definition, beanName);
 	}
 
-	@Nullable
-	private static DefaultListableBeanFactory unwrapDefaultListableBeanFactory(BeanDefinitionRegistry registry) {
+	private static @Nullable DefaultListableBeanFactory unwrapDefaultListableBeanFactory(BeanDefinitionRegistry registry) {
 		if (registry instanceof DefaultListableBeanFactory dlbf) {
 			return dlbf;
 		}
@@ -262,6 +259,20 @@ public abstract class AnnotationConfigUtils {
 		if (description != null) {
 			abd.setDescription(description.getString("value"));
 		}
+
+		AnnotationAttributes proxyable = attributesFor(metadata, Proxyable.class);
+		if (proxyable != null) {
+			ProxyType mode = proxyable.getEnum("value");
+			if (mode == ProxyType.TARGET_CLASS) {
+				abd.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
+			}
+			else {
+				Class<?>[] ifcs = proxyable.getClassArray("interfaces");
+				if (ifcs.length > 0 || mode == ProxyType.INTERFACES) {
+					abd.setAttribute(AutoProxyUtils.EXPOSED_INTERFACES_ATTRIBUTE, ifcs);
+				}
+			}
+		}
 	}
 
 	static BeanDefinitionHolder applyScopedProxyMode(
@@ -275,13 +286,11 @@ public abstract class AnnotationConfigUtils {
 		return ScopedProxyCreator.createScopedProxy(definition, registry, proxyTargetClass);
 	}
 
-	@Nullable
-	static AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata, Class<?> annotationType) {
+	static @Nullable AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata, Class<?> annotationType) {
 		return attributesFor(metadata, annotationType.getName());
 	}
 
-	@Nullable
-	static AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata, String annotationTypeName) {
+	static @Nullable AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata, String annotationTypeName) {
 		return AnnotationAttributes.fromMap(metadata.getAnnotationAttributes(annotationTypeName));
 	}
 

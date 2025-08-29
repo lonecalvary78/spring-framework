@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
@@ -46,8 +46,7 @@ import org.springframework.web.servlet.ViewResolver;
  */
 final class DefaultFragmentsRendering implements FragmentsRendering {
 
-	@Nullable
-	private final HttpStatusCode status;
+	private final @Nullable HttpStatusCode status;
 
 	private final HttpHeaders headers;
 
@@ -63,9 +62,8 @@ final class DefaultFragmentsRendering implements FragmentsRendering {
 	}
 
 
-	@Nullable
 	@Override
-	public HttpStatusCode status() {
+	public @Nullable HttpStatusCode status() {
 		return this.status;
 	}
 
@@ -133,8 +131,7 @@ final class DefaultFragmentsRendering implements FragmentsRendering {
 	 */
 	private static final class NonClosingHttpServletResponse extends HttpServletResponseWrapper {
 
-		@Nullable
-		private ServletOutputStream os;
+		private @Nullable ServletOutputStream os;
 
 		public NonClosingHttpServletResponse(HttpServletResponse response) {
 			super(response);

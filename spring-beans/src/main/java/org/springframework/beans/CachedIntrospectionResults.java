@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.support.SpringFactoriesLoader;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
@@ -375,8 +375,7 @@ public final class CachedIntrospectionResults {
 		return this.beanInfo.getBeanDescriptor().getBeanClass();
 	}
 
-	@Nullable
-	PropertyDescriptor getPropertyDescriptor(String name) {
+	@Nullable PropertyDescriptor getPropertyDescriptor(String name) {
 		PropertyDescriptor pd = this.propertyDescriptors.get(name);
 		if (pd == null && StringUtils.hasLength(name)) {
 			// Same lenient fallback checking as in Property...

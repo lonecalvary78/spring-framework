@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.Mergeable;
-import org.springframework.lang.Nullable;
 
 /**
  * Tag collection class used to hold managed Map values, which may
@@ -37,14 +38,11 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class ManagedMap<K, V> extends LinkedHashMap<K, V> implements Mergeable, BeanMetadataElement {
 
-	@Nullable
-	private Object source;
+	private @Nullable Object source;
 
-	@Nullable
-	private String keyTypeName;
+	private @Nullable String keyTypeName;
 
-	@Nullable
-	private String valueTypeName;
+	private @Nullable String valueTypeName;
 
 	private boolean mergeEnabled;
 
@@ -86,8 +84,7 @@ public class ManagedMap<K, V> extends LinkedHashMap<K, V> implements Mergeable, 
 	}
 
 	@Override
-	@Nullable
-	public Object getSource() {
+	public @Nullable Object getSource() {
 		return this.source;
 	}
 
@@ -101,8 +98,7 @@ public class ManagedMap<K, V> extends LinkedHashMap<K, V> implements Mergeable, 
 	/**
 	 * Return the default key type name (class name) to be used for this map.
 	 */
-	@Nullable
-	public String getKeyTypeName() {
+	public @Nullable String getKeyTypeName() {
 		return this.keyTypeName;
 	}
 
@@ -116,8 +112,7 @@ public class ManagedMap<K, V> extends LinkedHashMap<K, V> implements Mergeable, 
 	/**
 	 * Return the default value type name (class name) to be used for this map.
 	 */
-	@Nullable
-	public String getValueTypeName() {
+	public @Nullable String getValueTypeName() {
 		return this.valueTypeName;
 	}
 

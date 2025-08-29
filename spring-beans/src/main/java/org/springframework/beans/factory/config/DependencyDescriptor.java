@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,22 @@ package org.springframework.beans.factory.config;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Optional;
 
-import kotlin.reflect.KProperty;
-import kotlin.reflect.jvm.ReflectJvmMapping;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.InjectionPoint;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.core.KotlinDetector;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.Nullness;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -52,16 +50,13 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 
 	private final Class<?> declaringClass;
 
-	@Nullable
-	private String methodName;
+	private @Nullable String methodName;
 
-	@Nullable
-	private Class<?>[] parameterTypes;
+	private Class<?> @Nullable [] parameterTypes;
 
 	private int parameterIndex;
 
-	@Nullable
-	private String fieldName;
+	private @Nullable String fieldName;
 
 	private final boolean required;
 
@@ -69,14 +64,11 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 
 	private int nestingLevel = 1;
 
-	@Nullable
-	private Class<?> containingClass;
+	private @Nullable Class<?> containingClass;
 
-	@Nullable
-	private transient volatile ResolvableType resolvableType;
+	private transient volatile @Nullable ResolvableType resolvableType;
 
-	@Nullable
-	private transient volatile TypeDescriptor typeDescriptor;
+	private transient volatile @Nullable TypeDescriptor typeDescriptor;
 
 
 	/**
@@ -168,28 +160,11 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 		}
 
 		if (this.field != null) {
-			return !(this.field.getType() == Optional.class || hasNullableAnnotation() ||
-					(KotlinDetector.isKotlinReflectPresent() &&
-							KotlinDetector.isKotlinType(this.field.getDeclaringClass()) &&
-							KotlinDelegate.isNullable(this.field)));
+			return !(this.field.getType() == Optional.class || Nullness.forField(this.field) == Nullness.NULLABLE);
 		}
 		else {
 			return !obtainMethodParameter().isOptional();
 		}
-	}
-
-	/**
-	 * Check whether the underlying field is annotated with any variant of a
-	 * {@code Nullable} annotation, for example, {@code jakarta.annotation.Nullable} or
-	 * {@code edu.umd.cs.findbugs.annotations.Nullable}.
-	 */
-	private boolean hasNullableAnnotation() {
-		for (Annotation ann : getAnnotations()) {
-			if ("Nullable".equals(ann.annotationType().getSimpleName())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -213,8 +188,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 * @throws BeansException in case of the not-unique scenario being fatal
 	 * @since 5.1
 	 */
-	@Nullable
-	public Object resolveNotUnique(ResolvableType type, Map<String, Object> matchingBeans) throws BeansException {
+	public @Nullable Object resolveNotUnique(ResolvableType type, Map<String, Object> matchingBeans) throws BeansException {
 		throw new NoUniqueBeanDefinitionException(type, matchingBeans.keySet());
 	}
 
@@ -230,15 +204,14 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 * @throws BeansException if the shortcut could not be obtained
 	 * @since 4.3.1
 	 */
-	@Nullable
-	public Object resolveShortcut(BeanFactory beanFactory) throws BeansException {
+	public @Nullable Object resolveShortcut(BeanFactory beanFactory) throws BeansException {
 		return null;
 	}
 
 	/**
 	 * Resolve the specified bean name, as a candidate result of the matching
 	 * algorithm for this dependency, to a bean instance from the given factory.
-	 * <p>The default implementation calls {@link BeanFactory#getBean(String)}.
+	 * <p>The default implementation calls {@link BeanFactory#getBean(String, Class)}.
 	 * Subclasses may provide additional arguments or other customizations.
 	 * @param beanName the bean name, as a candidate result for this dependency
 	 * @param requiredType the expected type of the bean (as an assertion)
@@ -251,7 +224,14 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	public Object resolveCandidate(String beanName, Class<?> requiredType, BeanFactory beanFactory)
 			throws BeansException {
 
-		return beanFactory.getBean(beanName);
+		try {
+			// Need to provide required type for SmartFactoryBean
+			return beanFactory.getBean(beanName, requiredType);
+		}
+		catch (BeanNotOfRequiredTypeException ex) {
+			// Probably a null bean...
+			return beanFactory.getBean(beanName);
+		}
 	}
 
 
@@ -355,8 +335,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 * Determine the name of the wrapped parameter/field.
 	 * @return the declared name (may be {@code null} if unresolvable)
 	 */
-	@Nullable
-	public String getDependencyName() {
+	public @Nullable String getDependencyName() {
 		return (this.field != null ? this.field.getName() : obtainMethodParameter().getParameterName());
 	}
 
@@ -453,21 +432,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 		}
 		catch (Throwable ex) {
 			throw new IllegalStateException("Could not find original class structure", ex);
-		}
-	}
-
-
-	/**
-	 * Inner class to avoid a hard dependency on Kotlin at runtime.
-	 */
-	private static class KotlinDelegate {
-
-		/**
-		 * Check whether the specified {@link Field} represents a nullable Kotlin type or not.
-		 */
-		public static boolean isNullable(Field field) {
-			KProperty<?> property = ReflectJvmMapping.getKotlinProperty(field);
-			return (property != null && property.getReturnType().isMarkedNullable());
 		}
 	}
 

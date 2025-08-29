@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import jakarta.annotation.ManagedBean;
 import jakarta.inject.Named;
 import jakarta.persistence.Converter;
 import jakarta.persistence.Embeddable;
@@ -43,7 +42,6 @@ import org.springframework.context.index.sample.SampleNonStaticEmbedded;
 import org.springframework.context.index.sample.SampleNone;
 import org.springframework.context.index.sample.SampleRepository;
 import org.springframework.context.index.sample.SampleService;
-import org.springframework.context.index.sample.cdi.SampleManagedBean;
 import org.springframework.context.index.sample.cdi.SampleNamed;
 import org.springframework.context.index.sample.cdi.SampleTransactional;
 import org.springframework.context.index.sample.jpa.SampleConverter;
@@ -124,11 +122,6 @@ class CandidateComponentsIndexerTests {
 	@Test
 	void stereotypeOnAbstractClass() {
 		testComponent(AbstractController.class);
-	}
-
-	@Test
-	void cdiManagedBean() {
-		testSingleComponent(SampleManagedBean.class, ManagedBean.class);
 	}
 
 	@Test

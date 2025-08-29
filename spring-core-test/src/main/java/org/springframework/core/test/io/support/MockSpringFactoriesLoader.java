@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.support.SpringFactoriesLoader;
-import org.springframework.lang.Nullable;
 
 /**
  * Simple mock {@link SpringFactoriesLoader} implementation that can be used for testing
@@ -67,9 +68,8 @@ public class MockSpringFactoriesLoader extends SpringFactoriesLoader {
 
 
 	@Override
-	@Nullable
 	@SuppressWarnings("unchecked")
-	protected <T> T instantiateFactory(String implementationName, Class<T> type,
+	protected <T> @Nullable T instantiateFactory(String implementationName, Class<T> type,
 			@Nullable ArgumentResolver argumentResolver, FailureHandler failureHandler) {
 		if (implementationName.startsWith("!")) {
 			Object implementation = this.implementations.get(implementationName);
@@ -122,8 +122,8 @@ public class MockSpringFactoriesLoader extends SpringFactoriesLoader {
 	public <T> void addInstance(String factoryType, T... factoryInstance) {
 		List<String> implementations = this.factories.computeIfAbsent(factoryType, key -> new ArrayList<>());
 		for (T factoryImplementation : factoryInstance) {
-			String reference = "!" + factoryType + ":" + factoryImplementation.getClass().getName()
-					+ this.sequence.getAndIncrement();
+			String reference = "!" + factoryType + ":" + factoryImplementation.getClass().getName() +
+					this.sequence.getAndIncrement();
 			implementations.add(reference);
 			this.implementations.put(reference, factoryImplementation);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import javax.xml.stream.events.ProcessingInstruction;
 import javax.xml.stream.events.StartDocument;
 import javax.xml.stream.events.XMLEvent;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of the {@link javax.xml.stream.XMLStreamReader} interface that wraps a
@@ -79,8 +79,7 @@ class XMLEventStreamReader extends AbstractXMLStreamReader {
 	}
 
 	@Override
-	@Nullable
-	public String getVersion() {
+	public @Nullable String getVersion() {
 		if (this.event.isStartDocument()) {
 			return ((StartDocument) this.event).getVersion();
 		}
@@ -115,14 +114,12 @@ class XMLEventStreamReader extends AbstractXMLStreamReader {
 	}
 
 	@Override
-	@Nullable
-	public String getEncoding() {
+	public @Nullable String getEncoding() {
 		return null;
 	}
 
 	@Override
-	@Nullable
-	public String getCharacterEncodingScheme() {
+	public @Nullable String getCharacterEncodingScheme() {
 		return null;
 	}
 

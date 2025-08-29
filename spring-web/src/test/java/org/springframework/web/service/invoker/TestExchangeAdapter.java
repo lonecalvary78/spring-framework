@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ package org.springframework.web.service.invoker;
 
 import java.util.Collections;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,14 +34,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class TestExchangeAdapter implements HttpExchangeAdapter {
 
-	@Nullable
-	private String invokedMethodName;
+	private @Nullable String invokedMethodName;
 
-	@Nullable
-	private HttpRequestValues requestValues;
+	private @Nullable HttpRequestValues requestValues;
 
-	@Nullable
-	private ParameterizedTypeReference<?> bodyType;
+	private @Nullable ParameterizedTypeReference<?> bodyType;
 
 
 	public String getInvokedMethodName() {
@@ -53,8 +51,7 @@ public class TestExchangeAdapter implements HttpExchangeAdapter {
 		return this.requestValues;
 	}
 
-	@Nullable
-	public ParameterizedTypeReference<?> getBodyType() {
+	public @Nullable ParameterizedTypeReference<?> getBodyType() {
 		return this.bodyType;
 	}
 

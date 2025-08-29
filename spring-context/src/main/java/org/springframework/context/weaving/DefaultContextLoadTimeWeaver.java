@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.instrument.ClassFileTransformer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.DisposableBean;
@@ -30,7 +31,6 @@ import org.springframework.instrument.classloading.ReflectiveLoadTimeWeaver;
 import org.springframework.instrument.classloading.glassfish.GlassFishLoadTimeWeaver;
 import org.springframework.instrument.classloading.jboss.JBossLoadTimeWeaver;
 import org.springframework.instrument.classloading.tomcat.TomcatLoadTimeWeaver;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -57,8 +57,7 @@ public class DefaultContextLoadTimeWeaver implements LoadTimeWeaver, BeanClassLo
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	private LoadTimeWeaver loadTimeWeaver;
+	private @Nullable LoadTimeWeaver loadTimeWeaver;
 
 
 	public DefaultContextLoadTimeWeaver() {
@@ -104,8 +103,7 @@ public class DefaultContextLoadTimeWeaver implements LoadTimeWeaver, BeanClassLo
 	 * determining a load-time weaver based on the ClassLoader name alone may
 	 * legitimately fail due to other mismatches.
 	 */
-	@Nullable
-	protected LoadTimeWeaver createServerSpecificLoadTimeWeaver(ClassLoader classLoader) {
+	protected @Nullable LoadTimeWeaver createServerSpecificLoadTimeWeaver(ClassLoader classLoader) {
 		String name = classLoader.getClass().getName();
 		try {
 			if (name.startsWith("org.apache.catalina")) {

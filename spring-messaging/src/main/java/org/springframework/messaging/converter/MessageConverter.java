@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.messaging.converter;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -42,8 +43,7 @@ public interface MessageConverter {
 	 * @return the result of the conversion, or {@code null} if the converter cannot
 	 * perform the conversion
 	 */
-	@Nullable
-	Object fromMessage(Message<?> message, Class<?> targetClass);
+	@Nullable Object fromMessage(Message<?> message, Class<?> targetClass);
 
 	/**
 	 * Create a {@link Message} whose payload is the result of converting the given
@@ -58,7 +58,6 @@ public interface MessageConverter {
 	 * @return the new message, or {@code null} if the converter does not support the
 	 * Object type or the target media type
 	 */
-	@Nullable
-	Message<?> toMessage(Object payload, @Nullable MessageHeaders headers);
+	@Nullable Message<?> toMessage(Object payload, @Nullable MessageHeaders headers);
 
 }

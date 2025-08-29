@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.messaging.simp.config;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
@@ -31,14 +32,11 @@ import org.springframework.scheduling.TaskScheduler;
  */
 public class SimpleBrokerRegistration extends AbstractBrokerRegistration {
 
-	@Nullable
-	private TaskScheduler taskScheduler;
+	private @Nullable TaskScheduler taskScheduler;
 
-	@Nullable
-	private long[] heartbeat;
+	private long @Nullable [] heartbeat;
 
-	@Nullable
-	private String selectorHeaderName;
+	private @Nullable String selectorHeaderName;
 
 
 	/**

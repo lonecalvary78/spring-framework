@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import io.micrometer.observation.transport.RequestReplyReceiverContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 
 /**
  * Context that holds information for metadata collection regarding
@@ -49,8 +49,7 @@ public class ServerRequestObservationContext extends RequestReplyReceiverContext
 
 	private final Map<String, Object> attributes;
 
-	@Nullable
-	private String pathPattern;
+	private @Nullable String pathPattern;
 
 	private boolean connectionAborted;
 
@@ -84,8 +83,7 @@ public class ServerRequestObservationContext extends RequestReplyReceiverContext
 	 * <p>Path patterns must have a low cardinality for the entire application.
 	 * @return the path pattern, or {@code null} if none found
 	 */
-	@Nullable
-	public String getPathPattern() {
+	public @Nullable String getPathPattern() {
 		return this.pathPattern;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.core.metrics;
 
 import java.util.function.Supplier;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Step recording metrics about a particular phase or action happening during the {@link ApplicationStartup}.
@@ -36,7 +36,7 @@ import org.springframework.lang.Nullable;
  * @author Brian Clozel
  * @since 5.3
  */
-public interface StartupStep {
+public interface StartupStep extends AutoCloseable {
 
 	/**
 	 * Return the name of the startup step.
@@ -56,8 +56,7 @@ public interface StartupStep {
 	 * <p>The parent step is the step that was started the most recently
 	 * when the current step was created.
 	 */
-	@Nullable
-	Long getParentId();
+	@Nullable Long getParentId();
 
 	/**
 	 * Add a {@link Tag} to the step.
@@ -84,6 +83,10 @@ public interface StartupStep {
 	 */
 	void end();
 
+	@Override
+	default void close() {
+		this.end();
+	}
 
 	/**
 	 * Immutable collection of {@link Tag}.

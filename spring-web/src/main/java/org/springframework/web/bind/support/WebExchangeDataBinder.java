@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.http.codec.multipart.Part;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
@@ -168,8 +168,7 @@ public class WebExchangeDataBinder extends WebDataBinder {
 	private record MapValueResolver(Map<String, Object> map) implements ValueResolver {
 
 		@Override
-		@Nullable
-		public Object resolveValue(String name, Class<?> type) {
+		public @Nullable Object resolveValue(String name, Class<?> type) {
 			return this.map.get(name);
 		}
 

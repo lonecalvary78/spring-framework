@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,12 +179,12 @@ public class StandardWebSocketClient implements WebSocketClient {
 
 		@Override
 		public void beforeRequest(Map<String, List<String>> requestHeaders) {
-			requestHeaders.putAll(this.requestHeaders);
+			this.requestHeaders.forEach(requestHeaders::put);
 		}
 
 		@Override
 		public void afterResponse(HandshakeResponse response) {
-			this.responseHeaders.putAll(response.getHeaders());
+			response.getHeaders().forEach(this.responseHeaders::put);
 		}
 	}
 

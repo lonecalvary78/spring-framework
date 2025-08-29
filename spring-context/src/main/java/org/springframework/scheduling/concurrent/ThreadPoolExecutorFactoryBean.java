@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.lang.Nullable;
 
 /**
  * JavaBean that allows for configuring a {@link java.util.concurrent.ThreadPoolExecutor}
@@ -81,8 +82,7 @@ public class ThreadPoolExecutorFactoryBean extends ExecutorConfigurationSupport
 
 	private boolean exposeUnconfigurableExecutor = false;
 
-	@Nullable
-	private ExecutorService exposedExecutor;
+	private @Nullable ExecutorService exposedExecutor;
 
 
 	/**
@@ -245,8 +245,7 @@ public class ThreadPoolExecutorFactoryBean extends ExecutorConfigurationSupport
 
 
 	@Override
-	@Nullable
-	public ExecutorService getObject() {
+	public @Nullable ExecutorService getObject() {
 		return this.exposedExecutor;
 	}
 

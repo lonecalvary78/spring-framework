@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.IdGenerator;
@@ -51,8 +51,7 @@ public abstract class AbstractWebSocketSession<T> implements NativeWebSocketSess
 
 	private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-	@Nullable
-	private T nativeSession;
+	private @Nullable T nativeSession;
 
 
 	/**
@@ -82,8 +81,7 @@ public abstract class AbstractWebSocketSession<T> implements NativeWebSocketSess
 
 	@SuppressWarnings("unchecked")
 	@Override
-	@Nullable
-	public <R> R getNativeSession(@Nullable Class<R> requiredType) {
+	public <R> @Nullable R getNativeSession(@Nullable Class<R> requiredType) {
 		return (requiredType == null || requiredType.isInstance(this.nativeSession) ? (R) this.nativeSession : null);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardOpenOption;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.springframework.util.ResourceUtils;
 
@@ -56,6 +57,7 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 				// Try a URL connection content-length header
 				URLConnection con = url.openConnection();
 				customizeConnection(con);
+
 				HttpURLConnection httpCon = (con instanceof HttpURLConnection huc ? huc : null);
 				if (httpCon != null) {
 					httpCon.setRequestMethod("HEAD");
@@ -66,10 +68,41 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 					else if (code == HttpURLConnection.HTTP_NOT_FOUND) {
 						return false;
 					}
+					else if (code == HttpURLConnection.HTTP_BAD_METHOD) {
+						con = url.openConnection();
+						customizeConnection(con);
+						if (con instanceof HttpURLConnection newHttpCon) {
+							code = newHttpCon.getResponseCode();
+							if (code == HttpURLConnection.HTTP_OK) {
+								return true;
+							}
+							else if (code == HttpURLConnection.HTTP_NOT_FOUND) {
+								return false;
+							}
+							httpCon = newHttpCon;
+						}
+					}
 				}
-				if (con.getContentLengthLong() > 0) {
+
+				if (con instanceof JarURLConnection jarCon) {
+					// For JarURLConnection, do not check content-length but rather the
+					// existence of the entry (or the jar root in case of no entryName).
+					// getJarFile() called for enforced presence check of the jar file,
+					// throwing a NoSuchFileException otherwise (turned to false below).
+					JarFile jarFile = jarCon.getJarFile();
+					try {
+						return (jarCon.getEntryName() == null || jarCon.getJarEntry() != null);
+					}
+					finally {
+						if (!jarCon.getUseCaches()) {
+							jarFile.close();
+						}
+					}
+				}
+				else if (con.getContentLengthLong() > 0) {
 					return true;
 				}
+
 				if (httpCon != null) {
 					// No HTTP OK status, and no content-length header: give up
 					httpCon.disconnect();
@@ -111,6 +144,15 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 				if (con instanceof HttpURLConnection httpCon) {
 					httpCon.setRequestMethod("HEAD");
 					int code = httpCon.getResponseCode();
+					if (code == HttpURLConnection.HTTP_BAD_METHOD) {
+						con = url.openConnection();
+						customizeConnection(con);
+						if (!(con instanceof HttpURLConnection newHttpCon)) {
+							return false;
+						}
+						code = newHttpCon.getResponseCode();
+						httpCon = newHttpCon;
+					}
 					if (code != HttpURLConnection.HTTP_OK) {
 						httpCon.disconnect();
 						return false;
@@ -259,7 +301,14 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 			if (con instanceof HttpURLConnection httpCon) {
 				httpCon.setRequestMethod("HEAD");
 			}
-			return con.getContentLengthLong();
+			long length = con.getContentLengthLong();
+			if (length <= 0 && con instanceof HttpURLConnection httpCon &&
+					httpCon.getResponseCode() == HttpURLConnection.HTTP_BAD_METHOD) {
+				con = url.openConnection();
+				customizeConnection(con);
+				length = con.getContentLengthLong();
+			}
+			return length;
 		}
 	}
 
@@ -288,9 +337,17 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 			httpCon.setRequestMethod("HEAD");
 		}
 		long lastModified = con.getLastModified();
-		if (fileCheck && lastModified == 0 && con.getContentLengthLong() <= 0) {
-			throw new FileNotFoundException(getDescription() +
-					" cannot be resolved in the file system for checking its last-modified timestamp");
+		if (lastModified == 0) {
+			if (con instanceof HttpURLConnection httpCon &&
+					httpCon.getResponseCode() == HttpURLConnection.HTTP_BAD_METHOD) {
+				con = url.openConnection();
+				customizeConnection(con);
+				lastModified = con.getLastModified();
+			}
+			if (fileCheck && con.getContentLengthLong() <= 0) {
+				throw new FileNotFoundException(getDescription() +
+						" cannot be resolved in the file system for checking its last-modified timestamp");
+			}
 		}
 		return lastModified;
 	}
@@ -304,10 +361,20 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
 	 * @throws IOException if thrown from URLConnection methods
 	 */
 	protected void customizeConnection(URLConnection con) throws IOException {
-		ResourceUtils.useCachesIfNecessary(con);
-		if (con instanceof HttpURLConnection httpConn) {
-			customizeConnection(httpConn);
+		useCachesIfNecessary(con);
+		if (con instanceof HttpURLConnection httpCon) {
+			customizeConnection(httpCon);
 		}
+	}
+
+	/**
+	 * Apply {@link URLConnection#setUseCaches useCaches} if necessary.
+	 * @param con the URLConnection to customize
+	 * @since 6.2.10
+	 * @see ResourceUtils#useCachesIfNecessary(URLConnection)
+	 */
+	void useCachesIfNecessary(URLConnection con) {
+		ResourceUtils.useCachesIfNecessary(con);
 	}
 
 	/**

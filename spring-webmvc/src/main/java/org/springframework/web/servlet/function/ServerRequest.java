@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -42,13 +43,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRange;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindException;
+import org.springframework.web.accept.ApiVersionStrategy;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.util.ServletRequestPathUtils;
 import org.springframework.web.util.UriBuilder;
@@ -71,14 +71,6 @@ public interface ServerRequest {
 	HttpMethod method();
 
 	/**
-	 * Get the name of the HTTP method.
-	 * @return the HTTP method as a String
-	 * @deprecated in favor of {@link #method()}
-	 */
-	@Deprecated
-	String methodName();
-
-	/**
 	 * Get the request URI.
 	 */
 	URI uri();
@@ -95,15 +87,6 @@ public interface ServerRequest {
 	 */
 	default String path() {
 		return requestPath().pathWithinApplication().value();
-	}
-
-	/**
-	 * Get the request path as a {@code PathContainer}.
-	 * @deprecated as of 5.3, in favor on {@link #requestPath()}
-	 */
-	@Deprecated
-	default PathContainer pathContainer() {
-		return requestPath();
 	}
 
 	/**
@@ -133,6 +116,13 @@ public interface ServerRequest {
 	 * Get the readers used to convert the body of this request.
 	 */
 	List<HttpMessageConverter<?>> messageConverters();
+
+	/**
+	 * Return the configured {@link ApiVersionStrategy}, or {@code null}.
+	 * @since 7.0
+	 */
+	@Nullable
+	ApiVersionStrategy apiVersionStrategy();
 
 	/**
 	 * Extract the body as an object of the given type.
@@ -392,6 +382,22 @@ public interface ServerRequest {
 	}
 
 	/**
+	 * Create a new {@code ServerRequest} based on the given {@code HttpServletRequest} and
+	 * message converters.
+	 * @param servletRequest the request
+	 * @param messageReaders the message readers
+	 * @param versionStrategy a strategy to use to parse version
+	 * @return the created {@code ServerRequest}
+	 * @since 7.0
+	 */
+	static ServerRequest create(
+			HttpServletRequest servletRequest, List<HttpMessageConverter<?>> messageReaders,
+			@Nullable ApiVersionStrategy versionStrategy) {
+
+		return new DefaultServerRequest(servletRequest, messageReaders, versionStrategy);
+	}
+
+	/**
 	 * Create a builder with the status, headers, and cookies of the given request.
 	 * @param other the response to copy the status, headers, and cookies from
 	 * @return the created builder
@@ -445,8 +451,7 @@ public interface ServerRequest {
 		 * {@linkplain InetSocketAddress#getPort() port} in the returned address will
 		 * be {@code 0}.
 		 */
-		@Nullable
-		InetSocketAddress host();
+		@Nullable InetSocketAddress host();
 
 		/**
 		 * Get the value of the {@code Range} header.
@@ -467,8 +472,7 @@ public interface ServerRequest {
 		 * @param headerName the header name
 		 * @since 5.2.5
 		 */
-		@Nullable
-		default String firstHeader(String headerName) {
+		default @Nullable String firstHeader(String headerName) {
 			List<String> list = header(headerName);
 			return list.isEmpty() ? null : list.get(0);
 		}
@@ -512,7 +516,7 @@ public interface ServerRequest {
 		 * Manipulate this request's headers with the given consumer.
 		 * <p>The headers provided to the consumer are "live", so that the consumer can be used to
 		 * {@linkplain HttpHeaders#set(String, String) overwrite} existing header values,
-		 * {@linkplain HttpHeaders#remove(Object) remove} values, or use any of the other
+		 * {@linkplain HttpHeaders#remove(String) remove} values, or use any of the other
 		 * {@link HttpHeaders} methods.
 		 * @param headersConsumer a function that consumes the {@code HttpHeaders}
 		 * @return this builder

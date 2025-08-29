@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.cache.interceptor;
 
 import java.lang.reflect.Method;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Representation of the context of the invocation of a cache operation.
@@ -48,6 +50,6 @@ public interface CacheOperationInvocationContext<O extends BasicOperation> {
 	/**
 	 * Return the argument list used to invoke the method.
 	 */
-	Object[] getArgs();
+	@Nullable Object[] getArgs();
 
 }

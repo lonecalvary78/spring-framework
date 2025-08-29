@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.jdbc.datasource.init;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -35,14 +36,11 @@ import org.springframework.util.Assert;
  */
 public class DataSourceInitializer implements InitializingBean, DisposableBean {
 
-	@Nullable
-	private DataSource dataSource;
+	private @Nullable DataSource dataSource;
 
-	@Nullable
-	private DatabasePopulator databasePopulator;
+	private @Nullable DatabasePopulator databasePopulator;
 
-	@Nullable
-	private DatabasePopulator databaseCleaner;
+	private @Nullable DatabasePopulator databaseCleaner;
 
 	private boolean enabled = true;
 

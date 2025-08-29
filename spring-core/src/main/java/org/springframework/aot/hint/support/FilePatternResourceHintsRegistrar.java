@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.hint.ResourceHints;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ResourceUtils;
 
 /**
@@ -35,9 +37,10 @@ import org.springframework.util.ResourceUtils;
  *
  * @author Stephane Nicoll
  * @author Sam Brannen
+ * @author Juergen Hoeller
  * @since 6.0
  */
-public class FilePatternResourceHintsRegistrar {
+public final class FilePatternResourceHintsRegistrar {
 
 	private final List<String> classpathLocations;
 
@@ -46,46 +49,38 @@ public class FilePatternResourceHintsRegistrar {
 	private final List<String> fileExtensions;
 
 
-	/**
-	 * Create a new instance for the specified file prefixes, classpath locations,
-	 * and file extensions.
-	 * @param filePrefixes the file prefixes
-	 * @param classpathLocations the classpath locations
-	 * @param fileExtensions the file extensions (starting with a dot)
-	 * @deprecated as of 6.0.12 in favor of {@linkplain #forClassPathLocations(String...) the builder}
-	 */
-	@Deprecated(since = "6.0.12", forRemoval = true)
-	public FilePatternResourceHintsRegistrar(List<String> filePrefixes, List<String> classpathLocations,
+	private FilePatternResourceHintsRegistrar(List<String> filePrefixes, List<String> classpathLocations,
 			List<String> fileExtensions) {
 
-		this.classpathLocations = validateClasspathLocations(classpathLocations);
+		this.classpathLocations = validateClassPathLocations(classpathLocations);
 		this.filePrefixes = validateFilePrefixes(filePrefixes);
 		this.fileExtensions = validateFileExtensions(fileExtensions);
 	}
 
 
-	@Deprecated(since = "6.0.12", forRemoval = true)
-	public void registerHints(ResourceHints hints, @Nullable ClassLoader classLoader) {
-		ClassLoader classLoaderToUse = (classLoader != null ? classLoader : getClass().getClassLoader());
-		List<String> includes = new ArrayList<>();
-		for (String location : this.classpathLocations) {
-			if (classLoaderToUse.getResource(location) != null) {
-				for (String filePrefix : this.filePrefixes) {
-					for (String fileExtension : this.fileExtensions) {
-						includes.add(location + filePrefix + "*" + fileExtension);
+	private void registerHints(ResourceHints hints, @Nullable ClassLoader classLoader) {
+		ClassLoader classLoaderToUse = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
+		if (classLoaderToUse != null) {
+			List<String> includes = new ArrayList<>();
+			for (String location : this.classpathLocations) {
+				if (classLoaderToUse.getResource(location) != null) {
+					for (String filePrefix : this.filePrefixes) {
+						for (String fileExtension : this.fileExtensions) {
+							includes.add(location + filePrefix + "*" + fileExtension);
+						}
 					}
 				}
 			}
-		}
-		if (!includes.isEmpty()) {
-			hints.registerPattern(hint -> hint.includes(includes.toArray(String[]::new)));
+			if (!includes.isEmpty()) {
+				hints.registerPattern(hint -> hint.includes(includes.toArray(String[]::new)));
+			}
 		}
 	}
 
 
 	/**
 	 * Configure the registrar with the specified
-	 * {@linkplain Builder#withClasspathLocations(String...) classpath locations}.
+	 * {@linkplain Builder#withClassPathLocations(String...) classpath locations}.
 	 * @param classpathLocations the classpath locations
 	 * @return a {@link Builder} to further configure the registrar
 	 * @since 6.0.12
@@ -97,17 +92,17 @@ public class FilePatternResourceHintsRegistrar {
 
 	/**
 	 * Configure the registrar with the specified
-	 * {@linkplain Builder#withClasspathLocations(List) classpath locations}.
+	 * {@linkplain Builder#withClassPathLocations(List) classpath locations}.
 	 * @param classpathLocations the classpath locations
 	 * @return a {@link Builder} to further configure the registrar
 	 * @since 6.0.12
 	 * @see #forClassPathLocations(String...)
 	 */
 	public static Builder forClassPathLocations(List<String> classpathLocations) {
-		return new Builder().withClasspathLocations(classpathLocations);
+		return new Builder().withClassPathLocations(classpathLocations);
 	}
 
-	private static List<String> validateClasspathLocations(List<String> classpathLocations) {
+	private static List<String> validateClassPathLocations(List<String> classpathLocations) {
 		Assert.notEmpty(classpathLocations, "At least one classpath location must be specified");
 		List<String> parsedLocations = new ArrayList<>();
 		for (String location : classpathLocations) {
@@ -162,15 +157,20 @@ public class FilePatternResourceHintsRegistrar {
 
 		/**
 		 * Consider the specified classpath locations.
-		 * <p>A location can either be a special {@value ResourceUtils#CLASSPATH_URL_PREFIX}
-		 * pseudo location or a standard location, such as {@code com/example/resources}.
-		 * An empty String represents the root of the classpath.
-		 * @param classpathLocations the classpath locations to consider
-		 * @return this builder
-		 * @see #withClasspathLocations(List)
+		 * @deprecated in favor of {@link #withClassPathLocations(String...)}
 		 */
+		@Deprecated(since = "7.0", forRemoval = true)
 		public Builder withClasspathLocations(String... classpathLocations) {
-			return withClasspathLocations(Arrays.asList(classpathLocations));
+			return withClassPathLocations(Arrays.asList(classpathLocations));
+		}
+
+		/**
+		 * Consider the specified classpath locations.
+		 * @deprecated in favor of {@link #withClassPathLocations(List)}
+		 */
+		@Deprecated(since = "7.0", forRemoval = true)
+		public Builder withClasspathLocations(List<String> classpathLocations) {
+			return withClassPathLocations(classpathLocations);
 		}
 
 		/**
@@ -180,10 +180,25 @@ public class FilePatternResourceHintsRegistrar {
 		 * An empty String represents the root of the classpath.
 		 * @param classpathLocations the classpath locations to consider
 		 * @return this builder
-		 * @see #withClasspathLocations(String...)
+		 * @since 7.0
+		 * @see #withClassPathLocations(List)
 		 */
-		public Builder withClasspathLocations(List<String> classpathLocations) {
-			this.classpathLocations.addAll(validateClasspathLocations(classpathLocations));
+		public Builder withClassPathLocations(String... classpathLocations) {
+			return withClassPathLocations(Arrays.asList(classpathLocations));
+		}
+
+		/**
+		 * Consider the specified classpath locations.
+		 * <p>A location can either be a special {@value ResourceUtils#CLASSPATH_URL_PREFIX}
+		 * pseudo location or a standard location, such as {@code com/example/resources}.
+		 * An empty String represents the root of the classpath.
+		 * @param classpathLocations the classpath locations to consider
+		 * @return this builder
+		 * @since 7.0
+		 * @see #withClassPathLocations(String...)
+		 */
+		public Builder withClassPathLocations(List<String> classpathLocations) {
+			this.classpathLocations.addAll(validateClassPathLocations(classpathLocations));
 			return this;
 		}
 
@@ -235,7 +250,6 @@ public class FilePatternResourceHintsRegistrar {
 			return this;
 		}
 
-
 		private FilePatternResourceHintsRegistrar build() {
 			return new FilePatternResourceHintsRegistrar(this.filePrefixes,
 					this.classpathLocations, this.fileExtensions);
@@ -246,8 +260,7 @@ public class FilePatternResourceHintsRegistrar {
 		 * classpath location that resolves against the {@code ClassLoader}, files
 		 * with the configured file prefixes and extensions are registered.
 		 * @param hints the hints contributed so far for the deployment unit
-		 * @param classLoader the classloader, or {@code null} if even the system
-		 * ClassLoader isn't accessible
+		 * @param classLoader the ClassLoader to use, or {@code null} for the default
 		 */
 		public void registerHints(ResourceHints hints, @Nullable ClassLoader classLoader) {
 			build().registerHints(hints, classLoader);

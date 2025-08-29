@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aot.generate.GenerationContext;
@@ -44,7 +45,6 @@ import org.springframework.beans.testfixture.beans.factory.aot.SimpleBeanFactory
 import org.springframework.core.ResolvableType;
 import org.springframework.javapoet.ClassName;
 import org.springframework.javapoet.CodeBlock;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,8 +86,8 @@ class DefaultBeanRegistrationCodeFragmentsTests {
 		BeanRegistrationCodeFragments codeFragments = createInstance(registeredBean);
 		assertThatExceptionOfType(AotBeanProcessingException.class)
 				.isThrownBy(() -> codeFragments.getTarget(registeredBean))
-				.withMessageContaining("Error processing bean with name 'testBean' defined in my test resource: "
-						+ "instance supplier is not supported");
+				.withMessageContaining("Error processing bean with name 'testBean' defined in my test resource: " +
+						"instance supplier is not supported");
 	}
 
 	@Test

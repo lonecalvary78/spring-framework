@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.springframework.web.service.invoker;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 
 /**
  * Contract to abstract an HTTP client from {@linkplain HttpServiceProxyFactory}
@@ -58,8 +59,7 @@ public interface HttpExchangeAdapter {
 	 * @param <T> the type the response is decoded to
 	 * @return the decoded response body.
 	 */
-	@Nullable
-	<T> T exchangeForBody(HttpRequestValues requestValues, ParameterizedTypeReference<T> bodyType);
+	<T> @Nullable T exchangeForBody(HttpRequestValues requestValues, ParameterizedTypeReference<T> bodyType);
 
 	/**
 	 * Variant of {@link #exchange(HttpRequestValues)} with additional

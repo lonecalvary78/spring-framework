@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,20 @@ import java.nio.charset.StandardCharsets;
 import kotlinx.serialization.KSerializer;
 import kotlinx.serialization.SerializationException;
 import kotlinx.serialization.StringFormat;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 
 /**
  * Abstract base class for {@link HttpMessageConverter} implementations that
  * defer to Kotlin {@linkplain StringFormat string serializers}.
+ *
+ * <p>As of Spring Framework 7.0,
+ * <a href="https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/polymorphism.md#open-polymorphism">open polymorphism</a>
+ * is supported.
  *
  * @author Andreas Ahlenstorf
  * @author Sebastien Deleuze

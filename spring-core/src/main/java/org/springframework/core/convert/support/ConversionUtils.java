@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package org.springframework.core.convert.support;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -33,8 +34,7 @@ import org.springframework.util.ClassUtils;
  */
 abstract class ConversionUtils {
 
-	@Nullable
-	public static Object invokeConverter(GenericConverter converter, @Nullable Object source,
+	public static @Nullable Object invokeConverter(GenericConverter converter, @Nullable Object source,
 			TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 		try {

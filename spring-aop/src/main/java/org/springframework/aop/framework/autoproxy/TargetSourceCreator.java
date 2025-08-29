@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.aop.framework.autoproxy;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.TargetSource;
-import org.springframework.lang.Nullable;
 
 /**
  * Implementations can create special target sources, such as pooling target
@@ -40,7 +41,6 @@ public interface TargetSourceCreator {
 	 * @return a special TargetSource or {@code null} if this TargetSourceCreator isn't
 	 * interested in the particular bean
 	 */
-	@Nullable
-	TargetSource getTargetSource(Class<?> beanClass, String beanName);
+	@Nullable TargetSource getTargetSource(Class<?> beanClass, String beanName);
 
 }

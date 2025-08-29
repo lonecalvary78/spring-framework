@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.beans.factory.aot.AotException;
 import org.springframework.beans.factory.aot.AotProcessingException;
@@ -28,12 +30,10 @@ import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContrib
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationCode;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.lang.Nullable;
 
 /**
- * A collection of {@link BeanFactoryInitializationAotContribution AOT
- * contributions} obtained from {@link BeanFactoryInitializationAotProcessor AOT
- * processors}.
+ * A collection of {@link BeanFactoryInitializationAotContribution AOT contributions}
+ * obtained from {@link BeanFactoryInitializationAotProcessor AOT processors}.
  *
  * @author Phillip Webb
  * @since 6.0
@@ -47,14 +47,12 @@ class BeanFactoryInitializationAotContributions {
 		this(beanFactory, AotServices.factoriesAndBeans(beanFactory));
 	}
 
-	BeanFactoryInitializationAotContributions(DefaultListableBeanFactory beanFactory,
-			AotServices.Loader loader) {
+	BeanFactoryInitializationAotContributions(DefaultListableBeanFactory beanFactory, AotServices.Loader loader) {
 		this.contributions = getContributions(beanFactory, getProcessors(loader));
 	}
 
 
-	private static List<BeanFactoryInitializationAotProcessor> getProcessors(
-			AotServices.Loader loader) {
+	private static List<BeanFactoryInitializationAotProcessor> getProcessors(AotServices.Loader loader) {
 		List<BeanFactoryInitializationAotProcessor> processors = new ArrayList<>(
 				loader.load(BeanFactoryInitializationAotProcessor.class).asList());
 		processors.add(new RuntimeHintsBeanFactoryInitializationAotProcessor());
@@ -62,8 +60,8 @@ class BeanFactoryInitializationAotContributions {
 	}
 
 	private List<BeanFactoryInitializationAotContribution> getContributions(
-			DefaultListableBeanFactory beanFactory,
-			List<BeanFactoryInitializationAotProcessor> processors) {
+			DefaultListableBeanFactory beanFactory, List<BeanFactoryInitializationAotProcessor> processors) {
+
 		List<BeanFactoryInitializationAotContribution> contributions = new ArrayList<>();
 		for (BeanFactoryInitializationAotProcessor processor : processors) {
 			BeanFactoryInitializationAotContribution contribution = processAheadOfTime(processor, beanFactory);
@@ -74,9 +72,8 @@ class BeanFactoryInitializationAotContributions {
 		return Collections.unmodifiableList(contributions);
 	}
 
-	@Nullable
-	private BeanFactoryInitializationAotContribution processAheadOfTime(BeanFactoryInitializationAotProcessor processor,
-			DefaultListableBeanFactory beanFactory) {
+	private @Nullable BeanFactoryInitializationAotContribution processAheadOfTime(
+			BeanFactoryInitializationAotProcessor processor, DefaultListableBeanFactory beanFactory) {
 
 		try {
 			return processor.processAheadOfTime(beanFactory);
@@ -92,6 +89,7 @@ class BeanFactoryInitializationAotContributions {
 
 	void applyTo(GenerationContext generationContext,
 			BeanFactoryInitializationCode beanFactoryInitializationCode) {
+
 		for (BeanFactoryInitializationAotContribution contribution : this.contributions) {
 			contribution.applyTo(generationContext, beanFactoryInitializationCode);
 		}

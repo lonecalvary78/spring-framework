@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.converter.json.MappingJacksonValue;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.web.servlet.view.AbstractJacksonView;
 import org.springframework.web.servlet.view.AbstractView;
 
 /**
- * Abstract base class for Jackson based and content type independent
+ * Abstract base class for Jackson 2.x based and content type independent
  * {@link AbstractView} implementations.
  *
  * @author Jeremy Grelle
@@ -46,15 +47,17 @@ import org.springframework.web.servlet.view.AbstractView;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  * @since 4.1
+ * @deprecated since 7.0 in favor of {@link AbstractJacksonView}
  */
+@Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public abstract class AbstractJackson2View extends AbstractView {
 
 	private ObjectMapper objectMapper;
 
 	private JsonEncoding encoding = JsonEncoding.UTF8;
 
-	@Nullable
-	private Boolean prettyPrint;
+	private @Nullable Boolean prettyPrint;
 
 	private boolean disableCaching = true;
 

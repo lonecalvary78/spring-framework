@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import java.util.Properties;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionManager;
 
@@ -83,10 +83,10 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 	 * @param tas the attribute source to be used to find transaction attributes
 	 * @see #setTransactionManager
 	 * @see #setTransactionAttributeSource
-	 * @deprecated as of 5.2.5, in favor of
+	 * @deprecated in favor of
 	 * {@link #TransactionInterceptor(TransactionManager, TransactionAttributeSource)}
 	 */
-	@Deprecated
+	@Deprecated(since = "5.2.5")
 	public TransactionInterceptor(PlatformTransactionManager ptm, TransactionAttributeSource tas) {
 		setTransactionManager(ptm);
 		setTransactionAttributeSource(tas);
@@ -98,9 +98,9 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 	 * @param attributes the transaction attributes in properties format
 	 * @see #setTransactionManager
 	 * @see #setTransactionAttributes(java.util.Properties)
-	 * @deprecated as of 5.2.5, in favor of {@link #setTransactionAttributes(Properties)}
+	 * @deprecated in favor of {@link #setTransactionAttributes(Properties)}
 	 */
-	@Deprecated
+	@Deprecated(since = "5.2.5")
 	public TransactionInterceptor(PlatformTransactionManager ptm, Properties attributes) {
 		setTransactionManager(ptm);
 		setTransactionAttributes(attributes);
@@ -108,8 +108,7 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 
 
 	@Override
-	@Nullable
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 		// Work out the target class: may be {@code null}.
 		// The TransactionAttributeSource should be passed the target class
 		// as well as the method, which may be from an interface.

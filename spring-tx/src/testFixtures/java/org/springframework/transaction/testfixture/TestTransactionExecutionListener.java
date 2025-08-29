@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.transaction.testfixture;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.TransactionExecution;
 import org.springframework.transaction.TransactionExecutionListener;
 
@@ -30,22 +31,19 @@ public class TestTransactionExecutionListener implements TransactionExecutionLis
 
 	public boolean afterBeginCalled;
 
-	@Nullable
-	public Throwable beginFailure;
+	public @Nullable Throwable beginFailure;
 
 	public boolean beforeCommitCalled;
 
 	public boolean afterCommitCalled;
 
-	@Nullable
-	public Throwable commitFailure;
+	public @Nullable Throwable commitFailure;
 
 	public boolean beforeRollbackCalled;
 
 	public boolean afterRollbackCalled;
 
-	@Nullable
-	public Throwable rollbackFailure;
+	public @Nullable Throwable rollbackFailure;
 
 
 	@Override

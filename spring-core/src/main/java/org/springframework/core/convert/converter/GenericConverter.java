@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.core.convert.converter;
 
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -53,8 +54,7 @@ public interface GenericConverter {
 	 * <p>For {@link ConditionalConverter conditional converters} this method may return
 	 * {@code null} to indicate all source-to-target pairs should be considered.
 	 */
-	@Nullable
-	Set<ConvertiblePair> getConvertibleTypes();
+	@Nullable Set<ConvertiblePair> getConvertibleTypes();
 
 	/**
 	 * Convert the source object to the targetType described by the {@code TypeDescriptor}.
@@ -63,8 +63,7 @@ public interface GenericConverter {
 	 * @param targetType the type descriptor of the field we are converting to
 	 * @return the converted object
 	 */
-	@Nullable
-	Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
+	@Nullable Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
 
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Locale;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * DB2 specific implementation for the {@link CallMetaDataProvider} interface.
@@ -66,8 +66,7 @@ public class Db2CallMetaDataProvider extends GenericCallMetaDataProvider {
 	}
 
 	@Override
-	@Nullable
-	public String metaDataSchemaNameToUse(@Nullable String schemaName) {
+	public @Nullable String metaDataSchemaNameToUse(@Nullable String schemaName) {
 		if (schemaName != null) {
 			return super.metaDataSchemaNameToUse(schemaName);
 		}

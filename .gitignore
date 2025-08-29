@@ -42,7 +42,8 @@ spring-*/src/main/java/META-INF/MANIFEST.MF
 *.iml
 *.ipr
 *.iws
-.idea
+.idea/*
+!.idea/icon.svg
 out
 test-output
 atlassian-ide-plugin.xml
@@ -53,3 +54,4 @@ atlassian-ide-plugin.xml
 cached-antora-playbook.yml
 
 node_modules
+/.kotlin/

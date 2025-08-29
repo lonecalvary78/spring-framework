@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import org.htmlunit.WebConnection;
 import org.htmlunit.WebRequest;
 import org.htmlunit.WebResponse;
 import org.htmlunit.util.Cookie;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
@@ -63,8 +63,7 @@ public final class MockMvcWebConnection implements WebConnection {
 
 	private final MockMvc mockMvc;
 
-	@Nullable
-	private final String contextPath;
+	private final @Nullable String contextPath;
 
 	private WebClient webClient;
 

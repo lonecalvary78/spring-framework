@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.core;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface to discover parameter names for methods and constructors.
@@ -45,8 +45,7 @@ public interface ParameterNameDiscoverer {
 	 * @return an array of parameter names if the names can be resolved,
 	 * or {@code null} if they cannot
 	 */
-	@Nullable
-	String[] getParameterNames(Method method);
+	@Nullable String @Nullable [] getParameterNames(Method method);
 
 	/**
 	 * Return parameter names for a constructor, or {@code null} if they cannot be determined.
@@ -57,7 +56,6 @@ public interface ParameterNameDiscoverer {
 	 * @return an array of parameter names if the names can be resolved,
 	 * or {@code null} if they cannot
 	 */
-	@Nullable
-	String[] getParameterNames(Constructor<?> ctor);
+	@Nullable String @Nullable [] getParameterNames(Constructor<?> ctor);
 
 }

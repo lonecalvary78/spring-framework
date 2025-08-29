@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.support.DelegatingErrorHandlingRunnable;
 import org.springframework.scheduling.support.TaskUtils;
 import org.springframework.util.Assert;
@@ -76,8 +77,7 @@ public class ScheduledExecutorFactoryBean extends ExecutorConfigurationSupport
 
 	private int poolSize = 1;
 
-	@Nullable
-	private ScheduledExecutorTask[] scheduledExecutorTasks;
+	private ScheduledExecutorTask @Nullable [] scheduledExecutorTasks;
 
 	private boolean removeOnCancelPolicy = false;
 
@@ -85,8 +85,7 @@ public class ScheduledExecutorFactoryBean extends ExecutorConfigurationSupport
 
 	private boolean exposeUnconfigurableExecutor = false;
 
-	@Nullable
-	private ScheduledExecutorService exposedExecutor;
+	private @Nullable ScheduledExecutorService exposedExecutor;
 
 
 	/**
@@ -241,8 +240,7 @@ public class ScheduledExecutorFactoryBean extends ExecutorConfigurationSupport
 
 
 	@Override
-	@Nullable
-	public ScheduledExecutorService getObject() {
+	public @Nullable ScheduledExecutorService getObject() {
 		return this.exposedExecutor;
 	}
 

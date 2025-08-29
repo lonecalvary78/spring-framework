@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -46,7 +47,6 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceEditor;
-import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -868,13 +868,11 @@ class BeanUtilsTests {
 			this.value = value;
 		}
 
-		@Nullable
-		public Integer getCounter() {
+		public @Nullable Integer getCounter() {
 			return counter;
 		}
 
-		@Nullable
-		public Boolean isFlag() {
+		public @Nullable Boolean isFlag() {
 			return flag;
 		}
 

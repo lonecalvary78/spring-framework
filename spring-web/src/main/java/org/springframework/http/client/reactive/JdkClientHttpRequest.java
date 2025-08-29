@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.concurrent.Flow;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
@@ -37,7 +38,6 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 
@@ -59,8 +59,9 @@ class JdkClientHttpRequest extends AbstractClientHttpRequest {
 	private final HttpRequest.Builder builder;
 
 
-	public JdkClientHttpRequest(HttpMethod httpMethod, URI uri, DataBufferFactory bufferFactory,
-								@Nullable Duration readTimeout) {
+	public JdkClientHttpRequest(
+			HttpMethod httpMethod, URI uri, DataBufferFactory bufferFactory, @Nullable Duration readTimeout) {
+
 		Assert.notNull(httpMethod, "HttpMethod is required");
 		Assert.notNull(uri, "URI is required");
 		Assert.notNull(bufferFactory, "DataBufferFactory is required");
@@ -96,32 +97,6 @@ class JdkClientHttpRequest extends AbstractClientHttpRequest {
 		return (T) this.builder.build();
 	}
 
-
-	@Override
-	protected void applyHeaders() {
-		for (Map.Entry<String, List<String>> entry : getHeaders().entrySet()) {
-			if (entry.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH)) {
-				// content-length is specified when writing
-				continue;
-			}
-			for (String value : entry.getValue()) {
-				this.builder.header(entry.getKey(), value);
-			}
-		}
-		if (!getHeaders().containsKey(HttpHeaders.ACCEPT)) {
-			this.builder.header(HttpHeaders.ACCEPT, "*/*");
-		}
-	}
-
-	@Override
-	protected void applyCookies() {
-		MultiValueMap<String, HttpCookie> cookies = getCookies();
-		if (cookies.isEmpty()) {
-			return;
-		}
-		this.builder.header(HttpHeaders.COOKIE, cookies.values().stream()
-				.flatMap(List::stream).map(HttpCookie::toString).collect(Collectors.joining(";")));
-	}
 
 	@Override
 	public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
@@ -160,6 +135,32 @@ class JdkClientHttpRequest extends AbstractClientHttpRequest {
 			this.builder.method(this.method.name(), HttpRequest.BodyPublishers.noBody());
 			return Mono.empty();
 		});
+	}
+
+	@Override
+	protected void applyHeaders() {
+		for (Map.Entry<String, List<String>> entry : getHeaders().headerSet()) {
+			if (entry.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH)) {
+				// content-length is specified when writing
+				continue;
+			}
+			for (String value : entry.getValue()) {
+				this.builder.header(entry.getKey(), value);
+			}
+		}
+		if (!getHeaders().containsHeader(HttpHeaders.ACCEPT)) {
+			this.builder.header(HttpHeaders.ACCEPT, "*/*");
+		}
+	}
+
+	@Override
+	protected void applyCookies() {
+		MultiValueMap<String, HttpCookie> cookies = getCookies();
+		if (cookies.isEmpty()) {
+			return;
+		}
+		this.builder.header(HttpHeaders.COOKIE, cookies.values().stream()
+				.flatMap(List::stream).map(HttpCookie::toString).collect(Collectors.joining(";")));
 	}
 
 }

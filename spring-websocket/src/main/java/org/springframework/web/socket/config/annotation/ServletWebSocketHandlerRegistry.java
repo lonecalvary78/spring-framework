@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpRequestHandler;
@@ -30,7 +29,6 @@ import org.springframework.web.servlet.handler.AbstractHandlerMapping;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.support.WebSocketHandlerMapping;
-import org.springframework.web.util.UrlPathHelper;
 
 /**
  * {@link WebSocketHandlerRegistry} with Spring MVC handler mappings for the
@@ -44,9 +42,6 @@ public class ServletWebSocketHandlerRegistry implements WebSocketHandlerRegistry
 	private final List<ServletWebSocketHandlerRegistration> registrations = new ArrayList<>(4);
 
 	private int order = 1;
-
-	@Nullable
-	private UrlPathHelper urlPathHelper;
 
 
 	public ServletWebSocketHandlerRegistry() {
@@ -74,19 +69,6 @@ public class ServletWebSocketHandlerRegistry implements WebSocketHandlerRegistry
 		return this.order;
 	}
 
-	/**
-	 * Set the UrlPathHelper to configure on the {@code SimpleUrlHandlerMapping}
-	 * used to map handshake requests.
-	 */
-	public void setUrlPathHelper(@Nullable UrlPathHelper urlPathHelper) {
-		this.urlPathHelper = urlPathHelper;
-	}
-
-	@Nullable
-	public UrlPathHelper getUrlPathHelper() {
-		return this.urlPathHelper;
-	}
-
 
 	/**
 	 * Whether there are any endpoint SockJS registrations without a TaskScheduler.
@@ -112,6 +94,7 @@ public class ServletWebSocketHandlerRegistry implements WebSocketHandlerRegistry
 				.forEach(registration -> registration.setTaskScheduler(scheduler));
 	}
 
+	@SuppressWarnings("removal")
 	public AbstractHandlerMapping getHandlerMapping() {
 		Map<String, Object> urlMap = new LinkedHashMap<>();
 		for (ServletWebSocketHandlerRegistration registration : this.registrations) {
@@ -125,9 +108,6 @@ public class ServletWebSocketHandlerRegistry implements WebSocketHandlerRegistry
 		WebSocketHandlerMapping hm = new WebSocketHandlerMapping();
 		hm.setUrlMap(urlMap);
 		hm.setOrder(this.order);
-		if (this.urlPathHelper != null) {
-			hm.setUrlPathHelper(this.urlPathHelper);
-		}
 		return hm;
 	}
 

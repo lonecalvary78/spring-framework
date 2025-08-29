@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,11 @@ class TestItemStoredProcedure(dataSource: DataSource) : StoredProcedure(dataSour
 				cs: CallableStatement, colIndx: Int, _: Int, _: String? ->
 				val struct = cs.getObject(colIndx) as Struct
 				val attr = struct.attributes
-				val item = TestItem()
-				item.id = (attr[0] as Number).toLong()
-				item.description = attr[1] as String
-				item.expirationDate = attr[2] as Date
-				item
+				TestItem(
+					(attr[0] as Number).toLong(),
+					attr[1] as String,
+					attr[2] as Date
+				)
 			})
 		// ...
 	}

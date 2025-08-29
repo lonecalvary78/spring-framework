@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.server.ServerEndpointConfig.Configurator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -98,8 +98,7 @@ public class SpringConfigurator extends Configurator {
 		return wac.getAutowireCapableBeanFactory().createBean(endpointClass);
 	}
 
-	@Nullable
-	private String getBeanNameByType(WebApplicationContext wac, Class<?> endpointClass) {
+	private @Nullable String getBeanNameByType(WebApplicationContext wac, Class<?> endpointClass) {
 		String wacId = wac.getId();
 
 		Map<Class<?>, String> beanNamesByType = cache.computeIfAbsent(wacId, k -> new ConcurrentHashMap<>());

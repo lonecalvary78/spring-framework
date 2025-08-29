@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ package org.springframework.scheduling.concurrent;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 
 /**
  * A Spring {@link FactoryBean} that builds and exposes a preconfigured {@link ForkJoinPool}.
@@ -38,15 +39,13 @@ public class ForkJoinPoolFactoryBean implements FactoryBean<ForkJoinPool>, Initi
 
 	private ForkJoinPool.ForkJoinWorkerThreadFactory threadFactory = ForkJoinPool.defaultForkJoinWorkerThreadFactory;
 
-	@Nullable
-	private Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
+	private Thread.@Nullable UncaughtExceptionHandler uncaughtExceptionHandler;
 
 	private boolean asyncMode = false;
 
 	private int awaitTerminationSeconds = 0;
 
-	@Nullable
-	private ForkJoinPool forkJoinPool;
+	private @Nullable ForkJoinPool forkJoinPool;
 
 
 	/**
@@ -128,8 +127,7 @@ public class ForkJoinPoolFactoryBean implements FactoryBean<ForkJoinPool>, Initi
 
 
 	@Override
-	@Nullable
-	public ForkJoinPool getObject() {
+	public @Nullable ForkJoinPool getObject() {
 		return this.forkJoinPool;
 	}
 

@@ -4,12 +4,19 @@
 This section describes how to use Spring's JMS components.
 
 
-[[jms-jmstemplate]]
-== Using `JmsTemplate`
+[[jms-jmstemplate-jmsclient]]
+== `JmsTemplate` and `JmsClient`
 
 The `JmsTemplate` class is the central class in the JMS core package. It simplifies the
 use of JMS, since it handles the creation and release of resources when sending or
 synchronously receiving messages.
+
+`JmsClient` is a new API variant in Spring Framework 7.0, following the design of
+`JdbcClient` and co. `JmsClient` builds on `JmsTemplate` for straightforward send
+and receive operations with customization options per operation.
+
+[[jms-jmstemplate]]
+=== Using `JmsTemplate`
 
 Code that uses the `JmsTemplate` needs only to implement callback interfaces that give them
 a clearly defined high-level contract. The `MessageCreator` callback interface creates a
@@ -43,10 +50,23 @@ and then safely inject this shared reference into multiple collaborators. To be
 clear, the `JmsTemplate` is stateful, in that it maintains a reference to a
 `ConnectionFactory`, but this state is not conversational state.
 
+[[jms-jmsclient]]
+=== Using `JmsClient`
+
 As of Spring Framework 4.1, `JmsMessagingTemplate` is built on top of `JmsTemplate`
-and provides an integration with the messaging abstraction -- that is,
-`org.springframework.messaging.Message`. This lets you create the message to
-send in a generic manner.
+and provides an integration with the Spring's common messaging abstraction -- that is,
+handling `org.springframework.messaging.Message` for sending and receiving,
+throwing `org.springframework.messaging.MessagingException` and with payload conversion
+going through `org.springframework.messaging.converter.MessageConverter` (with many
+common converter implementations available).
+
+As of Spring Framework 7.0, a fluent API called `JmsClient` is available. This provides
+customizable operations around `org.springframework.messaging.Message` and throwing
+`org.springframework.messaging.MessagingException`, similar to `JmsMessagingTemplate`,
+as well as integration with `org.springframework.messaging.converter.MessageConverter`.
+A `JmsClient can either be created for a given `ConnectionFactory` or for a given
+`JmsTemplate`, in the latter case reusing its settings by default. See
+{spring-framework-api}/jms/core/JmsClient.html[`JmsClient`] for usage examples.
 
 
 [[jms-connections]]
@@ -167,13 +187,15 @@ operations that do not refer to a specific destination.
 
 One of the most common uses of JMS messages in the EJB world is to drive message-driven
 beans (MDBs). Spring offers a solution to create message-driven POJOs (MDPs) in a way
-that does not tie a user to an EJB container. (See xref:integration/jms/receiving.adoc#jms-receiving-async[Asynchronous reception: Message-Driven POJOs] for detailed
-coverage of Spring's MDP support.) Since Spring Framework 4.1, endpoint methods can be
-annotated with `@JmsListener` -- see xref:integration/jms/annotated.adoc[Annotation-driven Listener Endpoints] for more details.
+that does not tie a user to an EJB container. (See
+xref:integration/jms/receiving.adoc#jms-receiving-async[Asynchronous Receipt: Message-Driven POJOs]
+for detailed coverage of Spring's MDP support.) Endpoint methods can be annotated with
+`@JmsListener` -- see xref:integration/jms/annotated.adoc[Annotation-driven Listener Endpoints]
+for more details.
 
 A message listener container is used to receive messages from a JMS message queue and
 drive the `MessageListener` that is injected into it. The listener container is
-responsible for all threading of message reception and dispatches into the listener for
+responsible for all threading of message receipt and dispatches into the listener for
 processing. A message listener container is the intermediary between an MDP and a
 messaging provider and takes care of registering to receive messages, participating in
 transactions, resource acquisition and release, exception conversion, and so on. This
@@ -227,7 +249,7 @@ the JMS provider, advanced functionality (such as participation in externally ma
 transactions), and compatibility with Jakarta EE environments.
 
 You can customize the cache level of the container. Note that, when no caching is enabled,
-a new connection and a new session is created for each message reception. Combining this
+a new connection and a new session is created for each message receipt. Combining this
 with a non-durable subscription with high loads may lead to message loss. Make sure to
 use a proper cache level in such a case.
 
@@ -246,7 +268,7 @@ in the form of a business entity existence check or a protocol table check.
 Any such arrangements are significantly more efficient than the alternative:
 wrapping your entire processing with an XA transaction (through configuring your
 `DefaultMessageListenerContainer` with an `JtaTransactionManager`) to cover the
-reception of the JMS message as well as the execution of the business logic in your
+receipt of the JMS message as well as the execution of the business logic in your
 message listener (including database operations, etc.).
 
 IMPORTANT: The default `AUTO_ACKNOWLEDGE` mode does not provide proper reliability guarantees.
@@ -291,6 +313,3 @@ in an unmanaged environment, you can specify these values through the use of the
 properties `sessionTransacted` and `sessionAcknowledgeMode`. When you use a
 `PlatformTransactionManager` with `JmsTemplate`, the template is always given a
 transactional JMS `Session`.
-
-
-

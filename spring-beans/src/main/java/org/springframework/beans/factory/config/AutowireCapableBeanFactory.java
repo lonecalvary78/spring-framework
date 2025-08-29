@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@ package org.springframework.beans.factory.config;
 
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.lang.Nullable;
 
 /**
  * Extension of the {@link org.springframework.beans.factory.BeanFactory}
@@ -96,10 +97,10 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * Constant that indicates determining an appropriate autowire strategy
 	 * through introspection of the bean class.
 	 * @see #autowire
-	 * @deprecated as of Spring 3.0: If you are using mixed autowiring strategies,
-	 * prefer annotation-based autowiring for clearer demarcation of autowiring needs.
+	 * @deprecated If you are using mixed autowiring strategies, prefer
+	 * annotation-based autowiring for clearer demarcation of autowiring needs.
 	 */
-	@Deprecated
+	@Deprecated(since = "3.0")
 	int AUTOWIRE_AUTODETECT = 4;
 
 	/**
@@ -187,7 +188,7 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #AUTOWIRE_BY_NAME
 	 * @see #AUTOWIRE_BY_TYPE
 	 * @see #AUTOWIRE_CONSTRUCTOR
-	 * @deprecated as of 6.1, in favor of {@link #createBean(Class)}
+	 * @deprecated in favor of {@link #createBean(Class)}
 	 */
 	@Deprecated(since = "6.1")
 	Object createBean(Class<?> beanClass, int autowireMode, boolean dependencyCheck) throws BeansException;
@@ -381,8 +382,7 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @since 2.5
 	 * @see #resolveDependency(DependencyDescriptor, String, Set, TypeConverter)
 	 */
-	@Nullable
-	Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName) throws BeansException;
+	@Nullable Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName) throws BeansException;
 
 	/**
 	 * Resolve the specified dependency against the beans defined in this factory.
@@ -398,8 +398,7 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @since 2.5
 	 * @see DependencyDescriptor
 	 */
-	@Nullable
-	Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName,
+	@Nullable Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName,
 			@Nullable Set<String> autowiredBeanNames, @Nullable TypeConverter typeConverter) throws BeansException;
 
 }

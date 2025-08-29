@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.ApplicationContext;
@@ -32,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -40,8 +40,8 @@ import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.KotlinSerializationJsonMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -288,9 +288,9 @@ class MessageBrokerConfigurationTests {
 
 		List<MessageConverter> converters = compositeConverter.getConverters();
 		assertThat(converters).hasExactlyElementsOfTypes(StringMessageConverter.class, ByteArrayMessageConverter.class,
-				KotlinSerializationJsonMessageConverter.class, MappingJackson2MessageConverter.class);
+				KotlinSerializationJsonMessageConverter.class, JacksonJsonMessageConverter.class);
 
-		ContentTypeResolver resolver = ((MappingJackson2MessageConverter) converters.get(3)).getContentTypeResolver();
+		ContentTypeResolver resolver = ((JacksonJsonMessageConverter) converters.get(3)).getContentTypeResolver();
 		assertThat(((DefaultContentTypeResolver) resolver).getDefaultMimeType()).isEqualTo(MimeTypeUtils.APPLICATION_JSON);
 	}
 
@@ -349,7 +349,7 @@ class MessageBrokerConfigurationTests {
 		assertThat(iterator.next()).isInstanceOf(StringMessageConverter.class);
 		assertThat(iterator.next()).isInstanceOf(ByteArrayMessageConverter.class);
 		assertThat(iterator.next()).isInstanceOf(KotlinSerializationJsonMessageConverter.class);
-		assertThat(iterator.next()).isInstanceOf(MappingJackson2MessageConverter.class);
+		assertThat(iterator.next()).isInstanceOf(JacksonJsonMessageConverter.class);
 	}
 
 	@Test

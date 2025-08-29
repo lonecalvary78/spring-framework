@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public enum ClientHttpObservationDocumentation implements ObservationDocumentati
 		/**
 		 * URI template used for HTTP request, or {@value KeyValue#NONE_VALUE} if
 		 * none was provided.
-		 * <p>Only the path part of the URI is considered.
+		 * <p>The protocol, host and port part of the URI are not considered.
 		 */
 		URI {
 			@Override

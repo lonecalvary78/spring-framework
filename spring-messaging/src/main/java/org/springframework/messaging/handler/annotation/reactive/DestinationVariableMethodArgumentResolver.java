@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.messaging.handler.annotation.reactive;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
@@ -59,9 +60,8 @@ public class DestinationVariableMethodArgumentResolver extends AbstractNamedValu
 	}
 
 	@Override
-	@Nullable
 	@SuppressWarnings("unchecked")
-	protected Object resolveArgumentInternal(MethodParameter parameter, Message<?> message, String name) {
+	protected @Nullable Object resolveArgumentInternal(MethodParameter parameter, Message<?> message, String name) {
 		MessageHeaders headers = message.getHeaders();
 		Map<String, String> vars = (Map<String, String>) headers.get(DESTINATION_TEMPLATE_VARIABLES_HEADER);
 		return vars != null ? vars.get(name) : null;

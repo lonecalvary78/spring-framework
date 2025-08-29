@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.Set;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
@@ -49,7 +50,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.SmartHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.Errors;
@@ -71,6 +71,9 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
  */
 public abstract class AbstractMessageConverterMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
+	protected enum ConverterType { BASE, GENERIC, SMART };
+
+
 	private static final Set<HttpMethod> SUPPORTED_METHODS = Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH);
 
 	private static final Object NO_VALUE = new Object();
@@ -79,8 +82,6 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	protected final List<HttpMessageConverter<?>> messageConverters;
-
-	protected enum ConverterType { BASE, GENERIC, SMART };
 
 	private final RequestResponseBodyAdviceChain advice;
 
@@ -123,8 +124,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @throws IOException if the reading from the request fails
 	 * @throws HttpMediaTypeNotSupportedException if no suitable message converter is found
 	 */
-	@Nullable
-	protected Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
+	protected @Nullable Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
 			Type paramType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
 		HttpInputMessage inputMessage = createInputMessage(webRequest);
@@ -143,9 +143,8 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @throws IOException if the reading from the request fails
 	 * @throws HttpMediaTypeNotSupportedException if no suitable message converter is found
 	 */
-	@Nullable
 	@SuppressWarnings({"rawtypes", "unchecked", "NullAway"})
-	protected <T> Object readWithMessageConverters(HttpInputMessage inputMessage, MethodParameter parameter,
+	protected <T> @Nullable Object readWithMessageConverters(HttpInputMessage inputMessage, MethodParameter parameter,
 			Type targetType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
 		Class<?> contextClass = parameter.getContainingClass();
@@ -177,7 +176,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			ResolvableType targetResolvableType = null;
 			message = new EmptyBodyCheckingHttpInputMessage(inputMessage);
 			for (HttpMessageConverter<?> converter : this.messageConverters) {
-				Class<HttpMessageConverter<?>> converterClass = (Class<HttpMessageConverter<?>>) converter.getClass();
+				Class<? extends HttpMessageConverter<?>> converterClass = (Class<? extends HttpMessageConverter<?>>) converter.getClass();
 				ConverterType converterTypeToUse = null;
 				if (converter instanceof GenericHttpMessageConverter<?> genericConverter) {
 					if (genericConverter.canRead(targetType, contextClass, contentType)) {
@@ -197,17 +196,17 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 				}
 				if (converterTypeToUse != null) {
 					if (message.hasBody()) {
-						HttpInputMessage msgToUse =
-								getAdvice().beforeBodyRead(message, parameter, targetType, converterClass);
+						HttpInputMessage msgToUse = this.advice.beforeBodyRead(message, parameter, targetType, converterClass);
 						body = switch (converterTypeToUse) {
 							case BASE -> ((HttpMessageConverter<T>) converter).read(targetClass, msgToUse);
 							case GENERIC -> ((GenericHttpMessageConverter<?>) converter).read(targetType, contextClass, msgToUse);
-							case SMART -> ((SmartHttpMessageConverter<?>) converter).read(targetResolvableType, msgToUse, null);
+							case SMART -> ((SmartHttpMessageConverter<?>) converter).read(targetResolvableType, msgToUse,
+									this.advice.determineReadHints(parameter, targetType, (Class<SmartHttpMessageConverter<?>>) converterClass));
 						};
-						body = getAdvice().afterBodyRead(body, msgToUse, parameter, targetType, converterClass);
+						body = this.advice.afterBodyRead(body, msgToUse, parameter, targetType, converterClass);
 					}
 					else {
-						body = getAdvice().handleEmptyBody(null, message, parameter, targetType, converterClass);
+						body = this.advice.handleEmptyBody(null, message, parameter, targetType, converterClass);
 					}
 					break;
 				}
@@ -215,7 +214,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			}
 
 			if (body == NO_VALUE && noContentType && !message.hasBody()) {
-				body = getAdvice().handleEmptyBody(
+				body = this.advice.handleEmptyBody(
 						null, message, parameter, targetType, NoContentTypeHttpMessageConverter.class);
 			}
 		}
@@ -330,8 +329,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @return the adapted argument, or the original resolved argument as-is
 	 * @since 4.3.5
 	 */
-	@Nullable
-	protected Object adaptArgumentIfNecessary(@Nullable Object arg, MethodParameter parameter) {
+	protected @Nullable Object adaptArgumentIfNecessary(@Nullable Object arg, MethodParameter parameter) {
 		if (parameter.getParameterType() == Optional.class) {
 			if (arg == null || (arg instanceof Collection<?> collection && collection.isEmpty()) ||
 					(arg instanceof Object[] array && array.length == 0)) {
@@ -358,8 +356,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 
 		private final HttpHeaders headers;
 
-		@Nullable
-		private final InputStream body;
+		private final @Nullable InputStream body;
 
 		public EmptyBodyCheckingHttpInputMessage(HttpInputMessage inputMessage) throws IOException {
 			this.headers = inputMessage.getHeaders();

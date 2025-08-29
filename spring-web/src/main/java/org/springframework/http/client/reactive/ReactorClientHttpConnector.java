@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.function.Function;
 import io.netty.util.AttributeKey;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 import reactor.netty.NettyOutbound;
 import reactor.netty.http.client.HttpClient;
@@ -34,7 +35,6 @@ import reactor.netty.resources.LoopResources;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ReactorResourceFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -64,14 +64,11 @@ public class ReactorClientHttpConnector implements ClientHttpConnector, SmartLif
 	private static final Function<HttpClient, HttpClient> defaultInitializer = client -> client.compress(true);
 
 
-	@Nullable
-	private final ReactorResourceFactory resourceFactory;
+	private final @Nullable ReactorResourceFactory resourceFactory;
 
-	@Nullable
-	private final Function<HttpClient, HttpClient> mapper;
+	private final @Nullable Function<HttpClient, HttpClient> mapper;
 
-	@Nullable
-	private volatile HttpClient httpClient;
+	private volatile @Nullable HttpClient httpClient;
 
 	private boolean lazyStart = false;
 

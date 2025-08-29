@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.test.context.bean.override.mockito;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,14 +28,16 @@ import org.springframework.test.context.bean.override.example.CustomQualifier;
 import org.springframework.test.context.bean.override.example.ExampleService;
 import org.springframework.test.context.bean.override.example.RealExampleService;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.mockito.MockitoAssertions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.BDDMockito.when;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.mockito.MockitoAssertions.assertIsMock;
 
 /**
  * Integration tests for {@link MockitoBean} that use by-type lookup.
@@ -64,8 +65,7 @@ public class MockitoBeanForByTypeLookupIntegrationTests {
 
 	@Test
 	void mockIsCreatedWhenNoCandidateIsFound() {
-		assertThat(this.serviceIsNotABean)
-				.satisfies(o -> assertThat(Mockito.mockingDetails(o).isMock()).as("isMock").isTrue());
+		assertIsMock(this.serviceIsNotABean);
 
 		when(this.serviceIsNotABean.hello()).thenReturn("Mocked hello");
 
@@ -77,7 +77,7 @@ public class MockitoBeanForByTypeLookupIntegrationTests {
 	@Test
 	void overrideIsFoundByType(ApplicationContext ctx) {
 		assertThat(this.anyNameForService)
-				.satisfies(o -> assertThat(Mockito.mockingDetails(o).isMock()).as("isMock").isTrue())
+				.satisfies(MockitoAssertions::assertIsMock)
 				.isSameAs(ctx.getBean("example"))
 				.isSameAs(ctx.getBean(ExampleService.class));
 
@@ -91,7 +91,7 @@ public class MockitoBeanForByTypeLookupIntegrationTests {
 	@Test
 	void overrideIsFoundByTypeAndDisambiguatedByQualifier(ApplicationContext ctx) {
 		assertThat(this.ambiguous)
-				.satisfies(o -> assertThat(Mockito.mockingDetails(o).isMock()).as("isMock").isTrue())
+				.satisfies(MockitoAssertions::assertIsMock)
 				.isSameAs(ctx.getBean("ambiguous2"));
 
 		assertThatExceptionOfType(NoUniqueBeanDefinitionException.class)
@@ -108,7 +108,7 @@ public class MockitoBeanForByTypeLookupIntegrationTests {
 	@Test
 	void overrideIsFoundByTypeAndDisambiguatedByMetaQualifier(ApplicationContext ctx) {
 		assertThat(this.ambiguousMeta)
-				.satisfies(o -> assertThat(Mockito.mockingDetails(o).isMock()).as("isMock").isTrue())
+				.satisfies(MockitoAssertions::assertIsMock)
 				.isSameAs(ctx.getBean("ambiguous1"));
 
 		assertThatExceptionOfType(NoUniqueBeanDefinitionException.class)

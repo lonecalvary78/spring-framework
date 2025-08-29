@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -155,8 +156,7 @@ public final class MethodIntrospector {
 		 * @return non-null metadata to be associated with a method if there is a match,
 		 * or {@code null} for no match
 		 */
-		@Nullable
-		T inspect(Method method);
+		@Nullable T inspect(Method method);
 	}
 
 }

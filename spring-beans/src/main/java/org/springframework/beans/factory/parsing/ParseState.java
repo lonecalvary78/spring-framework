@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.beans.factory.parsing;
 
 import java.util.ArrayDeque;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Simple {@link ArrayDeque}-based structure for tracking the logical position during
@@ -74,8 +74,7 @@ public final class ParseState {
 	 * Return the {@link Entry} currently at the top of the {@link ArrayDeque} or
 	 * {@code null} if the {@link ArrayDeque} is empty.
 	 */
-	@Nullable
-	public Entry peek() {
+	public @Nullable Entry peek() {
 		return this.state.peek();
 	}
 

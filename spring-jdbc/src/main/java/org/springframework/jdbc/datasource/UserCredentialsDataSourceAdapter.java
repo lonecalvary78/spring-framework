@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.jdbc.datasource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.NamedThreadLocal;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -62,17 +63,13 @@ import org.springframework.util.StringUtils;
  */
 public class UserCredentialsDataSourceAdapter extends DelegatingDataSource {
 
-	@Nullable
-	private String username;
+	private @Nullable String username;
 
-	@Nullable
-	private String password;
+	private @Nullable String password;
 
-	@Nullable
-	private String catalog;
+	private @Nullable String catalog;
 
-	@Nullable
-	private String schema;
+	private @Nullable String schema;
 
 	private final ThreadLocal<JdbcUserCredentials> threadBoundCredentials =
 			new NamedThreadLocal<>("Current JDBC user credentials");

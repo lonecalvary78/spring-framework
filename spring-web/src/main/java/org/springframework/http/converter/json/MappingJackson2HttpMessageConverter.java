@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 
 /**
  * Implementation of {@link org.springframework.http.converter.HttpMessageConverter} that can read and
@@ -44,15 +44,17 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  * @since 3.1.2
+ * @deprecated since 7.0 in favor of {@link JacksonJsonHttpMessageConverter}
  */
+@Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public class MappingJackson2HttpMessageConverter extends AbstractJackson2HttpMessageConverter {
 
 	private static final List<MediaType> problemDetailMediaTypes =
 			Collections.singletonList(MediaType.APPLICATION_PROBLEM_JSON);
 
 
-	@Nullable
-	private String jsonPrefix;
+	private @Nullable String jsonPrefix;
 
 
 	/**

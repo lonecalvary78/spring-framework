@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package org.springframework.web.multipart;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.lang.Nullable;
 
 /**
  * Provides additional methods for dealing with multipart content within a
@@ -65,7 +65,6 @@ public interface MultipartHttpServletRequest extends HttpServletRequest, Multipa
 	 * then all headers are returned. Otherwise, for example, for a file upload, the
 	 * returned headers may expose a 'Content-Type' if available.
 	 */
-	@Nullable
-	HttpHeaders getMultipartHeaders(String paramOrFileName);
+	@Nullable HttpHeaders getMultipartHeaders(String paramOrFileName);
 
 }

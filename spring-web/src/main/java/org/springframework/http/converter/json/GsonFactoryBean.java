@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import java.text.SimpleDateFormat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link FactoryBean} for creating a Google Gson 2.x {@link Gson} instance.
@@ -42,11 +42,9 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean {
 
 	private boolean disableHtmlEscaping = false;
 
-	@Nullable
-	private String dateFormatPattern;
+	private @Nullable String dateFormatPattern;
 
-	@Nullable
-	private Gson gson;
+	private @Nullable Gson gson;
 
 
 	/**
@@ -132,8 +130,7 @@ public class GsonFactoryBean implements FactoryBean<Gson>, InitializingBean {
 	 * Return the created Gson instance.
 	 */
 	@Override
-	@Nullable
-	public Gson getObject() {
+	public @Nullable Gson getObject() {
 		return this.gson;
 	}
 

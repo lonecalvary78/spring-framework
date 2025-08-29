@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -34,7 +36,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.OrderUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -64,18 +65,15 @@ public class ControllerAdviceBean implements Ordered {
 	 * Reference to the resolved bean instance, potentially lazily retrieved
 	 * via the {@code BeanFactory}.
 	 */
-	@Nullable
-	private Object resolvedBean;
+	private @Nullable Object resolvedBean;
 
-	@Nullable
-	private final Class<?> beanType;
+	private final @Nullable Class<?> beanType;
 
 	private final HandlerTypePredicate beanTypePredicate;
 
 	private final BeanFactory beanFactory;
 
-	@Nullable
-	private Integer order;
+	private @Nullable Integer order;
 
 
 	/**
@@ -105,12 +103,11 @@ public class ControllerAdviceBean implements Ordered {
 
 	/**
 	 * Get the order value for the contained bean.
-	 * <p>As of Spring Framework 5.3, the order value is lazily retrieved using
-	 * the following algorithm and cached. Note, however, that a
-	 * {@link ControllerAdvice @ControllerAdvice} bean that is configured as a
-	 * scoped bean &mdash; for example, as a request-scoped or session-scoped
-	 * bean &mdash; will not be eagerly resolved. Consequently, {@link Ordered} is
-	 * not honored for scoped {@code @ControllerAdvice} beans.
+	 * <p>The order value is lazily retrieved using the following algorithm and cached.
+	 * Note, however, that a {@link ControllerAdvice @ControllerAdvice} bean that is
+	 * configured as a scoped bean &mdash; for example, as a request-scoped or
+	 * session-scoped bean &mdash; will not be eagerly resolved. Consequently,
+	 * {@link Ordered} is not honored for scoped {@code @ControllerAdvice} beans.
 	 * <ul>
 	 * <li>If the {@linkplain #resolveBean resolved bean} implements {@link Ordered},
 	 * use the value returned by {@link Ordered#getOrder()}.</li>
@@ -174,8 +171,7 @@ public class ControllerAdviceBean implements Ordered {
 	 * <p>If the bean type is a CGLIB-generated class, the original user-defined
 	 * class is returned.
 	 */
-	@Nullable
-	public Class<?> getBeanType() {
+	public @Nullable Class<?> getBeanType() {
 		return this.beanType;
 	}
 
@@ -257,8 +253,7 @@ public class ControllerAdviceBean implements Ordered {
 		return adviceBeans;
 	}
 
-	@Nullable
-	private static Class<?> getBeanType(String beanName, BeanFactory beanFactory) {
+	private static @Nullable Class<?> getBeanType(String beanName, BeanFactory beanFactory) {
 		Class<?> beanType = beanFactory.getType(beanName);
 		return (beanType != null ? ClassUtils.getUserClass(beanType) : null);
 	}

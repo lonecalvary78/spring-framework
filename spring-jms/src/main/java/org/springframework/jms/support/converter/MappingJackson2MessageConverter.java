@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,10 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.Session;
 import jakarta.jms.TextMessage;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -60,7 +60,9 @@ import org.springframework.util.ClassUtils;
  * @author Juergen Hoeller
  * @author Stephane Nicoll
  * @since 3.1.4
+ * @deprecated since 7.0 in favor of {@link JacksonJsonMessageConverter}
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class MappingJackson2MessageConverter implements SmartMessageConverter, BeanClassLoaderAware {
 
 	/**
@@ -73,21 +75,17 @@ public class MappingJackson2MessageConverter implements SmartMessageConverter, B
 
 	private MessageType targetType = MessageType.BYTES;
 
-	@Nullable
-	private String encoding;
+	private @Nullable String encoding;
 
-	@Nullable
-	private String encodingPropertyName;
+	private @Nullable String encodingPropertyName;
 
-	@Nullable
-	private String typeIdPropertyName;
+	private @Nullable String typeIdPropertyName;
 
 	private Map<String, Class<?>> idClassMappings = new HashMap<>();
 
 	private final Map<Class<?>, String> classIdMappings = new HashMap<>();
 
-	@Nullable
-	private ClassLoader beanClassLoader;
+	private @Nullable ClassLoader beanClassLoader;
 
 
 	/**
@@ -478,8 +476,7 @@ public class MappingJackson2MessageConverter implements SmartMessageConverter, B
 	 * converter for the current conversion attempt
 	 * @return the serialization view class, or {@code null} if none
 	 */
-	@Nullable
-	protected Class<?> getSerializationView(@Nullable Object conversionHint) {
+	protected @Nullable Class<?> getSerializationView(@Nullable Object conversionHint) {
 		if (conversionHint instanceof MethodParameter methodParam) {
 			JsonView annotation = methodParam.getParameterAnnotation(JsonView.class);
 			if (annotation == null) {

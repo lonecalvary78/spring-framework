@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 package org.springframework.web.server;
 
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.Nullable;
 
 /**
  * Exception for errors that fit response status 413 (payload too large) for use in
@@ -26,8 +27,10 @@ import org.springframework.lang.Nullable;
  *
  * @author Kim Bosung
  * @since 6.2
+ * @deprecated since 7.0 in favor of {@link ContentTooLargeException}
  */
 @SuppressWarnings("serial")
+@Deprecated(since = "7.0")
 public class PayloadTooLargeException extends ResponseStatusException {
 
 	public PayloadTooLargeException(@Nullable Throwable cause) {

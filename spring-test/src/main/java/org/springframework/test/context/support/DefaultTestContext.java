@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.style.DefaultToStringStyler;
 import org.springframework.core.style.SimpleValueStyler;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.lang.Nullable;
 import org.springframework.test.annotation.DirtiesContext.HierarchyMode;
 import org.springframework.test.context.CacheAwareContextLoaderDelegate;
 import org.springframework.test.context.MergedContextConfiguration;
@@ -56,14 +57,11 @@ public class DefaultTestContext implements TestContext {
 
 	private final Class<?> testClass;
 
-	@Nullable
-	private volatile Object testInstance;
+	private volatile @Nullable Object testInstance;
 
-	@Nullable
-	private volatile Method testMethod;
+	private volatile @Nullable Method testMethod;
 
-	@Nullable
-	private volatile Throwable testException;
+	private volatile @Nullable Throwable testException;
 
 	private volatile MethodInvoker methodInvoker = MethodInvoker.DEFAULT_INVOKER;
 
@@ -138,7 +136,23 @@ public class DefaultTestContext implements TestContext {
 					from the ContextCache due to a maximum cache size policy."""
 						.formatted(this.mergedConfig));
 		}
+		this.cacheAwareContextLoaderDelegate.registerContextUsage(this.mergedConfig, this.testClass);
 		return context;
+	}
+
+	/**
+	 * Mark the {@linkplain ApplicationContext application context} associated
+	 * with this test context as <em>unused</em> so that it can be safely
+	 * {@linkplain org.springframework.context.ConfigurableApplicationContext#pause() paused}
+	 * if no other test classes are actively using the same application context.
+	 * <p>The default implementation delegates to the {@link CacheAwareContextLoaderDelegate}
+	 * that was supplied when this {@code TestContext} was constructed.
+	 * @since 7.0
+	 * @see CacheAwareContextLoaderDelegate#unregisterContextUsage(MergedContextConfiguration, Class)
+	 */
+	@Override
+	public void markApplicationContextUnused() {
+		this.cacheAwareContextLoaderDelegate.unregisterContextUsage(this.mergedConfig, this.testClass);
 	}
 
 	/**
@@ -174,8 +188,7 @@ public class DefaultTestContext implements TestContext {
 	}
 
 	@Override
-	@Nullable
-	public final Throwable getTestException() {
+	public final @Nullable Throwable getTestException() {
 		return this.testException;
 	}
 
@@ -211,8 +224,7 @@ public class DefaultTestContext implements TestContext {
 	}
 
 	@Override
-	@Nullable
-	public Object getAttribute(String name) {
+	public @Nullable Object getAttribute(String name) {
 		Assert.notNull(name, "Name must not be null");
 		return this.attributes.get(name);
 	}
@@ -229,8 +241,7 @@ public class DefaultTestContext implements TestContext {
 	}
 
 	@Override
-	@Nullable
-	public Object removeAttribute(String name) {
+	public @Nullable Object removeAttribute(String name) {
 		Assert.notNull(name, "Name must not be null");
 		return this.attributes.remove(name);
 	}

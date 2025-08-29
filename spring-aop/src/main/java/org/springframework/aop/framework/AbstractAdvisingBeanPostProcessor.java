@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,13 @@ package org.springframework.aop.framework;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.Advisor;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor;
 import org.springframework.core.SmartClassLoader;
-import org.springframework.lang.Nullable;
 
 /**
  * Base class for {@link BeanPostProcessor} implementations that apply a
@@ -37,8 +38,7 @@ import org.springframework.lang.Nullable;
 public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSupport
 		implements SmartInstantiationAwareBeanPostProcessor {
 
-	@Nullable
-	protected Advisor advisor;
+	protected @Nullable Advisor advisor;
 
 	protected boolean beforeExistingAdvisors = false;
 
@@ -112,11 +112,13 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 
 		if (isEligible(bean, beanName)) {
 			ProxyFactory proxyFactory = prepareProxyFactory(bean, beanName);
-			if (!proxyFactory.isProxyTargetClass()) {
+			if (!proxyFactory.isProxyTargetClass() && !proxyFactory.hasUserSuppliedInterfaces()) {
 				evaluateProxyInterfaces(bean.getClass(), proxyFactory);
 			}
 			proxyFactory.addAdvisor(this.advisor);
 			customizeProxyFactory(proxyFactory);
+			proxyFactory.setFrozen(isFrozen());
+			proxyFactory.setPreFiltered(true);
 
 			// Use original ClassLoader if bean class not locally loaded in overriding class loader
 			ClassLoader classLoader = getProxyClassLoader();
@@ -187,6 +189,7 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 	protected ProxyFactory prepareProxyFactory(Object bean, String beanName) {
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.copyFrom(this);
+		proxyFactory.setFrozen(false);
 		proxyFactory.setTarget(bean);
 		return proxyFactory;
 	}

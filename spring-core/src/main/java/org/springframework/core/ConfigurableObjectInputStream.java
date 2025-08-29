@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.ClassUtils;
 
 /**
@@ -35,8 +36,7 @@ import org.springframework.util.ClassUtils;
  */
 public class ConfigurableObjectInputStream extends ObjectInputStream {
 
-	@Nullable
-	private final ClassLoader classLoader;
+	private final @Nullable ClassLoader classLoader;
 
 	private final boolean acceptProxyClasses;
 
@@ -144,8 +144,7 @@ public class ConfigurableObjectInputStream extends ObjectInputStream {
 	 * <p>The default implementation simply returns {@code null}, indicating
 	 * that no specific fallback is available.
 	 */
-	@Nullable
-	protected ClassLoader getFallbackClassLoader() throws IOException {
+	protected @Nullable ClassLoader getFallbackClassLoader() throws IOException {
 		return null;
 	}
 

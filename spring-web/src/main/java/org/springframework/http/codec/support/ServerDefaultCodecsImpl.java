@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package org.springframework.http.codec.support;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.codec.Encoder;
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.ServerSentEventHttpMessageWriter;
-import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of {@link ServerCodecConfigurer.ServerDefaultCodecs}.
@@ -31,8 +32,7 @@ import org.springframework.lang.Nullable;
  */
 class ServerDefaultCodecsImpl extends BaseDefaultCodecs implements ServerCodecConfigurer.ServerDefaultCodecs {
 
-	@Nullable
-	private Encoder<?> sseEncoder;
+	private @Nullable Encoder<?> sseEncoder;
 
 
 	ServerDefaultCodecsImpl() {
@@ -55,9 +55,9 @@ class ServerDefaultCodecsImpl extends BaseDefaultCodecs implements ServerCodecCo
 		objectWriters.add(new ServerSentEventHttpMessageWriter(getSseEncoder()));
 	}
 
-	@Nullable
-	private Encoder<?> getSseEncoder() {
+	private @Nullable Encoder<?> getSseEncoder() {
 		return this.sseEncoder != null ? this.sseEncoder :
+				jacksonPresent ? getJacksonJsonEncoder() :
 				jackson2Present ? getJackson2JsonEncoder() :
 				kotlinSerializationJsonPresent ? getKotlinSerializationJsonEncoder() :
 				null;

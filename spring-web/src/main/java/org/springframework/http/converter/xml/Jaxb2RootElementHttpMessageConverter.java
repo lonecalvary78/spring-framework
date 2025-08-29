@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.http.converter.xml;
 
 import java.io.StringReader;
+import java.nio.charset.Charset;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -35,6 +36,7 @@ import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
+import org.jspecify.annotations.Nullable;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -44,7 +46,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConversionException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -71,8 +72,7 @@ public class Jaxb2RootElementHttpMessageConverter extends AbstractJaxb2HttpMessa
 
 	private boolean processExternalEntities = false;
 
-	@Nullable
-	private volatile SAXParserFactory sourceParserFactory;
+	private volatile @Nullable SAXParserFactory sourceParserFactory;
 
 
 	/**
@@ -135,7 +135,7 @@ public class Jaxb2RootElementHttpMessageConverter extends AbstractJaxb2HttpMessa
 	@Override
 	protected Object readFromSource(Class<?> clazz, HttpHeaders headers, Source source) throws Exception {
 		try {
-			source = processSource(source);
+			source = processSource(source, detectCharset(headers));
 			Unmarshaller unmarshaller = createUnmarshaller(clazz);
 			if (clazz.isAnnotationPresent(XmlRootElement.class)) {
 				return unmarshaller.unmarshal(source);
@@ -160,9 +160,19 @@ public class Jaxb2RootElementHttpMessageConverter extends AbstractJaxb2HttpMessa
 		}
 	}
 
-	protected Source processSource(Source source) {
+	/**
+	 * Process {@code source} with {@code charset}.
+	 * @param source source to process
+	 * @param charset charset to use
+	 * @return source
+	 * @since 6.2.8
+	 */
+	protected Source processSource(Source source, @Nullable Charset charset) {
 		if (source instanceof StreamSource streamSource) {
 			InputSource inputSource = new InputSource(streamSource.getInputStream());
+			if (charset != null) {
+				inputSource.setEncoding(charset.name());
+			}
 			try {
 				// By default, Spring will prevent the processing of external entities.
 				// This is a mitigation against XXE attacks.

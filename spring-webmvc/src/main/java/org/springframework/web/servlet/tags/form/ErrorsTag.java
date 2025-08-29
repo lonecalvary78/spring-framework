@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import java.util.List;
 import jakarta.servlet.jsp.JspException;
 import jakarta.servlet.jsp.PageContext;
 import jakarta.servlet.jsp.tagext.BodyTag;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -210,8 +210,7 @@ public class ErrorsTag extends AbstractHtmlElementBodyTag implements BodyTag {
 	/**
 	 * Stores any value that existed in the 'errors messages' before the tag was started.
 	 */
-	@Nullable
-	private Object oldMessages;
+	private @Nullable Object oldMessages;
 
 	private boolean errorMessagesWereExposed;
 
@@ -272,8 +271,7 @@ public class ErrorsTag extends AbstractHtmlElementBodyTag implements BodyTag {
 	 * is not a validate attribute for the '{@code span}' element.
 	 */
 	@Override
-	@Nullable
-	protected String getName() throws JspException {
+	protected @Nullable String getName() throws JspException {
 		return null;
 	}
 

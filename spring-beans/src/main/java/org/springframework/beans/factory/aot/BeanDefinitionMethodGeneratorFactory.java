@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.aot.AotServices.Source;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.RegisteredBean;
 import org.springframework.core.log.LogMessage;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -69,8 +69,8 @@ class BeanDefinitionMethodGeneratorFactory {
 		this.excludeFilters = loader.load(BeanRegistrationExcludeFilter.class);
 		for (BeanRegistrationExcludeFilter excludeFilter : this.excludeFilters) {
 			if (this.excludeFilters.getSource(excludeFilter) == Source.BEAN_FACTORY) {
-				Assert.state(excludeFilter instanceof BeanRegistrationAotProcessor
-						|| excludeFilter instanceof BeanFactoryInitializationAotProcessor,
+				Assert.state(excludeFilter instanceof BeanRegistrationAotProcessor ||
+						excludeFilter instanceof BeanFactoryInitializationAotProcessor,
 						() -> "BeanRegistrationExcludeFilter bean of type %s must also implement an AOT processor interface"
 								.formatted(excludeFilter.getClass().getName()));
 			}
@@ -89,8 +89,7 @@ class BeanDefinitionMethodGeneratorFactory {
 	 * @param currentPropertyName the property name that this bean belongs to
 	 * @return a new {@link BeanDefinitionMethodGenerator} instance or {@code null}
 	 */
-	@Nullable
-	BeanDefinitionMethodGenerator getBeanDefinitionMethodGenerator(
+	@Nullable BeanDefinitionMethodGenerator getBeanDefinitionMethodGenerator(
 			RegisteredBean registeredBean, @Nullable String currentPropertyName) {
 
 		if (isExcluded(registeredBean)) {
@@ -110,8 +109,7 @@ class BeanDefinitionMethodGeneratorFactory {
 	 * @param registeredBean the registered bean
 	 * @return a new {@link BeanDefinitionMethodGenerator} instance or {@code null}
 	 */
-	@Nullable
-	BeanDefinitionMethodGenerator getBeanDefinitionMethodGenerator(RegisteredBean registeredBean) {
+	@Nullable BeanDefinitionMethodGenerator getBeanDefinitionMethodGenerator(RegisteredBean registeredBean) {
 		return getBeanDefinitionMethodGenerator(registeredBean, null);
 	}
 

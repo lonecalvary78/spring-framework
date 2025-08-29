@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@ import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
@@ -34,7 +36,6 @@ import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
@@ -59,8 +60,7 @@ final class RSocketServiceMethod {
 
 	private final List<RSocketServiceArgumentResolver> argumentResolvers;
 
-	@Nullable
-	private final String route;
+	private final @Nullable String route;
 
 	private final Function<RSocketRequestValues, Object> responseFunction;
 
@@ -91,9 +91,8 @@ final class RSocketServiceMethod {
 		return parameters;
 	}
 
-	@Nullable
-	@SuppressWarnings("NullAway")
-	private static String initRoute(
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	private static @Nullable String initRoute(
 			Method method, Class<?> containingClass, RSocketStrategies strategies,
 			@Nullable StringValueResolver embeddedValueResolver) {
 
@@ -168,7 +167,7 @@ final class RSocketServiceMethod {
 						((Mono<?>) responsePublisher).blockOptional());
 			}
 			else {
-				return (blockTimeout != null ?
+				return Objects.requireNonNull(blockTimeout != null ?
 						((Mono<?>) responsePublisher).block(blockTimeout) :
 						((Mono<?>) responsePublisher).block());
 			}
@@ -217,14 +216,13 @@ final class RSocketServiceMethod {
 		return this.method;
 	}
 
-	@Nullable
-	public Object invoke(Object[] arguments) {
+	public @Nullable Object invoke(@Nullable Object[] arguments) {
 		RSocketRequestValues.Builder requestValues = RSocketRequestValues.builder(this.route);
 		applyArguments(requestValues, arguments);
 		return this.responseFunction.apply(requestValues.build());
 	}
 
-	private void applyArguments(RSocketRequestValues.Builder requestValues, Object[] arguments) {
+	private void applyArguments(RSocketRequestValues.Builder requestValues, @Nullable Object[] arguments) {
 		Assert.isTrue(arguments.length == this.parameters.length, "Method argument mismatch");
 		for (int i = 0; i < arguments.length; i++) {
 			Object value = arguments[i];

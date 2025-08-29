@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.jdbc.support;
 
 import java.sql.SQLException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.DataAccessException;
-import org.springframework.lang.Nullable;
 
 /**
  * Strategy interface for translating between {@link SQLException SQLExceptions}
@@ -52,7 +53,6 @@ public interface SQLExceptionTranslator {
 	 * or {@code null} if no specific translation could be applied
 	 * @see org.springframework.dao.DataAccessException#getRootCause()
 	 */
-	@Nullable
-	DataAccessException translate(String task, @Nullable String sql, SQLException ex);
+	@Nullable DataAccessException translate(String task, @Nullable String sql, SQLException ex);
 
 }

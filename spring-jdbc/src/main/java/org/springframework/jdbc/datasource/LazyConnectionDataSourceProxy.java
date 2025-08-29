@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -77,6 +77,9 @@ import org.springframework.util.Assert;
  * You will get the same effect with non-transactional reads, but lazy fetching
  * of JDBC Connections allows you to still perform reads in transactions.
  *
+ * <p>As of 6.2.6, this DataSource proxy also suppresses a rollback attempt
+ * in case of a timeout where the connection has been closed in the meantime.
+ *
  * <p><b>NOTE:</b> This DataSource proxy needs to return wrapped Connections
  * (which implement the {@link ConnectionProxy} interface) in order to handle
  * lazy fetching of an actual JDBC Connection. Use {@link Connection#unwrap}
@@ -104,14 +107,11 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 
 	private static final Log logger = LogFactory.getLog(LazyConnectionDataSourceProxy.class);
 
-	@Nullable
-	private DataSource readOnlyDataSource;
+	private @Nullable DataSource readOnlyDataSource;
 
-	@Nullable
-	private volatile Boolean defaultAutoCommit;
+	private volatile @Nullable Boolean defaultAutoCommit;
 
-	@Nullable
-	private volatile Integer defaultTransactionIsolation;
+	private volatile @Nullable Integer defaultTransactionIsolation;
 
 
 	/**
@@ -238,16 +238,14 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 	/**
 	 * Expose the default auto-commit value.
 	 */
-	@Nullable
-	protected Boolean defaultAutoCommit() {
+	protected @Nullable Boolean defaultAutoCommit() {
 		return this.defaultAutoCommit;
 	}
 
 	/**
 	 * Expose the default transaction isolation value.
 	 */
-	@Nullable
-	protected Integer defaultTransactionIsolation() {
+	protected @Nullable Integer defaultTransactionIsolation() {
 		return this.defaultTransactionIsolation;
 	}
 
@@ -295,17 +293,13 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 	 */
 	private class LazyConnectionInvocationHandler implements InvocationHandler {
 
-		@Nullable
-		private String username;
+		private @Nullable String username;
 
-		@Nullable
-		private String password;
+		private @Nullable String password;
 
-		@Nullable
-		private Boolean autoCommit;
+		private @Nullable Boolean autoCommit;
 
-		@Nullable
-		private Integer transactionIsolation;
+		private @Nullable Integer transactionIsolation;
 
 		private boolean readOnly = false;
 
@@ -313,8 +307,7 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 
 		private boolean closed = false;
 
-		@Nullable
-		private Connection target;
+		private @Nullable Connection target;
 
 		public LazyConnectionInvocationHandler() {
 			this.autoCommit = defaultAutoCommit();
@@ -328,8 +321,7 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 		}
 
 		@Override
-		@Nullable
-		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			// Invocation on ConnectionProxy interface coming in...
 
 			switch (method.getName()) {
@@ -436,11 +428,19 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 				return null;
 			}
 
-			// Target Connection already fetched,
-			// or target Connection necessary for current operation ->
-			// invoke method on target connection.
+
+			// Target Connection already fetched, or target Connection necessary for current operation
+			// -> invoke method on target connection.
 			try {
-				return method.invoke(getTargetConnection(method), args);
+				Connection conToUse = getTargetConnection(method);
+
+				if ("rollback".equals(method.getName()) && conToUse.isClosed()) {
+					// Connection closed in the meantime, probably due to a resource timeout. Since a
+					// rollback attempt typically happens right before close, we leniently suppress it.
+					return null;
+				}
+
+				return method.invoke(conToUse, args);
 			}
 			catch (InvocationTargetException ex) {
 				throw ex.getTargetException();

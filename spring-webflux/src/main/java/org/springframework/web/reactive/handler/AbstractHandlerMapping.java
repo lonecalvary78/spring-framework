@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.web.reactive.handler;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.BeanNameAware;
@@ -26,7 +27,6 @@ import org.springframework.context.support.ApplicationObjectSupport;
 import org.springframework.core.Ordered;
 import org.springframework.core.log.LogDelegateFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
@@ -35,6 +35,7 @@ import org.springframework.web.cors.reactive.CorsUtils;
 import org.springframework.web.cors.reactive.DefaultCorsProcessor;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.reactive.HandlerMapping;
+import org.springframework.web.reactive.accept.ApiVersionStrategy;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 import org.springframework.web.util.pattern.PathPatternParser;
@@ -60,15 +61,15 @@ public abstract class AbstractHandlerMapping extends ApplicationObjectSupport
 
 	private final PathPatternParser patternParser = new PathPatternParser();
 
-	@Nullable
-	private CorsConfigurationSource corsConfigurationSource;
+	private @Nullable CorsConfigurationSource corsConfigurationSource;
 
 	private CorsProcessor corsProcessor = new DefaultCorsProcessor();
 
+	private @Nullable ApiVersionStrategy apiVersionStrategy;
+
 	private int order = Ordered.LOWEST_PRECEDENCE;  // default: same as non-Ordered
 
-	@Nullable
-	private String beanName;
+	private @Nullable String beanName;
 
 
 	/**
@@ -83,24 +84,6 @@ public abstract class AbstractHandlerMapping extends ApplicationObjectSupport
 	 */
 	public void setUseCaseSensitiveMatch(boolean caseSensitiveMatch) {
 		this.patternParser.setCaseSensitive(caseSensitiveMatch);
-	}
-
-	/**
-	 * Shortcut method for setting the same property on the underlying pattern
-	 * parser in use. For more details see:
-	 * <ul>
-	 * <li>{@link #getPathPatternParser()} -- the underlying pattern parser
-	 * <li>{@link PathPatternParser#setMatchOptionalTrailingSeparator(boolean)} --
-	 * the trailing slash option, including its default value.
-	 * </ul>
-	 * <p>The default was changed in 6.0 from {@code true} to {@code false} in
-	 * order to support the deprecation of the property.
-	 * @deprecated as of 6.0, see
-	 * {@link PathPatternParser#setMatchOptionalTrailingSeparator(boolean)}
-	 */
-	@Deprecated(since = "6.0")
-	public void setUseTrailingSlashMatch(boolean trailingSlashMatch) {
-		this.patternParser.setMatchOptionalTrailingSeparator(trailingSlashMatch);
 	}
 
 	/**
@@ -159,6 +142,23 @@ public abstract class AbstractHandlerMapping extends ApplicationObjectSupport
 	}
 
 	/**
+	 * Configure a strategy to manage API versioning.
+	 * @param strategy the strategy to use
+	 * @since 7.0
+	 */
+	public void setApiVersionStrategy(@Nullable ApiVersionStrategy strategy) {
+		this.apiVersionStrategy = strategy;
+	}
+
+	/**
+	 * Return the configured {@link ApiVersionStrategy} strategy.
+	 * @since 7.0
+	 */
+	public @Nullable ApiVersionStrategy getApiVersionStrategy() {
+		return this.apiVersionStrategy;
+	}
+
+	/**
 	 * Specify the order value for this HandlerMapping bean.
 	 * <p>The default value is {@code Ordered.LOWEST_PRECEDENCE}, meaning non-ordered.
 	 * @see org.springframework.core.Ordered#getOrder()
@@ -184,6 +184,7 @@ public abstract class AbstractHandlerMapping extends ApplicationObjectSupport
 
 	@Override
 	public Mono<Object> getHandler(ServerWebExchange exchange) {
+		initApiVersion(exchange);
 		return getHandlerInternal(exchange).map(handler -> {
 			if (logger.isDebugEnabled()) {
 				logger.debug(exchange.getLogPrefix() + "Mapped to " + handler);
@@ -202,8 +203,26 @@ public abstract class AbstractHandlerMapping extends ApplicationObjectSupport
 					return NO_OP_HANDLER;
 				}
 			}
+			if (getApiVersionStrategy() != null) {
+				Comparable<?> version = exchange.getAttribute(API_VERSION_ATTRIBUTE);
+				if (version != null) {
+					getApiVersionStrategy().handleDeprecations(version, exchange);
+				}
+			}
 			return handler;
 		});
+	}
+
+	private void initApiVersion(ServerWebExchange exchange) {
+		if (this.apiVersionStrategy != null) {
+			Comparable<?> version = exchange.getAttribute(API_VERSION_ATTRIBUTE);
+			if (version == null) {
+				version = this.apiVersionStrategy.resolveParseAndValidateVersion(exchange);
+				if (version != null) {
+					exchange.getAttributes().put(API_VERSION_ATTRIBUTE, version);
+				}
+			}
+		}
 	}
 
 	/**
@@ -232,8 +251,7 @@ public abstract class AbstractHandlerMapping extends ApplicationObjectSupport
 	 * @param exchange the current exchange
 	 * @return the CORS configuration for the handler, or {@code null} if none
 	 */
-	@Nullable
-	protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
+	protected @Nullable CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
 		if (handler instanceof CorsConfigurationSource ccs) {
 			return ccs.getCorsConfiguration(exchange);
 		}

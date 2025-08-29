@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package org.springframework.web.reactive.result.method.annotation;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ReactiveAdapterRegistry;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -63,8 +64,7 @@ public class ExpressionValueMethodArgumentResolver extends AbstractNamedValueSyn
 	}
 
 	@Override
-	@Nullable
-	protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
+	protected @Nullable Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
 		// No name to resolve
 		return null;
 	}

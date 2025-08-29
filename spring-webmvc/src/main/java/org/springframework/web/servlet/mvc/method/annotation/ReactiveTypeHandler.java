@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import io.micrometer.context.ContextSnapshot;
 import io.micrometer.context.ContextSnapshotFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -46,7 +47,6 @@ import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -93,8 +93,7 @@ class ReactiveTypeHandler {
 
 	private final ContentNegotiationManager contentNegotiationManager;
 
-	@Nullable
-	private final Object contextSnapshotHelper;
+	private final @Nullable Object contextSnapshotHelper;
 
 
 	public ReactiveTypeHandler() {
@@ -114,8 +113,7 @@ class ReactiveTypeHandler {
 		this.contextSnapshotHelper = initContextSnapshotHelper(contextSnapshotFactory);
 	}
 
-	@Nullable
-	private static Object initContextSnapshotHelper(@Nullable Object snapshotFactory) {
+	private static @Nullable Object initContextSnapshotHelper(@Nullable Object snapshotFactory) {
 		if (isContextPropagationPresent) {
 			return new ContextSnapshotHelper((ContextSnapshotFactory) snapshotFactory);
 		}
@@ -137,8 +135,8 @@ class ReactiveTypeHandler {
 	 * @return an emitter for streaming, or {@code null} if handled internally
 	 * with a {@link DeferredResult}
 	 */
-	@Nullable
-	public ResponseBodyEmitter handleValue(Object returnValue, MethodParameter returnType,
+	public @Nullable ResponseBodyEmitter handleValue(
+			Object returnValue, MethodParameter returnType, @Nullable MediaType presetMediaType,
 			ModelAndViewContainer mav, NativeWebRequest request) throws Exception {
 
 		Assert.notNull(returnValue, "Expected return value");
@@ -157,7 +155,7 @@ class ReactiveTypeHandler {
 		ResolvableType elementType = ResolvableType.forMethodParameter(returnType).getGeneric();
 		Class<?> elementClass = elementType.toClass();
 
-		Collection<MediaType> mediaTypes = getMediaTypes(request);
+		Collection<MediaType> mediaTypes = (presetMediaType != null ? List.of(presetMediaType) : getMediaTypes(request));
 		Optional<MediaType> mediaType = mediaTypes.stream().filter(MimeType::isConcrete).findFirst();
 
 		if (adapter.isMultiValue()) {
@@ -201,9 +199,7 @@ class ReactiveTypeHandler {
 	 * @return the concrete streaming {@code MediaType} if one could be found or {@code null}
 	 * if none could be found
 	 */
-	@SuppressWarnings("deprecation")
-	@Nullable
-	static MediaType findConcreteJsonStreamMediaType(Collection<MediaType> acceptedMediaTypes) {
+	static @Nullable MediaType findConcreteJsonStreamMediaType(Collection<MediaType> acceptedMediaTypes) {
 		for (MediaType acceptedType : acceptedMediaTypes) {
 			if (WILDCARD_SUBTYPE_SUFFIXED_BY_NDJSON.includes(acceptedType)) {
 				if (acceptedType.isConcrete()) {
@@ -220,9 +216,6 @@ class ReactiveTypeHandler {
 			else if (MediaType.APPLICATION_NDJSON.includes(acceptedType)) {
 				return MediaType.APPLICATION_NDJSON;
 			}
-			else if (MediaType.APPLICATION_STREAM_JSON.includes(acceptedType)) {
-				return MediaType.APPLICATION_STREAM_JSON;
-			}
 		}
 		return null; // not a concrete streaming type
 	}
@@ -231,11 +224,11 @@ class ReactiveTypeHandler {
 	private Collection<MediaType> getMediaTypes(NativeWebRequest request)
 			throws HttpMediaTypeNotAcceptableException {
 
-		Collection<MediaType> mediaTypes = (Collection<MediaType>) request.getAttribute(
+		Collection<MediaType> producibleMediaTypes = (Collection<MediaType>) request.getAttribute(
 				HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
 
-		return CollectionUtils.isEmpty(mediaTypes) ?
-				this.contentNegotiationManager.resolveMediaTypes(request) : mediaTypes;
+		return (CollectionUtils.isEmpty(producibleMediaTypes) ?
+				this.contentNegotiationManager.resolveMediaTypes(request) : producibleMediaTypes);
 	}
 
 	private ResponseBodyEmitter getEmitter(MediaType mediaType) {
@@ -254,13 +247,11 @@ class ReactiveTypeHandler {
 
 		private final TaskExecutor taskExecutor;
 
-		@Nullable
-		private Subscription subscription;
+		private @Nullable Subscription subscription;
 
 		private final AtomicReference<Object> elementRef = new AtomicReference<>();
 
-		@Nullable
-		private Throwable error;
+		private @Nullable Throwable error;
 
 		private volatile boolean terminated;
 
@@ -360,11 +351,18 @@ class ReactiveTypeHandler {
 					this.subscription.request(1);
 				}
 				catch (final Throwable ex) {
-					if (logger.isTraceEnabled()) {
-						logger.trace("Send for " + this.emitter + " failed: " + ex);
+					if (logger.isDebugEnabled()) {
+						logger.debug("Send for " + this.emitter + " failed: " + ex);
 					}
 					terminate();
-					this.emitter.completeWithError(ex);
+					try {
+						this.emitter.completeWithError(ex);
+					}
+					catch (Exception ex2) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Failure from emitter completeWithError: " + ex2);
+						}
+					}
 					return;
 				}
 			}
@@ -374,16 +372,30 @@ class ReactiveTypeHandler {
 				Throwable ex = this.error;
 				this.error = null;
 				if (ex != null) {
-					if (logger.isTraceEnabled()) {
-						logger.trace("Publisher for " + this.emitter + " failed: " + ex);
+					if (logger.isDebugEnabled()) {
+						logger.debug("Publisher for " + this.emitter + " failed: " + ex);
 					}
-					this.emitter.completeWithError(ex);
+					try {
+						this.emitter.completeWithError(ex);
+					}
+					catch (Exception ex2) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Failure from emitter completeWithError: " + ex2);
+						}
+					}
 				}
 				else {
 					if (logger.isTraceEnabled()) {
 						logger.trace("Publisher for " + this.emitter + " completed");
 					}
-					this.emitter.complete();
+					try {
+						this.emitter.complete();
+					}
+					catch (Exception ex2) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Failure from emitter complete: " + ex2);
+						}
+					}
 				}
 				return;
 			}

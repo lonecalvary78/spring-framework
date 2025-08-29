@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.validation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -68,7 +68,7 @@ public abstract class ValidationUtils {
 	 * {@link Validator#supports(Class) support} the validation of the supplied object's type
 	 */
 	public static void invokeValidator(
-			Validator validator, Object target, Errors errors, @Nullable Object... validationHints) {
+			Validator validator, Object target, Errors errors, Object @Nullable ... validationHints) {
 
 		Assert.notNull(validator, "Validator must not be null");
 		Assert.notNull(target, "Target object must not be null");
@@ -166,7 +166,7 @@ public abstract class ValidationUtils {
 	 * @param defaultMessage fallback default message
 	 */
 	public static void rejectIfEmpty(Errors errors, String field, String errorCode,
-			@Nullable Object[] errorArgs, @Nullable String defaultMessage) {
+			Object @Nullable [] errorArgs, @Nullable String defaultMessage) {
 
 		Assert.notNull(errors, "Errors object must not be null");
 		Object value = errors.getFieldValue(field);
@@ -225,7 +225,7 @@ public abstract class ValidationUtils {
 	 * (can be {@code null})
 	 */
 	public static void rejectIfEmptyOrWhitespace(
-			Errors errors, String field, String errorCode, @Nullable Object[] errorArgs) {
+			Errors errors, String field, String errorCode, Object @Nullable [] errorArgs) {
 
 		rejectIfEmptyOrWhitespace(errors, field, errorCode, errorArgs, null);
 	}
@@ -246,11 +246,11 @@ public abstract class ValidationUtils {
 	 * @param defaultMessage fallback default message
 	 */
 	public static void rejectIfEmptyOrWhitespace(
-			Errors errors, String field, String errorCode, @Nullable Object[] errorArgs, @Nullable String defaultMessage) {
+			Errors errors, String field, String errorCode, Object @Nullable [] errorArgs, @Nullable String defaultMessage) {
 
 		Assert.notNull(errors, "Errors object must not be null");
 		Object value = errors.getFieldValue(field);
-		if (value == null ||!StringUtils.hasText(value.toString())) {
+		if (value == null || !StringUtils.hasText(value.toString())) {
 			errors.rejectValue(field, errorCode, errorArgs, defaultMessage);
 		}
 	}

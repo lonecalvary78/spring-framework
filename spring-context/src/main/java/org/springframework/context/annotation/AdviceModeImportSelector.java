@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ package org.springframework.context.annotation;
 
 import java.lang.annotation.Annotation;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -92,7 +93,6 @@ public abstract class AdviceModeImportSelector<A extends Annotation> implements 
 	 * @return array containing classes to import (empty array if none;
 	 * {@code null} if the given {@code AdviceMode} is unknown)
 	 */
-	@Nullable
-	protected abstract String[] selectImports(AdviceMode adviceMode);
+	protected abstract String @Nullable [] selectImports(AdviceMode adviceMode);
 
 }

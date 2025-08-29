@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,7 +175,7 @@ class MultipartHttpMessageWriterTests extends AbstractLeakCheckingTests {
 		part = requestParts.getFirst("filePublisher");
 		assertThat(part).isNotNull();
 		assertThat(part.name()).isEqualTo("filePublisher");
-		assertThat(part.headers()).containsEntry("foo", Collections.singletonList("bar"));
+		assertThat(part.headers().hasHeaderValues("foo", Collections.singletonList("bar"))).isTrue();
 		assertThat(((FilePart) part).filename()).isEqualTo("file.txt");
 		value = decodeToString(part);
 		assertThat(value).isEqualTo("AaBbCc");

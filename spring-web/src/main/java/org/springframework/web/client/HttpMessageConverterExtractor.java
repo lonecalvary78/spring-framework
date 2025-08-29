@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
@@ -30,7 +31,6 @@ import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.SmartHttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -48,8 +48,7 @@ public class HttpMessageConverterExtractor<T> implements ResponseExtractor<T> {
 
 	private final Type responseType;
 
-	@Nullable
-	private final Class<T> responseClass;
+	private final @Nullable Class<T> responseClass;
 
 	private final List<HttpMessageConverter<?>> messageConverters;
 
@@ -85,9 +84,8 @@ public class HttpMessageConverterExtractor<T> implements ResponseExtractor<T> {
 
 
 	@Override
-	@Nullable
 	@SuppressWarnings({"rawtypes", "unchecked", "resource"})
-	public T extractData(ClientHttpResponse response) throws IOException {
+	public @Nullable T extractData(ClientHttpResponse response) throws IOException {
 		IntrospectingClientHttpResponse responseWrapper = new IntrospectingClientHttpResponse(response);
 		if (!responseWrapper.hasMessageBody() || responseWrapper.hasEmptyMessageBody()) {
 			return null;
@@ -154,8 +152,7 @@ public class HttpMessageConverterExtractor<T> implements ResponseExtractor<T> {
 		try {
 			return FileCopyUtils.copyToByteArray(response.getBody());
 		}
-		catch (IOException ex) {
-			// ignore
+		catch (IOException ignored) {
 		}
 		return new byte[0];
 	}

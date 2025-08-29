@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -45,7 +45,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -78,6 +77,8 @@ final class HttpServiceMethod {
 
 	private final List<HttpServiceArgumentResolver> argumentResolvers;
 
+	private final HttpRequestValues.Processor requestValuesProcessor;
+
 	private final HttpRequestValuesInitializer requestValuesInitializer;
 
 	private final ResponseFunction responseFunction;
@@ -85,11 +86,13 @@ final class HttpServiceMethod {
 
 	HttpServiceMethod(
 			Method method, Class<?> containingClass, List<HttpServiceArgumentResolver> argumentResolvers,
-			HttpExchangeAdapter adapter, @Nullable StringValueResolver embeddedValueResolver) {
+			HttpRequestValues.Processor valuesProcessor, HttpExchangeAdapter adapter,
+			@Nullable StringValueResolver embeddedValueResolver) {
 
 		this.method = method;
 		this.parameters = initMethodParameters(method);
 		this.argumentResolvers = argumentResolvers;
+		this.requestValuesProcessor = valuesProcessor;
 
 		boolean isReactorAdapter = (REACTOR_PRESENT && adapter instanceof ReactorHttpExchangeAdapter);
 
@@ -127,14 +130,14 @@ final class HttpServiceMethod {
 	}
 
 
-	@Nullable
-	public Object invoke(Object[] arguments) {
+	public @Nullable Object invoke(@Nullable Object[] arguments) {
 		HttpRequestValues.Builder requestValues = this.requestValuesInitializer.initializeRequestValuesBuilder();
 		applyArguments(requestValues, arguments);
+		this.requestValuesProcessor.process(this.method, this.parameters, arguments, requestValues);
 		return this.responseFunction.execute(requestValues.build());
 	}
 
-	private void applyArguments(HttpRequestValues.Builder requestValues, Object[] arguments) {
+	private void applyArguments(HttpRequestValues.Builder requestValues, @Nullable Object[] arguments) {
 		Assert.isTrue(arguments.length == this.parameters.length, "Method argument mismatch");
 		for (int i = 0; i < arguments.length; i++) {
 			Object value = arguments[i];
@@ -160,7 +163,7 @@ final class HttpServiceMethod {
 	private record HttpRequestValuesInitializer(
 			@Nullable HttpMethod httpMethod, @Nullable String url,
 			@Nullable MediaType contentType, @Nullable List<MediaType> acceptMediaTypes,
-			@Nullable MultiValueMap<String, String> otherHeaders,
+			MultiValueMap<String, String> headers, @Nullable String version,
 			Supplier<HttpRequestValues.Builder> requestValuesSupplier) {
 
 		public HttpRequestValues.Builder initializeRequestValuesBuilder() {
@@ -177,15 +180,10 @@ final class HttpServiceMethod {
 			if (this.acceptMediaTypes != null) {
 				requestValues.setAccept(this.acceptMediaTypes);
 			}
-			if (this.otherHeaders != null) {
-				this.otherHeaders.forEach((name, values) -> {
-					if (values.size() == 1) {
-						requestValues.addHeader(name, values.get(0));
-					}
-					else {
-						requestValues.addHeader(name, values.toArray(new String[0]));
-					}
-				});
+			this.headers.forEach((name, values) ->
+					values.forEach(value -> requestValues.addHeader(name, value)));
+			if (this.version != null) {
+				requestValues.setApiVersion(this.version);
 			}
 			return requestValues;
 		}
@@ -217,14 +215,15 @@ final class HttpServiceMethod {
 			String url = initUrl(typeAnnotation, methodAnnotation, embeddedValueResolver);
 			MediaType contentType = initContentType(typeAnnotation, methodAnnotation);
 			List<MediaType> acceptableMediaTypes = initAccept(typeAnnotation, methodAnnotation);
-			MultiValueMap<String, String> headers = initHeaders(typeAnnotation, methodAnnotation,
-					embeddedValueResolver);
-			return new HttpRequestValuesInitializer(httpMethod, url, contentType,
-					acceptableMediaTypes, headers, requestValuesSupplier);
+			MultiValueMap<String, String> headers = initHeaders(typeAnnotation, methodAnnotation, embeddedValueResolver);
+			String version = initVersion(typeAnnotation, methodAnnotation);
+
+			return new HttpRequestValuesInitializer(
+					httpMethod, url, contentType, acceptableMediaTypes, headers, version,
+					requestValuesSupplier);
 		}
 
-		@Nullable
-		private static HttpMethod initHttpMethod(@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation) {
+		private static @Nullable HttpMethod initHttpMethod(@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation) {
 			String methodLevelMethod = methodAnnotation.method();
 			if (StringUtils.hasText(methodLevelMethod)) {
 				return HttpMethod.valueOf(methodLevelMethod);
@@ -238,9 +237,8 @@ final class HttpServiceMethod {
 			return null;
 		}
 
-		@Nullable
-		@SuppressWarnings("NullAway")
-		private static String initUrl(
+		@SuppressWarnings("NullAway") // Dataflow analysis limitation
+		private static @Nullable String initUrl(
 				@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation,
 				@Nullable StringValueResolver embeddedValueResolver) {
 
@@ -266,8 +264,9 @@ final class HttpServiceMethod {
 			return (hasMethodLevelUrl ? methodLevelUrl : typeLevelUrl);
 		}
 
-		@Nullable
-		private static MediaType initContentType(@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation) {
+		private static @Nullable MediaType initContentType(
+				@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation) {
+
 			String methodLevelContentType = methodAnnotation.contentType();
 			if (StringUtils.hasText(methodLevelContentType)) {
 				return MediaType.parseMediaType(methodLevelContentType);
@@ -281,8 +280,9 @@ final class HttpServiceMethod {
 			return null;
 		}
 
-		@Nullable
-		private static List<MediaType> initAccept(@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation) {
+		private static @Nullable List<MediaType> initAccept(
+				@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation) {
+
 			String[] methodLevelAccept = methodAnnotation.accept();
 			if (!ObjectUtils.isEmpty(methodLevelAccept)) {
 				return MediaType.parseMediaTypes(List.of(methodLevelAccept));
@@ -296,48 +296,54 @@ final class HttpServiceMethod {
 			return null;
 		}
 
-		private static MultiValueMap<String, String> parseHeaders(String[] headersArray,
+		private static MultiValueMap<String, String> initHeaders(
+				@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation,
 				@Nullable StringValueResolver embeddedValueResolver) {
+
 			MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-			for (String h: headersArray) {
-				String[] headerPair = StringUtils.split(h, "=");
-				if (headerPair != null) {
-					String headerName = headerPair[0].trim();
-					List<String> headerValues = new ArrayList<>();
-					Set<String> parsedValues = StringUtils.commaDelimitedListToSet(headerPair[1]);
-					for (String headerValue : parsedValues) {
-						if (embeddedValueResolver != null) {
-							headerValue = embeddedValueResolver.resolveStringValue(headerValue);
-						}
-						if (headerValue != null) {
-							headerValue = headerValue.trim();
-							headerValues.add(headerValue);
-						}
-					}
-					if (!headerValues.isEmpty()) {
-						headers.addAll(headerName, headerValues);
-					}
-				}
+			if (typeAnnotation != null) {
+				addHeaders(typeAnnotation.headers(), embeddedValueResolver, headers);
 			}
+			addHeaders(methodAnnotation.headers(), embeddedValueResolver, headers);
 			return headers;
 		}
 
-		@Nullable
-		private static MultiValueMap<String, String> initHeaders(@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation,
-				@Nullable StringValueResolver embeddedValueResolver) {
-			MultiValueMap<String, String> methodLevelHeaders = parseHeaders(methodAnnotation.headers(),
-					embeddedValueResolver);
-			if (!ObjectUtils.isEmpty(methodLevelHeaders)) {
-				return methodLevelHeaders;
-			}
+		private static @Nullable String initVersion(
+				@Nullable HttpExchange typeAnnotation, HttpExchange methodAnnotation) {
 
-			MultiValueMap<String, String> typeLevelHeaders = (typeAnnotation != null ?
-					parseHeaders(typeAnnotation.headers(), embeddedValueResolver) : null);
-			if (!ObjectUtils.isEmpty(typeLevelHeaders)) {
-				return typeLevelHeaders;
+			if (StringUtils.hasText(methodAnnotation.version())) {
+				return methodAnnotation.version();
 			}
-
+			if (typeAnnotation != null && StringUtils.hasText(typeAnnotation.version())) {
+				return typeAnnotation.version();
+			}
 			return null;
+		}
+
+		private static void addHeaders(
+				String[] rawValues, @Nullable StringValueResolver embeddedValueResolver,
+				MultiValueMap<String, String> outputHeaders) {
+
+			for (String rawValue: rawValues) {
+				String[] pair = StringUtils.split(rawValue, "=");
+				if (pair == null) {
+					continue;
+				}
+				String name = pair[0].trim();
+				List<String> values = new ArrayList<>();
+				for (String value : StringUtils.commaDelimitedListToSet(pair[1])) {
+					if (embeddedValueResolver != null) {
+						value = embeddedValueResolver.resolveStringValue(value);
+					}
+					if (value != null) {
+						value = value.trim();
+						values.add(value);
+					}
+				}
+				if (!values.isEmpty()) {
+					outputHeaders.addAll(name, values);
+				}
+			}
 		}
 
 		private static List<AnnotationDescriptor> getAnnotationDescriptors(AnnotatedElement element) {
@@ -384,16 +390,15 @@ final class HttpServiceMethod {
 	 */
 	private interface ResponseFunction {
 
-		@Nullable
-		Object execute(HttpRequestValues requestValues);
+		@Nullable Object execute(HttpRequestValues requestValues);
 
 	}
 
 	private record ExchangeResponseFunction(
-			Function<HttpRequestValues, Object> responseFunction) implements ResponseFunction {
+			Function<HttpRequestValues, @Nullable Object> responseFunction) implements ResponseFunction {
 
 		@Override
-		public Object execute(HttpRequestValues requestValues) {
+		public @Nullable Object execute(HttpRequestValues requestValues) {
 			return this.responseFunction.apply(requestValues);
 		}
 
@@ -410,7 +415,7 @@ final class HttpServiceMethod {
 			MethodParameter param = new MethodParameter(method, -1).nestedIfOptional();
 			Class<?> paramType = param.getNestedParameterType();
 
-			Function<HttpRequestValues, Object> responseFunction;
+			Function<HttpRequestValues, @Nullable Object> responseFunction;
 			if (ClassUtils.isVoidType(paramType)) {
 				responseFunction = requestValues -> {
 					client.exchange(requestValues);
@@ -458,8 +463,7 @@ final class HttpServiceMethod {
 			boolean blockForOptional, @Nullable Duration blockTimeout) implements ResponseFunction {
 
 		@Override
-		@Nullable
-		public Object execute(HttpRequestValues requestValues) {
+		public @Nullable Object execute(HttpRequestValues requestValues) {
 
 			Publisher<?> responsePublisher = this.responseFunction.apply(requestValues);
 

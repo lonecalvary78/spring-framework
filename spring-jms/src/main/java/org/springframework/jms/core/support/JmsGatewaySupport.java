@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ package org.springframework.jms.core.support;
 import jakarta.jms.ConnectionFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.lang.Nullable;
 
 /**
  * Convenient superclass for application classes that need JMS access.
@@ -39,14 +39,16 @@ import org.springframework.lang.Nullable;
  * @see #setJmsTemplate
  * @see #createJmsTemplate
  * @see org.springframework.jms.core.JmsTemplate
+ * @deprecated as of 7.0, in favor of direct injection of {@link JmsTemplate}
+ * or {@link org.springframework.jms.core.JmsMessagingTemplate}
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public abstract class JmsGatewaySupport implements InitializingBean {
 
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	private JmsTemplate jmsTemplate;
+	private @Nullable JmsTemplate jmsTemplate;
 
 
 	/**
@@ -75,8 +77,7 @@ public abstract class JmsGatewaySupport implements InitializingBean {
 	/**
 	 * Return the JMS ConnectionFactory used by the gateway.
 	 */
-	@Nullable
-	public final ConnectionFactory getConnectionFactory() {
+	public final @Nullable ConnectionFactory getConnectionFactory() {
 		return (this.jmsTemplate != null ? this.jmsTemplate.getConnectionFactory() : null);
 	}
 
@@ -91,8 +92,7 @@ public abstract class JmsGatewaySupport implements InitializingBean {
 	/**
 	 * Return the JmsTemplate for the gateway.
 	 */
-	@Nullable
-	public final JmsTemplate getJmsTemplate() {
+	public final @Nullable JmsTemplate getJmsTemplate() {
 		return this.jmsTemplate;
 	}
 

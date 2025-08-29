@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntPredicate;
 
 import org.eclipse.jetty.io.Content;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -39,8 +39,7 @@ public final class JettyDataBuffer implements PooledDataBuffer {
 
 	private final DefaultDataBuffer delegate;
 
-	@Nullable
-	private final Content.Chunk chunk;
+	private final Content.@Nullable Chunk chunk;
 
 	private final JettyDataBufferFactory bufferFactory;
 
@@ -55,7 +54,6 @@ public final class JettyDataBuffer implements PooledDataBuffer {
 		this.bufferFactory = bufferFactory;
 		this.delegate = delegate;
 		this.chunk = chunk;
-		this.chunk.retain();
 	}
 
 	JettyDataBuffer(JettyDataBufferFactory bufferFactory, DefaultDataBuffer delegate) {
@@ -139,7 +137,7 @@ public final class JettyDataBuffer implements PooledDataBuffer {
 	}
 
 	@Override
-	@Deprecated
+	@Deprecated(since = "6.0")
 	public DataBuffer capacity(int capacity) {
 		this.delegate.capacity(capacity);
 		return this;
@@ -226,7 +224,7 @@ public final class JettyDataBuffer implements PooledDataBuffer {
 	}
 
 	@Override
-	@Deprecated
+	@Deprecated(since = "6.0")
 	public DataBuffer slice(int index, int length) {
 		DefaultDataBuffer delegateSlice = this.delegate.slice(index, length);
 		if (this.chunk != null) {
@@ -251,19 +249,19 @@ public final class JettyDataBuffer implements PooledDataBuffer {
 	}
 
 	@Override
-	@Deprecated
+	@Deprecated(since = "6.0")
 	public ByteBuffer asByteBuffer() {
 		return this.delegate.asByteBuffer();
 	}
 
 	@Override
-	@Deprecated
+	@Deprecated(since = "6.0")
 	public ByteBuffer asByteBuffer(int index, int length) {
 		return this.delegate.asByteBuffer(index, length);
 	}
 
 	@Override
-	@Deprecated
+	@Deprecated(since = "6.0.5")
 	public ByteBuffer toByteBuffer(int index, int length) {
 		return this.delegate.toByteBuffer(index, length);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.web.servlet.mvc.condition;
 import java.util.Locale;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -37,8 +37,7 @@ abstract class AbstractNameValueExpression<T> implements NameValueExpression<T> 
 
 	protected final String name;
 
-	@Nullable
-	protected final T value;
+	protected final @Nullable T value;
 
 	protected final boolean isNegated;
 
@@ -64,8 +63,7 @@ abstract class AbstractNameValueExpression<T> implements NameValueExpression<T> 
 	}
 
 	@Override
-	@Nullable
-	public T getValue() {
+	public @Nullable T getValue() {
 		return this.value;
 	}
 

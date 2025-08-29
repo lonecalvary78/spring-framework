@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.beans.factory;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Sub-interface implemented by bean factories that can be part
@@ -36,8 +36,7 @@ public interface HierarchicalBeanFactory extends BeanFactory {
 	/**
 	 * Return the parent bean factory, or {@code null} if there is none.
 	 */
-	@Nullable
-	BeanFactory getParentBeanFactory();
+	@Nullable BeanFactory getParentBeanFactory();
 
 	/**
 	 * Return whether the local bean factory contains a bean of the given name,

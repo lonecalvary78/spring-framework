@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.test.context;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Factory for creating {@link ContextCustomizer ContextCustomizers}.
@@ -56,7 +56,6 @@ public interface ContextCustomizerFactory {
 	 * @return a {@link ContextCustomizer} or {@code null} if no customizer should
 	 * be used
 	 */
-	@Nullable
-	ContextCustomizer createContextCustomizer(Class<?> testClass, List<ContextConfigurationAttributes> configAttributes);
+	@Nullable ContextCustomizer createContextCustomizer(Class<?> testClass, List<ContextConfigurationAttributes> configAttributes);
 
 }

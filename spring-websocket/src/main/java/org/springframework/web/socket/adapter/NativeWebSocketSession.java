@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.web.socket.adapter;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.web.socket.WebSocketSession;
 
 /**
@@ -39,7 +40,6 @@ public interface NativeWebSocketSession extends WebSocketSession {
 	 * @return the native session of the required type,
 	 * or {@code null} if not available
 	 */
-	@Nullable
-	<T> T getNativeSession(@Nullable Class<T> requiredType);
+	<T> @Nullable T getNativeSession(@Nullable Class<T> requiredType);
 
 }

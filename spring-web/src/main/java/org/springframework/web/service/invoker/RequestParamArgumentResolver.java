@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.springframework.web.service.invoker;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -85,8 +86,7 @@ public class RequestParamArgumentResolver extends AbstractNamedValueArgumentReso
 
 
 	@Override
-	@Nullable
-	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter, HttpRequestValues.Metadata metadata) {
+	protected @Nullable NamedValueInfo createNamedValueInfo(MethodParameter parameter, HttpRequestValues.Metadata metadata) {
 		RequestParam annot = parameter.getParameterAnnotation(RequestParam.class);
 		if (annot == null) {
 			return null;

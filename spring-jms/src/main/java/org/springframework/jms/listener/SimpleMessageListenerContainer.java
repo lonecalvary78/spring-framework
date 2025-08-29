@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.Session;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jms.support.JmsUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
@@ -56,7 +56,7 @@ import org.springframework.util.Assert;
  *
  * <p>For a different style of MessageListener handling, through looped
  * {@code MessageConsumer.receive()} calls that also allow for
- * transactional reception of messages (registering them with XA transactions),
+ * transactional receipt of messages (registering them with XA transactions),
  * see {@link DefaultMessageListenerContainer}.
  *
  * @author Juergen Hoeller
@@ -73,14 +73,11 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 
 	private int concurrentConsumers = 1;
 
-	@Nullable
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
-	@Nullable
-	private Set<Session> sessions;
+	private @Nullable Set<Session> sessions;
 
-	@Nullable
-	private Set<MessageConsumer> consumers;
+	private @Nullable Set<MessageConsumer> consumers;
 
 	private final Lock consumersLock = new ReentrantLock();
 
@@ -315,7 +312,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	 * @throws JMSException if thrown by JMS methods
 	 * @see #executeListener
 	 */
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Lambda
 	protected MessageConsumer createListenerConsumer(final Session session) throws JMSException {
 		Destination destination = getDestination();
 		if (destination == null) {
@@ -344,7 +341,7 @@ public class SimpleMessageListenerContainer extends AbstractMessageListenerConta
 	 * @see #executeListener
 	 * @see #setExposeListenerSession
 	 */
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	protected void processMessage(Message message, Session session) {
 		ConnectionFactory connectionFactory = getConnectionFactory();
 		boolean exposeResource = (connectionFactory != null && isExposeListenerSession());

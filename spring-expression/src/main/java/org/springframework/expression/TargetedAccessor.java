@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.expression;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Strategy for types that access elements of specific target classes.
@@ -52,7 +52,6 @@ public interface TargetedAccessor {
 	 * @return an array of classes that this accessor is suitable for
 	 * (or {@code null} or an empty array if a generic accessor)
 	 */
-	@Nullable
-	Class<?>[] getSpecificTargetClasses();
+	Class<?> @Nullable [] getSpecificTargetClasses();
 
 }

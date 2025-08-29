@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.apache.tomcat.util.http.fileupload.FileUpload;
 import org.apache.tomcat.util.http.fileupload.UploadContext;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
 import org.hamcrest.Matcher;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import org.springframework.core.io.Resource;
@@ -39,7 +40,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.test.json.JsonAssert;
@@ -424,13 +424,11 @@ public class ContentRequestMatchers {
 				List<FileItem> fileItems = fileUpload.parseRequest(new UploadContext() {
 					private final byte[] body = request.getBodyAsBytes();
 					@Override
-					@Nullable
-					public String getCharacterEncoding() {
+					public @Nullable String getCharacterEncoding() {
 						return request.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING);
 					}
 					@Override
-					@Nullable
-					public String getContentType() {
+					public @Nullable String getContentType() {
 						return request.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE);
 					}
 					@Override

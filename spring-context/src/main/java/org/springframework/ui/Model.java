@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.ui;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface that defines a holder for model attributes.
@@ -84,8 +84,7 @@ public interface Model {
 	 * @return the corresponding attribute value, or {@code null} if none
 	 * @since 5.2
 	 */
-	@Nullable
-	Object getAttribute(String attributeName);
+	@Nullable Object getAttribute(String attributeName);
 
 	/**
 	 * Return the current set of model attributes as a Map.

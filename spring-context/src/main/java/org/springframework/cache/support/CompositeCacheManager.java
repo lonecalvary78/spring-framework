@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.lang.Nullable;
 
 /**
  * Composite {@link CacheManager} implementation that iterates over
@@ -99,8 +100,7 @@ public class CompositeCacheManager implements CacheManager, InitializingBean {
 
 
 	@Override
-	@Nullable
-	public Cache getCache(String name) {
+	public @Nullable Cache getCache(String name) {
 		for (CacheManager cacheManager : this.cacheManagers) {
 			Cache cache = cacheManager.getCache(name);
 			if (cache != null) {

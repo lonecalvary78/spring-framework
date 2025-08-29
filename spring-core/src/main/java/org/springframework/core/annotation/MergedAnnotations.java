@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 /**
@@ -35,10 +36,9 @@ import org.springframework.util.Assert;
  * "merged" from different source values, typically:
  *
  * <ul>
- * <li>Explicit and Implicit {@link AliasFor @AliasFor} declarations on one or
+ * <li>Explicit and implicit {@link AliasFor @AliasFor} declarations on one or
  * more attributes within the annotation</li>
- * <li>Explicit {@link AliasFor @AliasFor} declarations for a meta-annotation</li>
- * <li>Convention based attribute aliases for a meta-annotation</li>
+ * <li>Explicit {@code @AliasFor} declarations for a meta-annotation</li>
  * <li>From a meta-annotation declaration</li>
  * </ul>
  *
@@ -140,6 +140,9 @@ import org.springframework.util.Assert;
  * @see MergedAnnotationCollectors
  * @see MergedAnnotationPredicates
  * @see MergedAnnotationSelectors
+ * @see AliasFor
+ * @see AnnotationUtils
+ * @see AnnotatedElementUtils
  */
 public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>> {
 
@@ -560,6 +563,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * @see #withRepeatableContainers(RepeatableContainers)
 		 * @see #withAnnotationFilter(AnnotationFilter)
 		 * @see #from(AnnotatedElement)
+		 * @see org.springframework.test.context.TestContextAnnotationUtils#searchEnclosingClass(Class)
 		 */
 		public Search withEnclosingClasses(Predicate<Class<?>> searchEnclosingClass) {
 			Assert.notNull(searchEnclosingClass, "Predicate must not be null");

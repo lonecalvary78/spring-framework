@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.test.context.bean.override.mockito.integration;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.MockingDetails;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -34,6 +33,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockingDetails;
+import static org.springframework.test.mockito.MockitoAssertions.assertIsSpy;
 
 /**
  * Tests that {@link MockitoSpyBean @MockitoSpyBean} on a field with generics can
@@ -55,10 +55,10 @@ class MockitoSpyBeanWithGenericsOnTestFieldForExistingGenericBeanProducedByFacto
 
 	@Test
 	void testSpying() {
-		MockingDetails mockingDetails = mockingDetails(this.exampleService);
-		assertThat(mockingDetails.isSpy()).isTrue();
-		assertThat(mockingDetails.getMockCreationSettings().getSpiedInstance())
-				.isInstanceOf(StringExampleGenericService.class);
+		assertIsSpy(exampleService);
+
+		Object spiedInstance = mockingDetails(exampleService).getMockCreationSettings().getSpiedInstance();
+		assertThat(spiedInstance).isInstanceOf(StringExampleGenericService.class);
 	}
 
 

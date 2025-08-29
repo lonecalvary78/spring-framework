@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.beans;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Strategy interface for creating {@link BeanInfo} instances for Spring beans.
@@ -54,7 +54,6 @@ public interface BeanInfoFactory {
 	 * @return the BeanInfo, or {@code null} if the given class is not supported
 	 * @throws IntrospectionException in case of exceptions
 	 */
-	@Nullable
-	BeanInfo getBeanInfo(Class<?> beanClass) throws IntrospectionException;
+	@Nullable BeanInfo getBeanInfo(Class<?> beanClass) throws IntrospectionException;
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.lang.reflect.Method;
 
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Assertions;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cglib.core.internal.Function;
-import org.springframework.lang.Nullable;
 import org.springframework.test.util.MethodAssert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.method.HandlerMethod;

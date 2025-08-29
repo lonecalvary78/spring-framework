@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.web.bind;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.ProblemDetail;
-import org.springframework.lang.Nullable;
 
 /**
  * Base class for {@link ServletRequestBindingException} exceptions that could
@@ -56,7 +57,7 @@ public class MissingRequestValueException extends ServletRequestBindingException
 	 * @since 6.0
 	 */
 	protected MissingRequestValueException(String msg, boolean missingAfterConversion,
-			@Nullable String messageDetailCode, @Nullable Object[] messageDetailArguments) {
+			@Nullable String messageDetailCode, Object @Nullable [] messageDetailArguments) {
 
 		super(msg, messageDetailCode, messageDetailArguments);
 		this.missingAfterConversion = missingAfterConversion;

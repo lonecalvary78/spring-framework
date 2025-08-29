@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.http.converter.xml;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -37,6 +38,7 @@ import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
@@ -46,7 +48,6 @@ import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.xml.StaxUtils;
 
@@ -148,7 +149,10 @@ public class Jaxb2CollectionHttpMessageConverter<T extends Collection>
 
 		try {
 			Unmarshaller unmarshaller = createUnmarshaller(elementClass);
-			XMLStreamReader streamReader = this.inputFactory.createXMLStreamReader(inputMessage.getBody());
+			Charset detectedCharset = detectCharset(inputMessage.getHeaders());
+			XMLStreamReader streamReader = (detectedCharset != null) ?
+					this.inputFactory.createXMLStreamReader(inputMessage.getBody(), detectedCharset.name()) :
+					this.inputFactory.createXMLStreamReader(inputMessage.getBody());
 			int event = moveToFirstChildOfRootElement(streamReader);
 
 			while (event != XMLStreamReader.END_DOCUMENT) {

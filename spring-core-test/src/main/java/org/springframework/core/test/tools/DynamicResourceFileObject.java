@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.net.URI;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * In-memory {@link JavaFileObject} used to hold generated resource file contents.
@@ -37,8 +37,7 @@ import org.springframework.lang.Nullable;
  */
 class DynamicResourceFileObject extends SimpleJavaFileObject {
 
-	@Nullable
-	private volatile byte[] bytes;
+	private volatile byte @Nullable [] bytes;
 
 
 	DynamicResourceFileObject(String fileName) {
@@ -73,8 +72,7 @@ class DynamicResourceFileObject extends SimpleJavaFileObject {
 		this.bytes = bytes;
 	}
 
-	@Nullable
-	byte[] getBytes() {
+	byte @Nullable [] getBytes() {
 		return this.bytes;
 	}
 

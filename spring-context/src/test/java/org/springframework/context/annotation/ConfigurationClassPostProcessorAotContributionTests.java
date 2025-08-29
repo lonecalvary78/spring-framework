@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.context.annotation;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -24,7 +25,9 @@ import java.util.function.Predicate;
 
 import javax.lang.model.element.Modifier;
 
+import jakarta.annotation.PostConstruct;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +39,10 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 import org.springframework.aot.test.generate.TestGenerationContext;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanRegistrar;
+import org.springframework.beans.factory.BeanRegistry;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -53,6 +59,7 @@ import org.springframework.context.testfixture.context.annotation.SimpleConfigur
 import org.springframework.context.testfixture.context.generator.SimpleComponent;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.DefaultPropertySourceFactory;
 import org.springframework.core.test.tools.Compiled;
@@ -61,7 +68,6 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.MethodSpec;
 import org.springframework.javapoet.ParameterizedTypeName;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,8 +80,9 @@ import static org.assertj.core.api.Assertions.entry;
  * @author Phillip Webb
  * @author Stephane Nicoll
  * @author Sam Brannen
+ * @author Sebastien Deleuze
  */
-class ConfigurationClassPostProcessorAotContributionTests {
+public class ConfigurationClassPostProcessorAotContributionTests {
 
 	private final TestGenerationContext generationContext = new TestGenerationContext();
 
@@ -223,9 +230,8 @@ class ConfigurationClassPostProcessorAotContributionTests {
 				this.metadata = importMetadata;
 			}
 
-			@Nullable
 			@Override
-			public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+			public @Nullable Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 				if (beanName.equals("testProcessing")) {
 					return this.metadata;
 				}
@@ -440,9 +446,181 @@ class ConfigurationClassPostProcessorAotContributionTests {
 		}
 	}
 
+	@Nested
+	public class BeanRegistrarTests {
 
-	@Nullable
-	private BeanFactoryInitializationAotContribution getContribution(Class<?>... types) {
+		@Test
+		void applyToWhenHasDefaultConstructor() throws NoSuchMethodException {
+			BeanFactoryInitializationAotContribution contribution = getContribution(DefaultConstructorConfiguration.class);
+			assertThat(contribution).isNotNull();
+			contribution.applyTo(generationContext, beanFactoryInitializationCode);
+			Constructor<Foo> fooConstructor = Foo.class.getDeclaredConstructor();
+			compile((initializer, compiled) -> {
+				GenericApplicationContext freshContext = new GenericApplicationContext();
+				initializer.accept(freshContext);
+				freshContext.refresh();
+				assertThat(freshContext.getBean(Foo.class)).isNotNull();
+				assertThat(RuntimeHintsPredicates.reflection().onConstructorInvocation(fooConstructor))
+						.accepts(generationContext.getRuntimeHints());
+				freshContext.close();
+			});
+		}
+
+		@Test
+		void applyToWhenHasInstanceSupplier() {
+			BeanFactoryInitializationAotContribution contribution = getContribution(InstanceSupplierConfiguration.class);
+			assertThat(contribution).isNotNull();
+			contribution.applyTo(generationContext, beanFactoryInitializationCode);
+			compile((initializer, compiled) -> {
+				GenericApplicationContext freshContext = new GenericApplicationContext();
+				initializer.accept(freshContext);
+				freshContext.refresh();
+				assertThat(freshContext.getBean(Foo.class)).isNotNull();
+				assertThat(generationContext.getRuntimeHints().reflection().getTypeHint(Foo.class)).isNull();
+				freshContext.close();
+			});
+		}
+
+		@Test
+		void applyToWhenHasPostConstructAnnotationPostProcessed() {
+			BeanFactoryInitializationAotContribution contribution = getContribution(CommonAnnotationBeanPostProcessor.class,
+					PostConstructConfiguration.class);
+			assertThat(contribution).isNotNull();
+			contribution.applyTo(generationContext, beanFactoryInitializationCode);
+			compile((initializer, compiled) -> {
+				GenericApplicationContext freshContext = new GenericApplicationContext();
+				initializer.accept(freshContext);
+				freshContext.refresh();
+				Init init = freshContext.getBean(Init.class);
+				assertThat(init).isNotNull();
+				assertThat(init.initialized).isTrue();
+				assertThat(RuntimeHintsPredicates.reflection().onMethodInvocation(Init.class, "postConstruct"))
+						.accepts(generationContext.getRuntimeHints());
+				freshContext.close();
+			});
+		}
+
+		@Test
+		void applyToWhenIsImportAware() {
+			BeanFactoryInitializationAotContribution contribution = getContribution(CommonAnnotationBeanPostProcessor.class,
+					ImportAwareBeanRegistrarConfiguration.class);
+			assertThat(contribution).isNotNull();
+			contribution.applyTo(generationContext, beanFactoryInitializationCode);
+			compile((initializer, compiled) -> {
+				GenericApplicationContext freshContext = new GenericApplicationContext();
+				initializer.accept(freshContext);
+				freshContext.refresh();
+				assertThat(freshContext.getBean(ClassNameHolder.class).className())
+						.isEqualTo(ImportAwareBeanRegistrarConfiguration.class.getName());
+				freshContext.close();
+			});
+		}
+
+		@SuppressWarnings("unchecked")
+		private void compile(BiConsumer<Consumer<GenericApplicationContext>, Compiled> result) {
+			MethodReference methodReference = beanFactoryInitializationCode.getInitializers().get(0);
+			beanFactoryInitializationCode.getTypeBuilder().set(type -> {
+				ArgumentCodeGenerator argCodeGenerator = ArgumentCodeGenerator
+						.of(ListableBeanFactory.class, "applicationContext.getBeanFactory()")
+						.and(ArgumentCodeGenerator.of(Environment.class, "applicationContext.getEnvironment()"));
+				CodeBlock methodInvocation = methodReference.toInvokeCodeBlock(argCodeGenerator,
+						beanFactoryInitializationCode.getClassName());
+				type.addModifiers(Modifier.PUBLIC);
+				type.addSuperinterface(ParameterizedTypeName.get(Consumer.class, GenericApplicationContext.class));
+				type.addMethod(MethodSpec.methodBuilder("accept").addModifiers(Modifier.PUBLIC)
+						.addParameter(GenericApplicationContext.class, "applicationContext")
+						.addStatement(methodInvocation)
+						.build());
+			});
+			generationContext.writeGeneratedContent();
+			TestCompiler.forSystem().with(generationContext).compile(compiled ->
+					result.accept(compiled.getInstance(Consumer.class), compiled));
+		}
+
+
+		@Configuration
+		@Import(DefaultConstructorBeanRegistrar.class)
+		public static class DefaultConstructorConfiguration {
+		}
+
+		public static class DefaultConstructorBeanRegistrar implements BeanRegistrar {
+
+			@Override
+			public void register(BeanRegistry registry, Environment env) {
+				registry.registerBean(Foo.class);
+			}
+		}
+
+		@Configuration
+		@Import(InstanceSupplierBeanRegistrar.class)
+		public static class InstanceSupplierConfiguration {
+		}
+
+		public static class InstanceSupplierBeanRegistrar implements BeanRegistrar {
+
+			@Override
+			public void register(BeanRegistry registry, Environment env) {
+				registry.registerBean(Foo.class, spec -> spec.supplier(context -> new Foo()));
+			}
+		}
+
+		@Configuration
+		@Import(PostConstructBeanRegistrar.class)
+		public static class PostConstructConfiguration {
+		}
+
+		public static class PostConstructBeanRegistrar implements BeanRegistrar {
+
+			@Override
+			public void register(BeanRegistry registry, Environment env) {
+				registry.registerBean(Init.class);
+			}
+		}
+
+		@Import(ImportAwareBeanRegistrar.class)
+		public static class ImportAwareBeanRegistrarConfiguration {
+		}
+
+		public static class ImportAwareBeanRegistrar implements BeanRegistrar, ImportAware {
+
+			@Nullable
+			private AnnotationMetadata importMetadata;
+
+			@Override
+			public void register(BeanRegistry registry, Environment env) {
+				registry.registerBean(ClassNameHolder.class, spec -> spec.supplier(context ->
+						new ClassNameHolder(this.importMetadata == null ? null : this.importMetadata.getClassName())));
+			}
+
+			@Override
+			public void setImportMetadata(AnnotationMetadata importMetadata) {
+				this.importMetadata = importMetadata;
+			}
+
+			public @Nullable AnnotationMetadata getImportMetadata() {
+				return this.importMetadata;
+			}
+		}
+
+		static class Foo {
+		}
+
+		static class Init {
+
+			boolean initialized = false;
+
+			@PostConstruct
+			void postConstruct() {
+				initialized = true;
+			}
+		}
+
+	}
+
+	public record ClassNameHolder(@Nullable String className) {}
+
+
+	private @Nullable BeanFactoryInitializationAotContribution getContribution(Class<?>... types) {
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		for (Class<?> type : types) {
 			beanFactory.registerBeanDefinition(type.getName(), new RootBeanDefinition(type));

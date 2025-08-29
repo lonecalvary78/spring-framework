@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.transaction.interceptor;
 
 import java.util.Collection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.TransactionDefinition;
 
 /**
@@ -41,8 +42,7 @@ public interface TransactionAttribute extends TransactionDefinition {
 	 * to process this specific transaction.
 	 * @since 3.0
 	 */
-	@Nullable
-	String getQualifier();
+	@Nullable String getQualifier();
 
 	/**
 	 * Return labels associated with this transaction attribute.

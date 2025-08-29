@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.springframework.expression.spel.ast;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.expression.TypedValue;
 import org.springframework.expression.spel.ExpressionState;
 import org.springframework.expression.spel.InternalParseException;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.SpelParseException;
-import org.springframework.lang.Nullable;
 
 /**
  * Common superclass for nodes representing literals (boolean, string, number, etc).
@@ -33,8 +34,7 @@ import org.springframework.lang.Nullable;
  */
 public abstract class Literal extends SpelNodeImpl {
 
-	@Nullable
-	private final String originalValue;
+	private final @Nullable String originalValue;
 
 
 	public Literal(@Nullable String originalValue, int startPos, int endPos) {
@@ -43,8 +43,7 @@ public abstract class Literal extends SpelNodeImpl {
 	}
 
 
-	@Nullable
-	public final String getOriginalValue() {
+	public final @Nullable String getOriginalValue() {
 		return this.originalValue;
 	}
 

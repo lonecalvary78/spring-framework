@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.context.annotation;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.lang.Nullable;
 
 /**
  * Registry of imported class {@link AnnotationMetadata}.
@@ -27,8 +28,7 @@ import org.springframework.lang.Nullable;
  */
 interface ImportRegistry {
 
-	@Nullable
-	AnnotationMetadata getImportingClassFor(String importedClass);
+	@Nullable AnnotationMetadata getImportingClassFor(String importedClass);
 
 	void removeImportingClass(String importingClass);
 

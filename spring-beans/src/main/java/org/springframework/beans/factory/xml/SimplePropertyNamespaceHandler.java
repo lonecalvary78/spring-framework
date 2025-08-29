@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.beans.factory.xml;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,7 +26,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.core.Conventions;
-import org.springframework.lang.Nullable;
 
 /**
  * Simple {@code NamespaceHandler} implementation that maps custom attributes
@@ -58,8 +58,7 @@ public class SimplePropertyNamespaceHandler implements NamespaceHandler {
 	}
 
 	@Override
-	@Nullable
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
+	public @Nullable BeanDefinition parse(Element element, ParserContext parserContext) {
 		parserContext.getReaderContext().error(
 				"Class [" + getClass().getName() + "] does not support custom elements.", element);
 		return null;

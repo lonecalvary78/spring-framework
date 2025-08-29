@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.springframework.beans.factory.annotation;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
-import org.springframework.lang.Nullable;
 
 /**
  * Extended {@link org.springframework.beans.factory.config.BeanDefinition}
@@ -45,7 +46,6 @@ public interface AnnotatedBeanDefinition extends BeanDefinition {
 	 * @return the factory method metadata, or {@code null} if none
 	 * @since 4.1.1
 	 */
-	@Nullable
-	MethodMetadata getFactoryMethodMetadata();
+	@Nullable MethodMetadata getFactoryMethodMetadata();
 
 }

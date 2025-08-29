@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,10 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptEvaluator;
 import org.springframework.scripting.ScriptSource;
@@ -44,14 +45,11 @@ import org.springframework.util.StringUtils;
  */
 public class StandardScriptEvaluator implements ScriptEvaluator, BeanClassLoaderAware {
 
-	@Nullable
-	private String engineName;
+	private @Nullable String engineName;
 
-	@Nullable
-	private volatile Bindings globalBindings;
+	private volatile @Nullable Bindings globalBindings;
 
-	@Nullable
-	private volatile ScriptEngineManager scriptEngineManager;
+	private volatile @Nullable ScriptEngineManager scriptEngineManager;
 
 
 	/**
@@ -132,14 +130,12 @@ public class StandardScriptEvaluator implements ScriptEvaluator, BeanClassLoader
 
 
 	@Override
-	@Nullable
-	public Object evaluate(ScriptSource script) {
+	public @Nullable Object evaluate(ScriptSource script) {
 		return evaluate(script, null);
 	}
 
 	@Override
-	@Nullable
-	public Object evaluate(ScriptSource script, @Nullable Map<String, Object> argumentBindings) {
+	public @Nullable Object evaluate(ScriptSource script, @Nullable Map<String, Object> argumentBindings) {
 		ScriptEngine engine = getScriptEngine(script);
 		try {
 			if (CollectionUtils.isEmpty(argumentBindings)) {

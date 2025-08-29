@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.validation.method;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -92,7 +93,7 @@ public class ParameterErrors extends ParameterValidationResult implements Errors
 	}
 
 	@Override
-	public void reject(String errorCode, @Nullable Object[] errorArgs, @Nullable String defaultMessage) {
+	public void reject(String errorCode, Object @Nullable [] errorArgs, @Nullable String defaultMessage) {
 		this.errors.reject(errorCode, errorArgs, defaultMessage);
 	}
 
@@ -108,7 +109,7 @@ public class ParameterErrors extends ParameterValidationResult implements Errors
 
 	@Override
 	public void rejectValue(@Nullable String field, String errorCode,
-			@Nullable Object[] errorArgs, @Nullable String defaultMessage) {
+			Object @Nullable [] errorArgs, @Nullable String defaultMessage) {
 
 		this.errors.rejectValue(field, errorCode, errorArgs, defaultMessage);
 	}
@@ -149,8 +150,7 @@ public class ParameterErrors extends ParameterValidationResult implements Errors
 	}
 
 	@Override
-	@Nullable
-	public ObjectError getGlobalError() {
+	public @Nullable ObjectError getGlobalError() {
 		return this.errors.getGlobalError();
 	}
 
@@ -170,8 +170,7 @@ public class ParameterErrors extends ParameterValidationResult implements Errors
 	}
 
 	@Override
-	@Nullable
-	public FieldError getFieldError() {
+	public @Nullable FieldError getFieldError() {
 		return this.errors.getFieldError();
 	}
 
@@ -191,20 +190,17 @@ public class ParameterErrors extends ParameterValidationResult implements Errors
 	}
 
 	@Override
-	@Nullable
-	public FieldError getFieldError(String field) {
+	public @Nullable FieldError getFieldError(String field) {
 		return this.errors.getFieldError(field);
 	}
 
 	@Override
-	@Nullable
-	public Object getFieldValue(String field) {
+	public @Nullable Object getFieldValue(String field) {
 		return this.errors.getFieldError(field);
 	}
 
 	@Override
-	@Nullable
-	public Class<?> getFieldType(String field) {
+	public @Nullable Class<?> getFieldType(String field) {
 		return this.errors.getFieldType(field);
 	}
 

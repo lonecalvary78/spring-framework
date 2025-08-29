@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,18 @@
 
 package org.springframework.web.method.support
 
+import kotlinx.coroutines.delay
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
+import org.springframework.core.MethodParameter
 import org.springframework.util.ReflectionUtils
+import org.springframework.web.bind.support.WebDataBinderFactory
 import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.context.request.ServletWebRequest
-import org.springframework.web.testfixture.method.ResolvableMethod
 import org.springframework.web.testfixture.servlet.MockHttpServletRequest
 import org.springframework.web.testfixture.servlet.MockHttpServletResponse
+import reactor.core.publisher.Mono
+import reactor.test.StepVerifier
 import java.lang.reflect.Method
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.javaMethod
@@ -33,6 +37,7 @@ import kotlin.reflect.jvm.javaMethod
  *
  * @author Sebastien Deleuze
  */
+@Suppress("UNCHECKED_CAST")
 class InvocableHandlerMethodKotlinTests {
 
 	private val request: NativeWebRequest = ServletWebRequest(MockHttpServletRequest(), MockHttpServletResponse())
@@ -105,9 +110,28 @@ class InvocableHandlerMethodKotlinTests {
 	}
 
 	@Test
+	fun nestedValueClass() {
+		composite.addResolver(StubArgumentResolver(Long::class.java, 1L))
+		val value = getInvocable(ValueClassHandler::nestedValueClass.javaMethod!!).invokeForRequest(request, null)
+		Assertions.assertThat(value).isEqualTo(1L)
+	}
+
+	@Test
 	fun valueClassReturnValue() {
 		val value = getInvocable(ValueClassHandler::valueClassReturnValue.javaMethod!!).invokeForRequest(request, null)
 		Assertions.assertThat(value).isEqualTo("foo")
+	}
+
+	@Test
+	fun nestedValueClassReturnValue() {
+		val value = getInvocable(ValueClassHandler::nestedValueClassReturnValue.javaMethod!!).invokeForRequest(request, null)
+		Assertions.assertThat(value).isEqualTo("foo")
+	}
+
+	@Test
+	fun resultOfUnitReturnValue() {
+		val value = getInvocable(ValueClassHandler::resultOfUnitReturnValue.javaMethod!!).invokeForRequest(request, null)
+		Assertions.assertThat(value).isNull()
 	}
 
 	@Test
@@ -136,6 +160,60 @@ class InvocableHandlerMethodKotlinTests {
 		composite.addResolver(StubArgumentResolver(Char::class.java, 'a'))
 		val value = getInvocable(ValueClassHandler::valueClassWithPrivateConstructor.javaMethod!!).invokeForRequest(request, null)
 		Assertions.assertThat(value).isEqualTo('a')
+	}
+
+	@Test
+	fun suspendingValueClass() {
+		composite.addResolver(ContinuationHandlerMethodArgumentResolver())
+		composite.addResolver(StubArgumentResolver(Long::class.java, 1L))
+		val value = getInvocable(SuspendingValueClassHandler::longValueClass.javaMethod!!).invokeForRequest(request, null)
+		StepVerifier.create(value as Mono<Long>).expectNext(1L).verifyComplete()
+	}
+
+	@Test
+	fun suspendingValueClassReturnValue() {
+		composite.addResolver(ContinuationHandlerMethodArgumentResolver())
+		val value = getInvocable(SuspendingValueClassHandler::valueClassReturnValue.javaMethod!!).invokeForRequest(request, null)
+		StepVerifier.create(value as Mono<String>).expectNext("foo").verifyComplete()
+	}
+
+	@Test
+	fun suspendingResultOfUnitReturnValue() {
+		composite.addResolver(ContinuationHandlerMethodArgumentResolver())
+		val value = getInvocable(SuspendingValueClassHandler::resultOfUnitReturnValue.javaMethod!!).invokeForRequest(request, null)
+		StepVerifier.create(value as Mono<Unit>).verifyComplete()
+	}
+
+	@Test
+	fun suspendingValueClassDefaultValue() {
+		composite.addResolver(ContinuationHandlerMethodArgumentResolver())
+		composite.addResolver(StubArgumentResolver(Double::class.java))
+		val value = getInvocable(SuspendingValueClassHandler::doubleValueClass.javaMethod!!).invokeForRequest(request, null)
+		StepVerifier.create(value as Mono<Double>).expectNext(3.1).verifyComplete()
+	}
+
+	@Test
+	fun suspendingValueClassWithInit() {
+		composite.addResolver(ContinuationHandlerMethodArgumentResolver())
+		composite.addResolver(StubArgumentResolver(String::class.java, ""))
+		val value = getInvocable(SuspendingValueClassHandler::valueClassWithInit.javaMethod!!).invokeForRequest(request, null)
+		StepVerifier.create(value as Mono<String>).verifyError(IllegalArgumentException::class.java)
+	}
+
+	@Test
+	fun suspendingValueClassWithNullable() {
+		composite.addResolver(ContinuationHandlerMethodArgumentResolver())
+		composite.addResolver(StubArgumentResolver(LongValueClass::class.java, null))
+		val value = getInvocable(SuspendingValueClassHandler::valueClassWithNullable.javaMethod!!).invokeForRequest(request, null)
+		StepVerifier.create(value as Mono<Long>).verifyComplete()
+	}
+
+	@Test
+	fun suspendingValueClassWithPrivateConstructor() {
+		composite.addResolver(ContinuationHandlerMethodArgumentResolver())
+		composite.addResolver(StubArgumentResolver(Char::class.java, 'a'))
+		val value = getInvocable(SuspendingValueClassHandler::valueClassWithPrivateConstructor.javaMethod!!).invokeForRequest(request, null)
+		StepVerifier.create(value as Mono<Char>).expectNext('a').verifyComplete()
 	}
 
 	@Test
@@ -206,23 +284,62 @@ class InvocableHandlerMethodKotlinTests {
 
 	private class ValueClassHandler {
 
-		fun valueClassReturnValue() =
-			StringValueClass("foo")
+		fun valueClassReturnValue() = StringValueClass("foo")
 
-		fun longValueClass(limit: LongValueClass) =
-			limit.value
+		fun nestedValueClassReturnValue() = NestedStringValueClass(StringValueClass("foo"))
 
-		fun doubleValueClass(limit: DoubleValueClass = DoubleValueClass(3.1)) =
-			limit.value
+		fun resultOfUnitReturnValue() = Result.success(Unit)
 
-		fun valueClassWithInit(valueClass: ValueClassWithInit) =
-			valueClass
+		fun longValueClass(limit: LongValueClass) = limit.value
 
-		fun valueClassWithNullable(limit: LongValueClass?) =
-			limit?.value
+		fun nestedValueClass(limit: ULongValueClass) = limit.value
 
-		fun valueClassWithPrivateConstructor(limit: ValueClassWithPrivateConstructor) =
-			limit.value
+		fun doubleValueClass(limit: DoubleValueClass = DoubleValueClass(3.1)) = limit.value
+
+		fun valueClassWithInit(valueClass: ValueClassWithInit) = valueClass
+
+		fun valueClassWithNullable(limit: LongValueClass?) = limit?.value
+
+		fun valueClassWithPrivateConstructor(limit: ValueClassWithPrivateConstructor) = limit.value
+	}
+
+	private class SuspendingValueClassHandler {
+
+		suspend fun valueClassReturnValue(): StringValueClass {
+			delay(1)
+			return StringValueClass("foo")
+		}
+
+		suspend fun resultOfUnitReturnValue(): Result<Unit> {
+			delay(1)
+			return Result.success(Unit)
+		}
+
+		suspend fun longValueClass(limit: LongValueClass): Long {
+			delay(1)
+			return limit.value
+		}
+
+
+		suspend fun doubleValueClass(limit: DoubleValueClass = DoubleValueClass(3.1)): Double {
+			delay(1)
+			return limit.value
+		}
+
+		suspend fun valueClassWithInit(valueClass: ValueClassWithInit): ValueClassWithInit {
+			delay(1)
+			return valueClass
+		}
+
+		suspend fun valueClassWithNullable(limit: LongValueClass?): Long? {
+			delay(1)
+			return limit?.value
+		}
+
+		suspend fun valueClassWithPrivateConstructor(limit: ValueClassWithPrivateConstructor): Char {
+			delay(1)
+			return limit.value
+		}
 	}
 
 	private class PropertyAccessorHandler {
@@ -259,7 +376,13 @@ class InvocableHandlerMethodKotlinTests {
 	value class StringValueClass(val value: String)
 
 	@JvmInline
+	value class NestedStringValueClass(val value: StringValueClass)
+
+	@JvmInline
 	value class LongValueClass(val value: Long)
+
+	@JvmInline
+	value class ULongValueClass(val value: ULong)
 
 	@JvmInline
 	value class DoubleValueClass(val value: Double)
@@ -281,5 +404,20 @@ class InvocableHandlerMethodKotlinTests {
 	}
 
 	class CustomException(message: String) : Throwable(message)
+
+	// Avoid adding a spring-webmvc dependency
+	class ContinuationHandlerMethodArgumentResolver : HandlerMethodArgumentResolver {
+
+		override fun supportsParameter(parameter: MethodParameter) =
+			"kotlin.coroutines.Continuation" == parameter.getParameterType().getName()
+
+		override fun resolveArgument(
+			parameter: MethodParameter,
+			mavContainer: ModelAndViewContainer?,
+			webRequest: NativeWebRequest,
+			binderFactory: WebDataBinderFactory?
+		) = null
+
+	}
 
 }

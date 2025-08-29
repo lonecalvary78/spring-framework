@@ -1,11 +1,10 @@
 [[mvc-cors]]
 = CORS
+
 [.small]#xref:web/webflux-cors.adoc[See equivalent in the Reactive stack]#
 
 Spring MVC lets you handle CORS (Cross-Origin Resource Sharing). This section
 describes how to do so.
-
-
 
 
 [[mvc-cors-intro]]
@@ -21,8 +20,6 @@ Cross-Origin Resource Sharing (CORS) is a https://www.w3.org/TR/cors/[W3C specif
 implemented by https://caniuse.com/#feat=cors[most browsers] that lets you specify
 what kind of cross-domain requests are authorized, rather than using less secure and less
 powerful workarounds based on IFRAME or JSONP.
-
-
 
 
 [[mvc-cors-credentialed-requests]]
@@ -50,8 +47,6 @@ specified regardless of the value of the `allowCredentials` property.
 
 WARNING: While such wildcard configuration can be handy, it is recommended when possible to configure
 a finite set of values instead to provide a higher level of security.
-
-
 
 
 [[mvc-cors-processing]]
@@ -100,8 +95,6 @@ To learn more from the source or make advanced customizations, check the code be
 * `CorsProcessor`, `DefaultCorsProcessor`
 * `AbstractHandlerMapping`
 ====
-
-
 
 
 [[mvc-cors-controller]]
@@ -269,8 +262,6 @@ Kotlin::
 ======
 
 
-
-
 [[mvc-cors-global]]
 == Global Configuration
 [.small]#xref:web/webflux-cors.adoc#webflux-cors-global[See equivalent in the Reactive stack]#
@@ -294,8 +285,6 @@ set to one or more specific domain (but not the special value `"*"`) or alternat
 the `allowOriginPatterns` property may be used to match to a dynamic set of origins.
 
 `maxAge` is set to 30 minutes.
-
-
 
 [[mvc-cors-global-java]]
 === Java Configuration
@@ -352,8 +341,6 @@ Kotlin::
 ----
 ======
 
-
-
 [[mvc-cors-global-xml]]
 === XML Configuration
 
@@ -376,8 +363,6 @@ as the following example shows:
 
 </mvc:cors>
 ----
-
-
 
 
 [[mvc-cors-filter]]

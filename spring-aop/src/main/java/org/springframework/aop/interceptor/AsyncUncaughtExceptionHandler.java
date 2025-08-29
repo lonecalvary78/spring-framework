@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.aop.interceptor;
 
 import java.lang.reflect.Method;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * A strategy for handling uncaught exceptions thrown from asynchronous methods.
@@ -38,6 +40,6 @@ public interface AsyncUncaughtExceptionHandler {
 	 * @param method the asynchronous method
 	 * @param params the parameters used to invoke the method
 	 */
-	void handleUncaughtException(Throwable ex, Method method, Object... params);
+	void handleUncaughtException(Throwable ex, Method method, @Nullable Object... params);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.Cache;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -46,19 +47,15 @@ public class ResourceHandlerRegistration {
 
 	private final List<Resource> locationsResources = new ArrayList<>();
 
-	@Nullable
-	private Integer cachePeriod;
+	private @Nullable Integer cachePeriod;
 
-	@Nullable
-	private CacheControl cacheControl;
+	private @Nullable CacheControl cacheControl;
 
-	@Nullable
-	private ResourceChainRegistration resourceChainRegistration;
+	private @Nullable ResourceChainRegistration resourceChainRegistration;
 
 	private boolean useLastModified = true;
 
-	@Nullable
-	private Function<Resource, String> etagGenerator;
+	private @Nullable Function<Resource, String> etagGenerator;
 
 	private boolean optimizeLocations = false;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.validation;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -37,8 +38,7 @@ public class FieldError extends ObjectError {
 
 	private final String field;
 
-	@Nullable
-	private final Object rejectedValue;
+	private final @Nullable Object rejectedValue;
 
 	private final boolean bindingFailure;
 
@@ -65,7 +65,7 @@ public class FieldError extends ObjectError {
 	 * @param defaultMessage the default message to be used to resolve this message
 	 */
 	public FieldError(String objectName, String field, @Nullable Object rejectedValue, boolean bindingFailure,
-			@Nullable String[] codes, @Nullable Object[] arguments, @Nullable String defaultMessage) {
+			String @Nullable [] codes, Object @Nullable [] arguments, @Nullable String defaultMessage) {
 
 		super(objectName, codes, arguments, defaultMessage);
 		Assert.notNull(field, "Field must not be null");
@@ -85,8 +85,7 @@ public class FieldError extends ObjectError {
 	/**
 	 * Return the rejected field value.
 	 */
-	@Nullable
-	public Object getRejectedValue() {
+	public @Nullable Object getRejectedValue() {
 		return this.rejectedValue;
 	}
 

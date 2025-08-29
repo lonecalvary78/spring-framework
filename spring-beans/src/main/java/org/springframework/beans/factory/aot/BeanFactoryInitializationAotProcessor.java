@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.beans.factory.aot;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.lang.Nullable;
 
 /**
  * AOT processor that makes bean factory initialization contributions by
@@ -58,7 +59,6 @@ public interface BeanFactoryInitializationAotProcessor {
 	 * @param beanFactory the bean factory to process
 	 * @return a {@link BeanFactoryInitializationAotContribution} or {@code null}
 	 */
-	@Nullable
-	BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory);
+	@Nullable BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory);
 
 }

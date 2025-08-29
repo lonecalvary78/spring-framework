@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.scripting.groovy;
 
 import java.io.IOException;
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.InvocationTargetException;
 
 import groovy.lang.GroovyClassLoader;
@@ -26,12 +27,12 @@ import groovy.lang.Script;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptFactory;
 import org.springframework.scripting.ScriptSource;
@@ -61,23 +62,17 @@ public class GroovyScriptFactory implements ScriptFactory, BeanFactoryAware, Bea
 
 	private final String scriptSourceLocator;
 
-	@Nullable
-	private GroovyObjectCustomizer groovyObjectCustomizer;
+	private @Nullable GroovyObjectCustomizer groovyObjectCustomizer;
 
-	@Nullable
-	private CompilerConfiguration compilerConfiguration;
+	private @Nullable CompilerConfiguration compilerConfiguration;
 
-	@Nullable
-	private GroovyClassLoader groovyClassLoader;
+	private @Nullable GroovyClassLoader groovyClassLoader;
 
-	@Nullable
-	private Class<?> scriptClass;
+	private @Nullable Class<?> scriptClass;
 
-	@Nullable
-	private Class<?> scriptResultClass;
+	private @Nullable Class<?> scriptResultClass;
 
-	@Nullable
-	private CachedResultHolder cachedResult;
+	private @Nullable CachedResultHolder cachedResult;
 
 	private final Object scriptClassMonitor = new Object();
 
@@ -201,8 +196,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanFactoryAware, Bea
 	 * @return {@code null} always
 	 */
 	@Override
-	@Nullable
-	public Class<?>[] getScriptInterfaces() {
+	public Class<?> @Nullable [] getScriptInterfaces() {
 		return null;
 	}
 
@@ -221,8 +215,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanFactoryAware, Bea
 	 * @see groovy.lang.GroovyClassLoader
 	 */
 	@Override
-	@Nullable
-	public Object getScriptedObject(ScriptSource scriptSource, @Nullable Class<?>... actualInterfaces)
+	public @Nullable Object getScriptedObject(ScriptSource scriptSource, Class<?> @Nullable ... actualInterfaces)
 			throws IOException, ScriptCompilationException {
 
 		synchronized (this.scriptClassMonitor) {
@@ -265,8 +258,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanFactoryAware, Bea
 	}
 
 	@Override
-	@Nullable
-	public Class<?> getScriptedObjectType(ScriptSource scriptSource)
+	public @Nullable Class<?> getScriptedObjectType(ScriptSource scriptSource)
 			throws IOException, ScriptCompilationException {
 
 		synchronized (this.scriptClassMonitor) {
@@ -314,8 +306,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanFactoryAware, Bea
 	 * or the result of running the script instance)
 	 * @throws ScriptCompilationException in case of instantiation failure
 	 */
-	@Nullable
-	protected Object executeScript(ScriptSource scriptSource, Class<?> scriptClass) throws ScriptCompilationException {
+	protected @Nullable Object executeScript(ScriptSource scriptSource, Class<?> scriptClass) throws ScriptCompilationException {
 		try {
 			GroovyObject groovyObj = (GroovyObject) ReflectionUtils.accessibleConstructor(scriptClass).newInstance();
 
@@ -341,7 +332,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanFactoryAware, Bea
 			throw new ScriptCompilationException(
 					scriptSource, "Unable to instantiate Groovy script class: " + scriptClass.getName(), ex);
 		}
-		catch (IllegalAccessException ex) {
+		catch (IllegalAccessException | InaccessibleObjectException ex) {
 			throw new ScriptCompilationException(
 					scriptSource, "Could not access Groovy script constructor: " + scriptClass.getName(), ex);
 		}
@@ -363,8 +354,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanFactoryAware, Bea
 	 */
 	private static class CachedResultHolder {
 
-		@Nullable
-		public final Object object;
+		public final @Nullable Object object;
 
 		public CachedResultHolder(@Nullable Object object) {
 			this.object = object;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,10 @@ import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.asm.Label;
 import org.springframework.asm.MethodVisitor;
@@ -39,7 +42,6 @@ import org.springframework.expression.spel.ExpressionState;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -66,7 +68,12 @@ import org.springframework.util.ReflectionUtils;
  * <p>As of Spring Framework 6.2, null-safe indexing is supported via the {@code '?.'}
  * operator. For example, {@code 'colors?.[0]'} will evaluate to {@code null} if
  * {@code colors} is {@code null} and will otherwise evaluate to the 0<sup>th</sup>
- * color.
+ * color. As of Spring Framework 7.0, null-safe indexing also applies when
+ * indexing into a structure contained in an {@link Optional}. For example, if
+ * {@code colors} is of type {@code Optional<Colors>}, the expression
+ * {@code 'colors?.[0]'} will evaluate to {@code null} if {@code colors} is
+ * {@code null} or {@link Optional#isEmpty() empty} and will otherwise evaluate
+ * to the 0<sup>th</sup> color, effectively {@code colors.get()[0]}.
  *
  * @author Andy Clement
  * @author Phillip Webb
@@ -101,38 +108,20 @@ public class Indexer extends SpelNodeImpl {
 
 	private final boolean nullSafe;
 
-	@Nullable
-	private IndexedType indexedType;
+	private @Nullable IndexedType indexedType;
 
-	@Nullable
-	private volatile String originalPrimitiveExitTypeDescriptor;
+	private volatile @Nullable String originalPrimitiveExitTypeDescriptor;
 
-	@Nullable
-	private volatile String arrayTypeDescriptor;
+	private volatile @Nullable String arrayTypeDescriptor;
 
-	@Nullable
-	private volatile CachedPropertyState cachedPropertyReadState;
+	private volatile @Nullable CachedPropertyState cachedPropertyReadState;
 
-	@Nullable
-	private volatile CachedPropertyState cachedPropertyWriteState;
+	private volatile @Nullable CachedPropertyState cachedPropertyWriteState;
 
-	@Nullable
-	private volatile CachedIndexState cachedIndexReadState;
+	private volatile @Nullable CachedIndexState cachedIndexReadState;
 
-	@Nullable
-	private volatile CachedIndexState cachedIndexWriteState;
+	private volatile @Nullable CachedIndexState cachedIndexWriteState;
 
-
-	/**
-	 * Create an {@code Indexer} with the given start position, end position, and
-	 * index expression.
-	 * @see #Indexer(boolean, int, int, SpelNodeImpl)
-	 * @deprecated as of 6.2, in favor of {@link #Indexer(boolean, int, int, SpelNodeImpl)}
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public Indexer(int startPos, int endPos, SpelNodeImpl indexExpression) {
-		this(false, startPos, endPos, indexExpression);
-	}
 
 	/**
 	 * Create an {@code Indexer} with the given null-safe flag, start position,
@@ -182,11 +171,20 @@ public class Indexer extends SpelNodeImpl {
 		TypedValue context = state.getActiveContextObject();
 		Object target = context.getValue();
 
-		if (target == null) {
-			if (this.nullSafe) {
+		if (isNullSafe()) {
+			if (target == null) {
 				return ValueRef.NullValueRef.INSTANCE;
 			}
-			// Raise a proper exception in case of a null target
+			if (target instanceof Optional<?> optional) {
+				if (optional.isEmpty()) {
+					return ValueRef.NullValueRef.INSTANCE;
+				}
+				target = optional.get();
+			}
+		}
+
+		// Raise a proper exception in case of a null target
+		if (target == null) {
 			throw new SpelEvaluationException(getStartPosition(), SpelMessage.CANNOT_INDEX_INTO_NULL_VALUE);
 		}
 
@@ -347,7 +345,7 @@ public class Indexer extends SpelNodeImpl {
 		}
 
 		Label skipIfNull = null;
-		if (this.nullSafe) {
+		if (isNullSafe()) {
 			mv.visitInsn(DUP);
 			skipIfNull = new Label();
 			Label continueLabel = new Label();
@@ -456,7 +454,7 @@ public class Indexer extends SpelNodeImpl {
 		// If this indexer would return a primitive - and yet it is also marked
 		// null-safe - then the exit type descriptor must be promoted to the box
 		// type to allow a null value to be passed on.
-		if (this.nullSafe && CodeFlow.isPrimitive(descriptor)) {
+		if (isNullSafe() && CodeFlow.isPrimitive(descriptor)) {
 			this.originalPrimitiveExitTypeDescriptor = descriptor;
 			this.exitTypeDescriptor = CodeFlow.toBoxedDescriptor(descriptor);
 		}
@@ -680,8 +678,7 @@ public class Indexer extends SpelNodeImpl {
 
 		private final Map map;
 
-		@Nullable
-		private final Object key;
+		private final @Nullable Object key;
 
 		private final TypeDescriptor mapEntryDescriptor;
 
@@ -916,8 +913,7 @@ public class Indexer extends SpelNodeImpl {
 			return (this.collection instanceof List);
 		}
 
-		@Nullable
-		private static Constructor<?> getDefaultConstructor(Class<?> type) {
+		private static @Nullable Constructor<?> getDefaultConstructor(Class<?> type) {
 			try {
 				return ReflectionUtils.accessibleConstructor(type);
 			}

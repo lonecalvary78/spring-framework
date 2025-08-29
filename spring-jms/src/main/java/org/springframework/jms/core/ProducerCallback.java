@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package org.springframework.jms.core;
 import jakarta.jms.JMSException;
 import jakarta.jms.MessageProducer;
 import jakarta.jms.Session;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Callback for sending a message to a JMS destination.
@@ -52,7 +51,6 @@ public interface ProducerCallback<T> {
 	 * (or {@code null} if none)
 	 * @throws jakarta.jms.JMSException if thrown by JMS API methods
 	 */
-	@Nullable
-	T doInJms(Session session, MessageProducer producer) throws JMSException;
+	@Nullable T doInJms(Session session, MessageProducer producer) throws JMSException;
 
 }

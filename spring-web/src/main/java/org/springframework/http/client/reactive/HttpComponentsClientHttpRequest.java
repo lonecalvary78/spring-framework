@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.reactive.ReactiveEntityProducer;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -40,7 +41,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.support.HttpComponentsHeadersAdapter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -59,8 +59,7 @@ class HttpComponentsClientHttpRequest extends AbstractClientHttpRequest {
 
 	private final HttpClientContext context;
 
-	@Nullable
-	private Flux<ByteBuffer> byteBufferFlux;
+	private @Nullable Flux<ByteBuffer> byteBufferFlux;
 
 	private transient long contentLength = -1;
 
@@ -126,7 +125,7 @@ class HttpComponentsClientHttpRequest extends AbstractClientHttpRequest {
 	protected void applyHeaders() {
 		HttpHeaders headers = getHeaders();
 
-		headers.entrySet()
+		headers.headerSet()
 				.stream()
 				.filter(entry -> !HttpHeaders.CONTENT_LENGTH.equals(entry.getKey()))
 				.forEach(entry -> entry.getValue().forEach(v -> this.httpRequest.addHeader(entry.getKey(), v)));

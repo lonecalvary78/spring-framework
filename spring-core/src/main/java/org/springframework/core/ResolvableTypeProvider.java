@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.core;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Any object can implement this interface to provide its actual {@link ResolvableType}.
@@ -37,7 +37,6 @@ public interface ResolvableTypeProvider {
 	 * Return the {@link ResolvableType} describing this instance
 	 * (or {@code null} if some sort of default should be applied instead).
 	 */
-	@Nullable
-	ResolvableType getResolvableType();
+	@Nullable ResolvableType getResolvableType();
 
 }

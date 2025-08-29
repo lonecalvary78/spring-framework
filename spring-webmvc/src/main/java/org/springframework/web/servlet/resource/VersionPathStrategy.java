@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.web.servlet.resource;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A strategy for extracting and embedding a resource version in its URL path.
@@ -32,8 +32,7 @@ public interface VersionPathStrategy {
 	 * @param requestPath the request path to check
 	 * @return the version string or {@code null} if none was found
 	 */
-	@Nullable
-	String extractVersion(String requestPath);
+	@Nullable String extractVersion(String requestPath);
 
 	/**
 	 * Remove the version from the request path. It is assumed that the given

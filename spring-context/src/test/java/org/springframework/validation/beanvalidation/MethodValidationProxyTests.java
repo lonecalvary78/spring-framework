@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.groups.Default;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -42,7 +43,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.BridgeMethodResolver;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncAnnotationAdvisor;
 import org.springframework.scheduling.annotation.AsyncAnnotationBeanPostProcessor;
@@ -223,9 +223,8 @@ class MethodValidationProxyTests {
 
 		private final MyValidBean myValidBean = new MyValidBean();
 
-		@Nullable
 		@Override
-		public Object invoke(MethodInvocation invocation) {
+		public @Nullable Object invoke(MethodInvocation invocation) {
 			Method method;
 			try {
 				method = ClassUtils.getMethod(MyValidBean.class, invocation.getMethod().getName(), (Class<?>[]) null);

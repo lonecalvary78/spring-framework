@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import java.util.function.Function;
 
 import jakarta.servlet.DispatcherType;
 import org.assertj.core.api.AssertProvider;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 import org.springframework.test.http.HttpMessageContentConverter;
@@ -132,8 +132,7 @@ public final class MockMvcTester {
 
 	private final MockMvc mockMvc;
 
-	@Nullable
-	private final HttpMessageContentConverter contentConverter;
+	private final @Nullable HttpMessageContentConverter contentConverter;
 
 
 	private MockMvcTester(MockMvc mockMvc, @Nullable HttpMessageContentConverter contentConverter) {

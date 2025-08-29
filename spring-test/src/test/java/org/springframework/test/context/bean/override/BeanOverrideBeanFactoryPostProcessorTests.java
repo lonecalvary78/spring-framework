@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.test.context.bean.override;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -84,8 +85,11 @@ class BeanOverrideBeanFactoryPostProcessorTests {
 
 		assertThatIllegalStateException()
 				.isThrownBy(context::refresh)
-				.withMessage("Unable to override bean: there is no bean " +
-						"to replace with name [descriptionBean] and type [java.lang.String].");
+				.withMessage("""
+						Unable to replace bean: there is no bean with name 'descriptionBean' \
+						and type java.lang.String (as required by field 'ByNameTestCase.description'). \
+						If the bean is defined in a @Bean method, make sure the return type is the most \
+						specific type possible (for example, the concrete implementation type).""");
 	}
 
 	@Test
@@ -95,8 +99,11 @@ class BeanOverrideBeanFactoryPostProcessorTests {
 
 		assertThatIllegalStateException()
 				.isThrownBy(context::refresh)
-				.withMessage("Unable to override bean: there is no bean " +
-						"to replace with name [descriptionBean] and type [java.lang.String].");
+				.withMessage("""
+						Unable to replace bean: there is no bean with name 'descriptionBean' \
+						and type java.lang.String (as required by field 'ByNameTestCase.description'). \
+						If the bean is defined in a @Bean method, make sure the return type is the most \
+						specific type possible (for example, the concrete implementation type).""");
 	}
 
 	@Test
@@ -141,8 +148,11 @@ class BeanOverrideBeanFactoryPostProcessorTests {
 
 		assertThatIllegalStateException()
 				.isThrownBy(context::refresh)
-				.withMessage("Unable to override bean: no beans of type java.lang.Integer " +
-						"(as required by annotated field 'ByTypeTestCase.counter')");
+				.withMessage("""
+						Unable to override bean: there are no beans of type java.lang.Integer \
+						(as required by field 'ByTypeTestCase.counter'). \
+						If the bean is defined in a @Bean method, make sure the return type is the most \
+						specific type possible (for example, the concrete implementation type).""");
 	}
 
 	@Test
@@ -153,9 +163,10 @@ class BeanOverrideBeanFactoryPostProcessorTests {
 
 		assertThatIllegalStateException()
 				.isThrownBy(context::refresh)
-				.withMessage("Unable to select a bean to override: found 2 beans " +
-						"of type java.lang.Integer (as required by annotated field 'ByTypeTestCase.counter'): " +
-						"[someInteger, anotherInteger]");
+				.withMessage("""
+						Unable to select a bean to override: found 2 beans of type java.lang.Integer \
+						(as required by field 'ByTypeTestCase.counter'): %s""",
+						List.of("someInteger", "anotherInteger"));
 	}
 
 	@Test
@@ -390,7 +401,7 @@ class BeanOverrideBeanFactoryPostProcessorTests {
 
 	private static AnnotationConfigApplicationContext createContext(Class<?> testClass) {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		Set<BeanOverrideHandler> handlers = new LinkedHashSet<>(BeanOverrideHandler.forTestClass(testClass));
+		Set<BeanOverrideHandler> handlers = new LinkedHashSet<>(BeanOverrideTestUtils.findHandlers(testClass));
 		new BeanOverrideContextCustomizer(handlers).customizeContext(context, mock(MergedContextConfiguration.class));
 		return context;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ import java.util.Locale;
 import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
 import groovy.text.markup.TemplateResolver;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -88,11 +88,9 @@ public class GroovyMarkupConfigurer extends TemplateConfiguration
 
 	private String resourceLoaderPath = "classpath:";
 
-	@Nullable
-	private MarkupTemplateEngine templateEngine;
+	private @Nullable MarkupTemplateEngine templateEngine;
 
-	@Nullable
-	private ApplicationContext applicationContext;
+	private @Nullable ApplicationContext applicationContext;
 
 
 	/**
@@ -215,8 +213,7 @@ public class GroovyMarkupConfigurer extends TemplateConfiguration
 	 */
 	private class LocaleTemplateResolver implements TemplateResolver {
 
-		@Nullable
-		private ClassLoader classLoader;
+		private @Nullable ClassLoader classLoader;
 
 		@Override
 		public void configure(ClassLoader templateClassLoader, TemplateConfiguration configuration) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.FlowAdapters;
 import reactor.core.publisher.Flux;
 
@@ -33,7 +34,6 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.support.JettyHeadersAdapter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -61,6 +61,7 @@ class JettyCoreServerHttpRequest extends AbstractServerHttpRequest {
 		this.request = request;
 	}
 
+
 	@Override
 	protected MultiValueMap<String, HttpCookie> initCookies() {
 		List<org.eclipse.jetty.http.HttpCookie> httpCookies = Request.getCookies(this.request);
@@ -75,8 +76,7 @@ class JettyCoreServerHttpRequest extends AbstractServerHttpRequest {
 	}
 
 	@Override
-	@Nullable
-	public SslInfo initSslInfo() {
+	public @Nullable SslInfo initSslInfo() {
 		if (this.request.getConnectionMetaData().isSecure() &&
 				this.request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE) instanceof EndPoint.SslSessionData sessionData) {
 			return new DefaultSslInfo(sessionData.sslSessionId(), sessionData.peerCertificates());
@@ -96,15 +96,13 @@ class JettyCoreServerHttpRequest extends AbstractServerHttpRequest {
 	}
 
 	@Override
-	@Nullable
-	public InetSocketAddress getLocalAddress() {
+	public @Nullable InetSocketAddress getLocalAddress() {
 		SocketAddress localAddress = this.request.getConnectionMetaData().getLocalSocketAddress();
 		return localAddress instanceof InetSocketAddress inet ? inet : null;
 	}
 
 	@Override
-	@Nullable
-	public InetSocketAddress getRemoteAddress() {
+	public @Nullable InetSocketAddress getRemoteAddress() {
 		SocketAddress remoteAddress = this.request.getConnectionMetaData().getRemoteSocketAddress();
 		return remoteAddress instanceof InetSocketAddress inet ? inet : null;
 	}
@@ -114,7 +112,10 @@ class JettyCoreServerHttpRequest extends AbstractServerHttpRequest {
 		// We access the request body as a Flow.Publisher, which is wrapped as an org.reactivestreams.Publisher and
 		// then wrapped as a Flux.
 		return Flux.from(FlowAdapters.toPublisher(Content.Source.asPublisher(this.request)))
-				.map(this.dataBufferFactory::wrap);
+				.map(chunk -> {
+					chunk.retain();
+					return this.dataBufferFactory.wrap(chunk);
+				});
 	}
 
 }

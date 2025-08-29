@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -37,8 +38,7 @@ import org.springframework.util.FileCopyUtils;
  */
 class JsonLoader {
 
-	@Nullable
-	private final Class<?> resourceLoadClass;
+	private final @Nullable Class<?> resourceLoadClass;
 
 	private final Charset charset;
 
@@ -49,8 +49,7 @@ class JsonLoader {
 	}
 
 
-	@Nullable
-	String getJson(@Nullable CharSequence source) {
+	@Nullable String getJson(@Nullable CharSequence source) {
 		if (source == null) {
 			return null;
 		}

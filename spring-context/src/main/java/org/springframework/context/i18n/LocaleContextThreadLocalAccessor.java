@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@
 package org.springframework.context.i18n;
 
 import io.micrometer.context.ThreadLocalAccessor;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adapt {@link LocaleContextHolder} to the {@link ThreadLocalAccessor} contract
@@ -42,8 +41,7 @@ public class LocaleContextThreadLocalAccessor implements ThreadLocalAccessor<Loc
 	}
 
 	@Override
-	@Nullable
-	public LocaleContext getValue() {
+	public @Nullable LocaleContext getValue() {
 		return LocaleContextHolder.getLocaleContext();
 	}
 

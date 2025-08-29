@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@ package org.springframework.web.reactive.result.method.annotation;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -85,8 +86,7 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueSyncAr
 	}
 
 	@Override
-	@Nullable
-	protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
+	protected @Nullable Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
 		String attributeName = HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 		return exchange.getAttributeOrDefault(attributeName, Collections.emptyMap()).get(name);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.jms;
 
 import jakarta.jms.JMSException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.NestedRuntimeException;
-import org.springframework.lang.Nullable;
 
 /**
  * Base class for exception thrown by the framework whenever it
@@ -68,8 +68,7 @@ public abstract class JmsException extends NestedRuntimeException {
 	 * @return a string specifying the vendor-specific error code if the
 	 * root cause is an instance of JMSException, or {@code null}
 	 */
-	@Nullable
-	public String getErrorCode() {
+	public @Nullable String getErrorCode() {
 		Throwable cause = getCause();
 		if (cause instanceof JMSException jmsException) {
 			return jmsException.getErrorCode();
@@ -83,8 +82,7 @@ public abstract class JmsException extends NestedRuntimeException {
 	 * @see jakarta.jms.JMSException#getLinkedException()
 	 */
 	@Override
-	@Nullable
-	public String getMessage() {
+	public @Nullable String getMessage() {
 		String message = super.getMessage();
 		Throwable cause = getCause();
 		if (cause instanceof JMSException jmsException) {

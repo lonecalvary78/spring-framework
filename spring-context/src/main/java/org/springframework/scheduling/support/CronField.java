@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import java.time.temporal.ValueRange;
 import java.util.Locale;
 import java.util.function.BiFunction;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -159,8 +160,7 @@ abstract class CronField {
 	 * @param temporal the seed value
 	 * @return the next or same temporal matching the pattern
 	 */
-	@Nullable
-	public abstract <T extends Temporal & Comparable<? super T>> T nextOrSame(T temporal);
+	public abstract <T extends Temporal & Comparable<? super T>> @Nullable T nextOrSame(T temporal);
 
 
 	protected Type type() {

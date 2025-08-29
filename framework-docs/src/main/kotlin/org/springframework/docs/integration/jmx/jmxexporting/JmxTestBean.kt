@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,8 @@ package org.springframework.docs.integration.jmx.jmxexporting
 // tag::snippet[]
 class JmxTestBean : IJmxTestBean {
 
-	private lateinit var name: String
-	private var age = 0
-
-	override fun getAge(): Int {
-		return age
-	}
-
-	override fun setAge(age: Int) {
-		this.age = age
-	}
-
-	override fun setName(name: String) {
-		this.name = name
-	}
-
-	override fun getName(): String {
-		return name
-	}
+	override lateinit var name: String
+	override var age = 0
 
 	override fun add(x: Int, y: Int): Int {
 		return x + y

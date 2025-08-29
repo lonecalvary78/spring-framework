@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@
 package org.springframework.web.servlet.mvc.condition;
 
 import jakarta.servlet.http.HttpServletRequest;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contract for request mapping conditions.
@@ -57,8 +56,7 @@ public interface RequestCondition<T> {
 	 * empty content thus not causing a failure to match.
 	 * @return a condition instance in case of a match or {@code null} otherwise.
 	 */
-	@Nullable
-	T getMatchingCondition(HttpServletRequest request);
+	@Nullable T getMatchingCondition(HttpServletRequest request);
 
 	/**
 	 * Compare this condition to another condition in the context of

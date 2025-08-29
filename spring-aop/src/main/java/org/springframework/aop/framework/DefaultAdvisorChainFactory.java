@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.aopalliance.intercept.Interceptor;
 import org.aopalliance.intercept.MethodInterceptor;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.IntroductionAdvisor;
@@ -32,7 +33,6 @@ import org.springframework.aop.MethodMatcher;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.framework.adapter.AdvisorAdapterRegistry;
 import org.springframework.aop.framework.adapter.GlobalAdvisorAdapterRegistry;
-import org.springframework.lang.Nullable;
 
 /**
  * A simple but definitive way of working out an advice chain for a Method,

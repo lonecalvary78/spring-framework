@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ class ControllerMappingReflectiveProcessorTests {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Response.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-							MemberCategory.DECLARED_FIELDS);
+							MemberCategory.ACCESS_DECLARED_FIELDS);
 					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
 							hint -> assertThat(hint.getName()).isEqualTo("getMessage"),
 							hint -> assertThat(hint.getName()).isEqualTo("setMessage"));
@@ -66,7 +66,7 @@ class ControllerMappingReflectiveProcessorTests {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Request.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-							MemberCategory.DECLARED_FIELDS);
+							MemberCategory.ACCESS_DECLARED_FIELDS);
 					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
 							hint -> assertThat(hint.getName()).isEqualTo("getMessage"),
 							hint -> assertThat(hint.getName()).isEqualTo("setMessage"));
@@ -84,7 +84,7 @@ class ControllerMappingReflectiveProcessorTests {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Request.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-							MemberCategory.DECLARED_FIELDS);
+							MemberCategory.ACCESS_DECLARED_FIELDS);
 					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
 							hint -> assertThat(hint.getName()).isEqualTo("getMessage"),
 							hint -> assertThat(hint.getName()).isEqualTo("setMessage"));
@@ -102,7 +102,7 @@ class ControllerMappingReflectiveProcessorTests {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Response.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-							MemberCategory.DECLARED_FIELDS);
+							MemberCategory.ACCESS_DECLARED_FIELDS);
 					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
 							hint -> assertThat(hint.getName()).isEqualTo("getMessage"),
 							hint -> assertThat(hint.getName()).isEqualTo("setMessage"));
@@ -141,7 +141,7 @@ class ControllerMappingReflectiveProcessorTests {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Response.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-							MemberCategory.DECLARED_FIELDS);
+							MemberCategory.ACCESS_DECLARED_FIELDS);
 					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
 							hint -> assertThat(hint.getName()).isEqualTo("getMessage"),
 							hint -> assertThat(hint.getName()).isEqualTo("setMessage"));
@@ -167,7 +167,7 @@ class ControllerMappingReflectiveProcessorTests {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Request.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-							MemberCategory.DECLARED_FIELDS);
+							MemberCategory.ACCESS_DECLARED_FIELDS);
 					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
 							hint -> assertThat(hint.getName()).isEqualTo("getMessage"),
 							hint -> assertThat(hint.getName()).isEqualTo("setMessage"));
@@ -193,7 +193,7 @@ class ControllerMappingReflectiveProcessorTests {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Request.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-							MemberCategory.DECLARED_FIELDS);
+							MemberCategory.ACCESS_DECLARED_FIELDS);
 					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
 							hint -> assertThat(hint.getName()).isEqualTo("getMessage"),
 							hint -> assertThat(hint.getName()).isEqualTo("setMessage"));

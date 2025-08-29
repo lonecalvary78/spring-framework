@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,10 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 
@@ -150,8 +150,7 @@ public abstract class JdbcUtils {
 	 * @throws SQLException if thrown by the JDBC API
 	 * @see #getResultSetValue(ResultSet, int)
 	 */
-	@Nullable
-	public static Object getResultSetValue(ResultSet rs, int index, @Nullable Class<?> requiredType) throws SQLException {
+	public static @Nullable Object getResultSetValue(ResultSet rs, int index, @Nullable Class<?> requiredType) throws SQLException {
 		if (requiredType == null) {
 			return getResultSetValue(rs, index);
 		}
@@ -274,8 +273,7 @@ public abstract class JdbcUtils {
 	 * @see java.sql.Clob
 	 * @see java.sql.Timestamp
 	 */
-	@Nullable
-	public static Object getResultSetValue(ResultSet rs, int index) throws SQLException {
+	public static @Nullable Object getResultSetValue(ResultSet rs, int index) throws SQLException {
 		Object obj = rs.getObject(index);
 		String className = null;
 		if (obj != null) {
@@ -323,7 +321,7 @@ public abstract class JdbcUtils {
 	 * @throws MetaDataAccessException if meta-data access failed
 	 * @see java.sql.DatabaseMetaData
 	 */
-	public static <T> T extractDatabaseMetaData(DataSource dataSource, DatabaseMetaDataCallback<T> action)
+	public static <T extends @Nullable Object> T extractDatabaseMetaData(DataSource dataSource, DatabaseMetaDataCallback<T> action)
 			throws MetaDataAccessException {
 
 		Connection con = null;
@@ -377,11 +375,11 @@ public abstract class JdbcUtils {
 	 * @throws MetaDataAccessException if we couldn't access the DatabaseMetaData
 	 * or failed to invoke the specified method
 	 * @see java.sql.DatabaseMetaData
-	 * @deprecated as of 5.2.9, in favor of
+	 * @deprecated in favor of
 	 * {@link #extractDatabaseMetaData(DataSource, DatabaseMetaDataCallback)}
 	 * with a lambda expression or method reference and a generically typed result
 	 */
-	@Deprecated
+	@Deprecated(since = "5.2.9")
 	@SuppressWarnings("unchecked")
 	public static <T> T extractDatabaseMetaData(DataSource dataSource, final String metaDataMethodName)
 			throws MetaDataAccessException {
@@ -445,8 +443,7 @@ public abstract class JdbcUtils {
 	 * @param source the name as provided in database meta-data
 	 * @return the common name to be used (for example, "DB2" or "Sybase")
 	 */
-	@Nullable
-	public static String commonDatabaseName(@Nullable String source) {
+	public static @Nullable String commonDatabaseName(@Nullable String source) {
 		String name = source;
 		if (source != null && source.startsWith("DB2")) {
 			name = "DB2";
@@ -479,8 +476,7 @@ public abstract class JdbcUtils {
 	 * (for example, "VARCHAR"/"NUMERIC"), or {@code null} if not resolvable
 	 * @since 5.2
 	 */
-	@Nullable
-	public static String resolveTypeName(int sqlType) {
+	public static @Nullable String resolveTypeName(int sqlType) {
 		return typeNames.get(sqlType);
 	}
 

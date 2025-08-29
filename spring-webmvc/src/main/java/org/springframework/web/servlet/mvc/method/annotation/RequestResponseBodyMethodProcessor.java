@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.Conventions;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
@@ -32,7 +34,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -142,8 +143,7 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 	 * converter to read the content with.
 	 */
 	@Override
-	@Nullable
-	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
+	public @Nullable Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
 
 		parameter = parameter.nestedIfOptional();
@@ -168,8 +168,7 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 	}
 
 	@Override
-	@Nullable
-	protected Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
+	protected @Nullable Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
 			Type paramType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
 		ServletServerHttpRequest inputMessage = createInputMessage(webRequest);

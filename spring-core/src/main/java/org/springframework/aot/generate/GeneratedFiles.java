@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.aot.generate;
 
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.javapoet.JavaFile;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -47,8 +48,8 @@ public interface GeneratedFiles {
 	 * @param javaFile the java file to add
 	 */
 	default void addSourceFile(JavaFile javaFile) {
-		validatePackage(javaFile.packageName, javaFile.typeSpec.name);
-		String className = javaFile.packageName + "." + javaFile.typeSpec.name;
+		validatePackage(javaFile.packageName(), javaFile.typeSpec().name());
+		String className = javaFile.packageName() + "." + javaFile.typeSpec().name();
 		addSourceFile(className, javaFile::writeTo);
 	}
 
@@ -192,9 +193,9 @@ public interface GeneratedFiles {
 
 	private static void validatePackage(String packageName, String className) {
 		if (!StringUtils.hasLength(packageName)) {
-			throw new IllegalArgumentException("Could not add '" + className + "', "
-					+ "processing classes in the default package is not supported. "
-					+ "Did you forget to add a package statement?");
+			throw new IllegalArgumentException("Could not add '" + className + "', " +
+					"processing classes in the default package is not supported. " +
+					"Did you forget to add a package statement?");
 		}
 	}
 
@@ -264,8 +265,7 @@ public interface GeneratedFiles {
 		 * Return an {@link InputStreamSource} for the content of the file or
 		 * {@code null} if the file does not exist.
 		 */
-		@Nullable
-		public InputStreamSource getContent() {
+		public @Nullable InputStreamSource getContent() {
 			return (exists() ? this.existingContent.get() : null);
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -28,7 +30,6 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 
 /**
@@ -82,8 +83,7 @@ public class ResourceHttpMessageConverter extends AbstractHttpMessageConverter<R
 		if (this.supportsReadStreaming && InputStreamResource.class == clazz) {
 			return new InputStreamResource(inputMessage.getBody()) {
 				@Override
-				@Nullable
-				public String getFilename() {
+				public @Nullable String getFilename() {
 					return inputMessage.getHeaders().getContentDisposition().getFilename();
 				}
 				@Override
@@ -97,8 +97,7 @@ public class ResourceHttpMessageConverter extends AbstractHttpMessageConverter<R
 			byte[] body = StreamUtils.copyToByteArray(inputMessage.getBody());
 			return new ByteArrayResource(body) {
 				@Override
-				@Nullable
-				public String getFilename() {
+				public @Nullable String getFilename() {
 					return inputMessage.getHeaders().getContentDisposition().getFilename();
 				}
 			};
@@ -131,8 +130,7 @@ public class ResourceHttpMessageConverter extends AbstractHttpMessageConverter<R
 	}
 
 	@Override
-	@Nullable
-	protected Long getContentLength(Resource resource, @Nullable MediaType contentType) throws IOException {
+	protected @Nullable Long getContentLength(Resource resource, @Nullable MediaType contentType) throws IOException {
 		// Don't try to determine contentLength on InputStreamResource - cannot be read afterwards...
 		// Note: custom InputStreamResource subclasses could provide a pre-calculated content length!
 		if (InputStreamResource.class == resource.getClass()) {
@@ -160,20 +158,20 @@ public class ResourceHttpMessageConverter extends AbstractHttpMessageConverter<R
 				in.transferTo(out);
 				out.flush();
 			}
-			catch (NullPointerException ex) {
-				// ignore, see SPR-13620
+			catch (NullPointerException ignored) {
+				// see SPR-13620
 			}
 			finally {
 				try {
 					in.close();
 				}
-				catch (Throwable ex) {
-					// ignore, see SPR-12999
+				catch (Throwable ignored) {
+					// see SPR-12999
 				}
 			}
 		}
-		catch (FileNotFoundException ex) {
-			// ignore, see SPR-12999
+		catch (FileNotFoundException ignored) {
+			// see SPR-12999
 		}
 	}
 

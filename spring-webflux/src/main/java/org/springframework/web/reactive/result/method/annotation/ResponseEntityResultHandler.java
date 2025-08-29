@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.KotlinDetector;
@@ -36,7 +37,6 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.HttpMessageWriter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.reactive.HandlerResult;

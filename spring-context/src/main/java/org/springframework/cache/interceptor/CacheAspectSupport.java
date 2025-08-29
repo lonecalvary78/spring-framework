@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
@@ -55,7 +57,6 @@ import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.SpringProperties;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -129,19 +130,15 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	private final CacheOperationExpressionEvaluator evaluator = new CacheOperationExpressionEvaluator(
 			new CacheEvaluationContextFactory(this.originalEvaluationContext));
 
-	@Nullable
-	private final ReactiveCachingHandler reactiveCachingHandler;
+	private final @Nullable ReactiveCachingHandler reactiveCachingHandler;
 
-	@Nullable
-	private CacheOperationSource cacheOperationSource;
+	private @Nullable CacheOperationSource cacheOperationSource;
 
 	private SingletonSupplier<KeyGenerator> keyGenerator = SingletonSupplier.of(SimpleKeyGenerator::new);
 
-	@Nullable
-	private SingletonSupplier<CacheResolver> cacheResolver;
+	private @Nullable SingletonSupplier<CacheResolver> cacheResolver;
 
-	@Nullable
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	private boolean initialized = false;
 
@@ -158,8 +155,8 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	 * @since 5.1
 	 */
 	public void configure(
-			@Nullable Supplier<CacheErrorHandler> errorHandler, @Nullable Supplier<KeyGenerator> keyGenerator,
-			@Nullable Supplier<CacheResolver> cacheResolver, @Nullable Supplier<CacheManager> cacheManager) {
+			@Nullable Supplier<? extends @Nullable CacheErrorHandler> errorHandler, @Nullable Supplier<? extends @Nullable KeyGenerator> keyGenerator,
+			@Nullable Supplier<? extends @Nullable CacheResolver> cacheResolver, @Nullable Supplier<? extends @Nullable CacheManager> cacheManager) {
 
 		this.errorHandler = new SingletonSupplier<>(errorHandler, SimpleCacheErrorHandler::new);
 		this.keyGenerator = new SingletonSupplier<>(keyGenerator, SimpleKeyGenerator::new);
@@ -192,8 +189,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	/**
 	 * Return the CacheOperationSource for this cache aspect.
 	 */
-	@Nullable
-	public CacheOperationSource getCacheOperationSource() {
+	public @Nullable CacheOperationSource getCacheOperationSource() {
 		return this.cacheOperationSource;
 	}
 
@@ -228,8 +224,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	/**
 	 * Return the default {@link CacheResolver} that this cache aspect delegates to.
 	 */
-	@Nullable
-	public CacheResolver getCacheResolver() {
+	public @Nullable CacheResolver getCacheResolver() {
 		return SupplierUtils.resolve(this.cacheResolver);
 	}
 
@@ -288,8 +283,8 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 				}
 			}
 			catch (NoSuchBeanDefinitionException ex) {
-				throw new NoSuchBeanDefinitionException(CacheManager.class, "no CacheResolver specified - "
-						+ "register a CacheManager bean or remove the @EnableCaching annotation from your configuration.");
+				throw new NoSuchBeanDefinitionException(CacheManager.class, "no CacheResolver specified - " +
+						"register a CacheManager bean or remove the @EnableCaching annotation from your configuration.");
 			}
 		}
 		this.initialized = true;
@@ -323,7 +318,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	}
 
 	protected CacheOperationContext getOperationContext(
-			CacheOperation operation, Method method, Object[] args, Object target, Class<?> targetClass) {
+			CacheOperation operation, Method method, @Nullable Object[] args, Object target, Class<?> targetClass) {
 
 		CacheOperationMetadata metadata = getCacheOperationMetadata(operation, method, targetClass);
 		return new CacheOperationContext(metadata, args, target);
@@ -397,8 +392,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		this.evaluator.clear();
 	}
 
-	@Nullable
-	protected Object execute(CacheOperationInvoker invoker, Object target, Method method, Object[] args) {
+	protected @Nullable Object execute(CacheOperationInvoker invoker, Object target, Method method, @Nullable Object[] args) {
 		// Check whether aspect is enabled (to cope with cases where the AJ is pulled in automatically)
 		if (this.initialized) {
 			Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
@@ -425,13 +419,11 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	 * @return the result of the invocation
 	 * @see CacheOperationInvoker#invoke()
 	 */
-	@Nullable
-	protected Object invokeOperation(CacheOperationInvoker invoker) {
+	protected @Nullable Object invokeOperation(CacheOperationInvoker invoker) {
 		return invoker.invoke();
 	}
 
-	@Nullable
-	private Object execute(CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
+	private @Nullable Object execute(CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
 		if (contexts.isSynchronized()) {
 			// Special handling of synchronized invocation
 			return executeSynchronized(invoker, method, contexts);
@@ -449,14 +441,40 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		return cacheHit;
 	}
 
-	@Nullable
-	private Object executeSynchronized(CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private @Nullable Object executeSynchronized(CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
 		CacheOperationContext context = contexts.get(CacheableOperation.class).iterator().next();
 		if (isConditionPassing(context, CacheOperationExpressionEvaluator.NO_RESULT)) {
 			Object key = generateKey(context, CacheOperationExpressionEvaluator.NO_RESULT);
 			Cache cache = context.getCaches().iterator().next();
 			if (CompletableFuture.class.isAssignableFrom(method.getReturnType())) {
-				return doRetrieve(cache, key, () -> (CompletableFuture<?>) invokeOperation(invoker));
+				AtomicBoolean invokeFailure = new AtomicBoolean(false);
+				CompletableFuture<?> result = doRetrieve(cache, key,
+						() -> {
+							CompletableFuture<?> invokeResult = ((CompletableFuture<?>) invokeOperation(invoker));
+							if (invokeResult == null) {
+								throw new IllegalStateException("Returned CompletableFuture must not be null: " + method);
+							}
+							return invokeResult.exceptionallyCompose(ex -> {
+								invokeFailure.set(true);
+								return CompletableFuture.failedFuture(ex);
+							});
+						});
+				return result.exceptionallyCompose(ex -> {
+					if (!(ex instanceof RuntimeException rex)) {
+						return CompletableFuture.failedFuture(ex);
+					}
+					try {
+						getErrorHandler().handleCacheGetError(rex, cache, key);
+						if (invokeFailure.get()) {
+							return CompletableFuture.failedFuture(ex);
+						}
+						return (CompletableFuture) invokeOperation(invoker);
+					}
+					catch (Throwable ex2) {
+						return CompletableFuture.failedFuture(ex2);
+					}
+				});
 			}
 			if (this.reactiveCachingHandler != null) {
 				Object returnValue = this.reactiveCachingHandler.executeSynchronized(invoker, method, cache, key);
@@ -487,8 +505,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 	 * @return a {@link Cache.ValueWrapper} holding the cached value,
 	 * or {@code null} if none is found
 	 */
-	@Nullable
-	private Object findCachedValue(CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
+	private @Nullable Object findCachedValue(CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
 		for (CacheOperationContext context : contexts.get(CacheableOperation.class)) {
 			if (isConditionPassing(context, CacheOperationExpressionEvaluator.NO_RESULT)) {
 				Object key = generateKey(context, CacheOperationExpressionEvaluator.NO_RESULT);
@@ -509,17 +526,24 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		return null;
 	}
 
-	@Nullable
-	private Object findInCaches(CacheOperationContext context, Object key,
+	private @Nullable Object findInCaches(CacheOperationContext context, Object key,
 			CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
 
 		for (Cache cache : context.getCaches()) {
 			if (CompletableFuture.class.isAssignableFrom(context.getMethod().getReturnType())) {
 				CompletableFuture<?> result = doRetrieve(cache, key);
 				if (result != null) {
-					return result.exceptionally(ex -> {
-						getErrorHandler().handleCacheGetError((RuntimeException) ex, cache, key);
-						return null;
+					return result.exceptionallyCompose(ex -> {
+						if (!(ex instanceof RuntimeException rex)) {
+							return CompletableFuture.failedFuture(ex);
+						}
+						try {
+							getErrorHandler().handleCacheGetError(rex, cache, key);
+							return CompletableFuture.completedFuture(null);
+						}
+						catch (Throwable ex2) {
+							return CompletableFuture.failedFuture(ex2);
+						}
 					}).thenCompose(value -> (CompletableFuture<?>) evaluate(
 							(value != null ? CompletableFuture.completedFuture(unwrapCacheValue(value)) : null),
 							invoker, method, contexts));
@@ -543,8 +567,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		return null;
 	}
 
-	@Nullable
-	private Object evaluate(@Nullable Object cacheHit, CacheOperationInvoker invoker, Method method,
+	private @Nullable Object evaluate(@Nullable Object cacheHit, CacheOperationInvoker invoker, Method method,
 			CacheOperationContexts contexts) {
 
 		// Re-invocation in reactive pipeline after late cache hit determination?
@@ -596,13 +619,11 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		return returnValue;
 	}
 
-	@Nullable
-	private Object unwrapCacheValue(@Nullable Object cacheValue) {
+	private @Nullable Object unwrapCacheValue(@Nullable Object cacheValue) {
 		return (cacheValue instanceof Cache.ValueWrapper wrapper ? wrapper.get() : cacheValue);
 	}
 
-	@Nullable
-	private Object wrapCacheValue(Method method, @Nullable Object cacheValue) {
+	private @Nullable Object wrapCacheValue(Method method, @Nullable Object cacheValue) {
 		if (method.getReturnType() == Optional.class &&
 				(cacheValue == null || cacheValue.getClass() != Optional.class)) {
 			return Optional.ofNullable(cacheValue);
@@ -610,8 +631,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		return cacheValue;
 	}
 
-	@Nullable
-	private Object unwrapReturnValue(@Nullable Object returnValue) {
+	private @Nullable Object unwrapReturnValue(@Nullable Object returnValue) {
 		return ObjectUtils.unwrapOptional(returnValue);
 	}
 
@@ -633,8 +653,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		return (cachePutContexts.size() != excluded.size());
 	}
 
-	@Nullable
-	private Object processCacheEvicts(Collection<CacheOperationContext> contexts, boolean beforeInvocation,
+	private @Nullable Object processCacheEvicts(Collection<CacheOperationContext> contexts, boolean beforeInvocation,
 			@Nullable Object result) {
 
 		if (contexts.isEmpty()) {
@@ -743,7 +762,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		boolean processed;
 
 		public CacheOperationContexts(Collection<? extends CacheOperation> operations, Method method,
-				Object[] args, Object target, Class<?> targetClass) {
+				@Nullable Object[] args, Object target, Class<?> targetClass) {
 
 			this.contexts = new LinkedMultiValueMap<>(operations.size());
 			for (CacheOperation op : operations) {
@@ -841,7 +860,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 		private final CacheOperationMetadata metadata;
 
-		private final Object[] args;
+		private final @Nullable Object[] args;
 
 		private final Object target;
 
@@ -849,13 +868,11 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 		private final Collection<String> cacheNames;
 
-		@Nullable
-		private Boolean conditionPassing;
+		private @Nullable Boolean conditionPassing;
 
-		@Nullable
-		private Object key;
+		private @Nullable Object key;
 
-		public CacheOperationContext(CacheOperationMetadata metadata, Object[] args, Object target) {
+		public CacheOperationContext(CacheOperationMetadata metadata, @Nullable Object[] args, Object target) {
 			this.metadata = metadata;
 			this.args = extractArgs(metadata.method, args);
 			this.target = target;
@@ -879,11 +896,11 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		}
 
 		@Override
-		public Object[] getArgs() {
+		public @Nullable Object[] getArgs() {
 			return this.args;
 		}
 
-		private Object[] extractArgs(Method method, Object[] args) {
+		private @Nullable Object[] extractArgs(Method method, @Nullable Object[] args) {
 			if (!method.isVarArgs()) {
 				return args;
 			}
@@ -926,8 +943,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		/**
 		 * Compute the key for the given caching operation.
 		 */
-		@Nullable
-		protected Object generateKey(@Nullable Object result) {
+		protected @Nullable Object generateKey(@Nullable Object result) {
 			if (StringUtils.hasText(this.metadata.operation.getKey())) {
 				EvaluationContext evaluationContext = createEvaluationContext(result);
 				this.key = evaluator.key(this.metadata.operation.getKey(), this.metadata.methodKey, evaluationContext);
@@ -943,8 +959,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		 * @return generated key
 		 * @since 6.1.2
 		 */
-		@Nullable
-		protected Object getGeneratedKey() {
+		protected @Nullable Object getGeneratedKey() {
 			return this.key;
 		}
 
@@ -1018,8 +1033,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 			this.context = context;
 		}
 
-		@Nullable
-		public Object apply(@Nullable Object result) {
+		public @Nullable Object apply(@Nullable Object result) {
 			if (result instanceof CompletableFuture<?> future) {
 				return future.whenComplete((value, ex) -> {
 					if (ex == null) {
@@ -1097,38 +1111,76 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 		private final ReactiveAdapterRegistry registry = ReactiveAdapterRegistry.getSharedInstance();
 
-		@Nullable
-		public Object executeSynchronized(CacheOperationInvoker invoker, Method method, Cache cache, Object key) {
+		@SuppressWarnings({"rawtypes", "unchecked"})
+		public @Nullable Object executeSynchronized(CacheOperationInvoker invoker, Method method, Cache cache, Object key) {
+			AtomicBoolean invokeFailure = new AtomicBoolean(false);
 			ReactiveAdapter adapter = this.registry.getAdapter(method.getReturnType());
 			if (adapter != null) {
 				if (adapter.isMultiValue()) {
 					// Flux or similar
 					return adapter.fromPublisher(Flux.from(Mono.fromFuture(
-							cache.retrieve(key,
-									() -> Flux.from(adapter.toPublisher(invokeOperation(invoker))).collectList().toFuture())))
-							.flatMap(Flux::fromIterable));
+							doRetrieve(cache, key,
+									() -> Flux.from(adapter.toPublisher(invokeOperation(invoker))).collectList().doOnError(ex -> invokeFailure.set(true)).toFuture())))
+							.flatMap(Flux::fromIterable)
+							.onErrorResume(RuntimeException.class, ex -> {
+								try {
+									getErrorHandler().handleCacheGetError(ex, cache, key);
+									if (invokeFailure.get()) {
+										return Flux.error(ex);
+									}
+									return Flux.from(adapter.toPublisher(invokeOperation(invoker)));
+								}
+								catch (RuntimeException exception) {
+									return Flux.error(exception);
+								}
+							}));
 				}
 				else {
 					// Mono or similar
 					return adapter.fromPublisher(Mono.fromFuture(
-							cache.retrieve(key,
-									() -> Mono.from(adapter.toPublisher(invokeOperation(invoker))).toFuture())));
+							doRetrieve(cache, key,
+									() -> Mono.from(adapter.toPublisher(invokeOperation(invoker))).doOnError(ex -> invokeFailure.set(true)).toFuture()))
+							.onErrorResume(RuntimeException.class, ex -> {
+								try {
+									getErrorHandler().handleCacheGetError(ex, cache, key);
+									if (invokeFailure.get()) {
+										return Mono.error(ex);
+									}
+									return Mono.from(adapter.toPublisher(invokeOperation(invoker)));
+								}
+								catch (RuntimeException exception) {
+									return Mono.error(exception);
+								}
+							}));
 				}
 			}
-			if (KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isSuspendingFunction(method)) {
-				return Mono.fromFuture(cache.retrieve(key, () -> {
-					Mono<?> mono = ((Mono<?>) invokeOperation(invoker));
-					if (mono == null) {
+			if (KotlinDetector.isSuspendingFunction(method)) {
+				return Mono.fromFuture(doRetrieve(cache, key, () -> {
+					Mono<?> mono = (Mono<?>) invokeOperation(invoker);
+					if (mono != null) {
+						mono = mono.doOnError(ex -> invokeFailure.set(true));
+					}
+					else {
 						mono = Mono.empty();
 					}
 					return mono.toFuture();
-				}));
+				})).onErrorResume(RuntimeException.class, ex -> {
+					try {
+						getErrorHandler().handleCacheGetError(ex, cache, key);
+						if (invokeFailure.get()) {
+							return Mono.error(ex);
+						}
+						return (Mono) invokeOperation(invoker);
+					}
+					catch (RuntimeException exception) {
+						return Mono.error(exception);
+					}
+				});
 			}
 			return NOT_HANDLED;
 		}
 
-		@Nullable
-		public Object processCacheEvicts(List<CacheOperationContext> contexts, @Nullable Object result) {
+		public @Nullable Object processCacheEvicts(List<CacheOperationContext> contexts, @Nullable Object result) {
 			ReactiveAdapter adapter = (result != null ? this.registry.getAdapter(result.getClass()) : null);
 			if (adapter != null) {
 				return adapter.fromPublisher(Mono.from(adapter.toPublisher(result))
@@ -1137,9 +1189,8 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 			return NOT_HANDLED;
 		}
 
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		@Nullable
-		public Object findInCaches(CacheOperationContext context, Cache cache, Object key,
+		@SuppressWarnings({"rawtypes", "unchecked"})
+		public @Nullable Object findInCaches(CacheOperationContext context, Cache cache, Object key,
 				CacheOperationInvoker invoker, Method method, CacheOperationContexts contexts) {
 
 			ReactiveAdapter adapter = this.registry.getAdapter(context.getMethod().getReturnType());
@@ -1188,8 +1239,7 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 					(data != null ? Flux.just(data) : Flux.empty()));
 		}
 
-		@Nullable
-		public Object processPutRequest(CachePutRequest request, @Nullable Object result) {
+		public @Nullable Object processPutRequest(CachePutRequest request, @Nullable Object result) {
 			ReactiveAdapter adapter = (result != null ? this.registry.getAdapter(result.getClass()) : null);
 			if (adapter != null) {
 				if (adapter.isMultiValue()) {

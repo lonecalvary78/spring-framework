@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -35,7 +33,6 @@ import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ClassUtils;
-import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -63,6 +60,8 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.mock;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.servlet.mvc.method.RequestMappingInfo.paths;
 
 /**
  * Tests for {@link RequestMappingHandlerMapping}.
@@ -100,74 +99,6 @@ class RequestMappingHandlerMappingTests {
 
 		mapping.afterPropertiesSet();
 		assertThat(mapping.getBuilderConfiguration()).isNotNull().isNotSameAs(config);
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	void useRegisteredSuffixPatternMatch() {
-		RequestMappingHandlerMapping mapping = createMapping();
-
-		Map<String, MediaType> fileExtensions = Collections.singletonMap("json", MediaType.APPLICATION_JSON);
-		org.springframework.web.accept.PathExtensionContentNegotiationStrategy strategy =
-				new org.springframework.web.accept.PathExtensionContentNegotiationStrategy(fileExtensions);
-		ContentNegotiationManager manager = new ContentNegotiationManager(strategy);
-
-		mapping.setContentNegotiationManager(manager);
-		mapping.setUseRegisteredSuffixPatternMatch(true);
-		mapping.afterPropertiesSet();
-
-		assertThat(mapping.useSuffixPatternMatch()).isTrue();
-		assertThat(mapping.useRegisteredSuffixPatternMatch()).isTrue();
-		assertThat(mapping.getFileExtensions()).isEqualTo(Collections.singletonList("json"));
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	void useRegisteredSuffixPatternMatchInitialization() {
-		Map<String, MediaType> fileExtensions = Collections.singletonMap("json", MediaType.APPLICATION_JSON);
-		org.springframework.web.accept.PathExtensionContentNegotiationStrategy strategy =
-				new org.springframework.web.accept.PathExtensionContentNegotiationStrategy(fileExtensions);
-		ContentNegotiationManager manager = new ContentNegotiationManager(strategy);
-
-		final Set<String> extensions = new HashSet<>();
-
-		RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping() {
-			@Override
-			protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
-				extensions.addAll(getFileExtensions());
-				return super.getMappingForMethod(method, handlerType);
-			}
-		};
-
-		StaticWebApplicationContext wac = new StaticWebApplicationContext();
-		wac.registerSingleton("testController", ComposedAnnotationController.class);
-		wac.refresh();
-
-		mapping.setContentNegotiationManager(manager);
-		mapping.setUseRegisteredSuffixPatternMatch(true);
-		mapping.setApplicationContext(wac);
-		mapping.afterPropertiesSet();
-
-		assertThat(extensions).containsOnly("json");
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	void suffixPatternMatchSettings() {
-		RequestMappingHandlerMapping mapping = createMapping();
-
-		assertThat(mapping.useSuffixPatternMatch()).isFalse();
-		assertThat(mapping.useRegisteredSuffixPatternMatch()).isFalse();
-
-		mapping.setUseRegisteredSuffixPatternMatch(false);
-		assertThat(mapping.useSuffixPatternMatch())
-				.as("'false' registeredSuffixPatternMatch shouldn't impact suffixPatternMatch")
-				.isFalse();
-
-		mapping.setUseRegisteredSuffixPatternMatch(true);
-		assertThat(mapping.useSuffixPatternMatch())
-				.as("'true' registeredSuffixPatternMatch should enable suffixPatternMatch")
-				.isTrue();
 	}
 
 	@PathPatternsParameterizedTest
@@ -214,6 +145,7 @@ class RequestMappingHandlerMappingTests {
 		assertThat(info.getActivePatternsCondition().getMatchingCondition(request)).isNull();
 	}
 
+	@SuppressWarnings("removal")
 	private void initRequestPath(RequestMappingHandlerMapping mapping, MockHttpServletRequest request) {
 		PathPatternParser parser = mapping.getPatternParser();
 		if (parser != null) {
@@ -237,7 +169,7 @@ class RequestMappingHandlerMappingTests {
 	}
 
 	@Test // SPR-14988
-	void getMappingOverridesConsumesFromTypeLevelAnnotation() {
+	void postMappingOverridesConsumesFromTypeLevelAnnotation() {
 		RequestMappingInfo requestMappingInfo = assertComposedAnnotationMapping(RequestMethod.POST);
 
 		ConsumesRequestCondition condition = requestMappingInfo.getConsumesCondition();
@@ -456,6 +388,80 @@ class RequestMappingHandlerMappingTests {
 				.containsExactly("h1=hv1", "!h2");
 	}
 
+	@Test  // gh-35086
+	void requestBodyAnnotationFromInterfaceIsRespected() throws Exception {
+		String path = "/controller/postMapping";
+		MediaType mediaType = MediaType.APPLICATION_JSON;
+
+		RequestMappingHandlerMapping mapping = createMapping();
+
+		Class<?> controllerClass = InterfaceControllerImpl.class;
+		Method method = controllerClass.getDeclaredMethod("post", Foo.class);
+
+		RequestMappingInfo info = mapping.getMappingForMethod(method, controllerClass);
+		assertThat(info).isNotNull();
+
+		// Original ConsumesCondition
+		ConsumesRequestCondition consumesCondition = info.getConsumesCondition();
+		assertThat(consumesCondition).isNotNull();
+		assertThat(consumesCondition.isBodyRequired()).isTrue();
+		assertThat(consumesCondition.getConsumableMediaTypes()).containsOnly(mediaType);
+
+		mapping.registerHandlerMethod(new InterfaceControllerImpl(), method, info);
+
+		// Updated ConsumesCondition
+		consumesCondition = info.getConsumesCondition();
+		assertThat(consumesCondition).isNotNull();
+		assertThat(consumesCondition.isBodyRequired()).isFalse();
+		assertThat(consumesCondition.getConsumableMediaTypes()).containsOnly(mediaType);
+
+		MockHttpServletRequest request = new MockHttpServletRequest("POST", path);
+		request.setContentType(mediaType.toString());
+		initRequestPath(mapping, request);
+
+		RequestMappingInfo matchingInfo = info.getMatchingCondition(request);
+		// Since the request has no body AND the required flag is false, the
+		// ConsumesCondition in the matching condition in an EMPTY_CONDITION.
+		// In other words, the "consumes" expressions are removed.
+		assertThat(matchingInfo).isEqualTo(paths(path).methods(POST).build());
+	}
+
+	@Test  // gh-35086
+	void requestBodyAnnotationFromImplementationOverridesInterface() throws Exception {
+		String path = "/controller/postMapping";
+		MediaType mediaType = MediaType.APPLICATION_JSON;
+
+		RequestMappingHandlerMapping mapping = createMapping();
+
+		Class<?> controllerClass = InterfaceControllerImplOverridesRequestBody.class;
+		Method method = controllerClass.getDeclaredMethod("post", Foo.class);
+
+		RequestMappingInfo info = mapping.getMappingForMethod(method, controllerClass);
+		assertThat(info).isNotNull();
+
+		// Original ConsumesCondition
+		ConsumesRequestCondition consumesCondition = info.getConsumesCondition();
+		assertThat(consumesCondition).isNotNull();
+		assertThat(consumesCondition.isBodyRequired()).isTrue();
+		assertThat(consumesCondition.getConsumableMediaTypes()).containsOnly(mediaType);
+
+		mapping.registerHandlerMethod(new InterfaceControllerImplOverridesRequestBody(), method, info);
+
+		// Updated ConsumesCondition
+		consumesCondition = info.getConsumesCondition();
+		assertThat(consumesCondition).isNotNull();
+		assertThat(consumesCondition.isBodyRequired()).isTrue();
+		assertThat(consumesCondition.getConsumableMediaTypes()).containsOnly(mediaType);
+
+		MockHttpServletRequest request = new MockHttpServletRequest("POST", path);
+		request.setContentType(mediaType.toString());
+		initRequestPath(mapping, request);
+
+		RequestMappingInfo matchingInfo = info.getMatchingCondition(request);
+		assertThat(matchingInfo).isEqualTo(paths(path).methods(POST).consumes(mediaType.toString()).build());
+	}
+
+
 	private static RequestMappingHandlerMapping createMapping() {
 		RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
 		mapping.setApplicationContext(new StaticWebApplicationContext());
@@ -641,6 +647,25 @@ class RequestMappingHandlerMappingTests {
 		public void post() {}
 	}
 
+	@RestController
+	@RequestMapping(path = "/controller", consumes = "application/json")
+	interface InterfaceController {
+
+		@PostMapping("/postMapping")
+		void post(@RequestBody(required = false) Foo foo);
+	}
+
+	static class InterfaceControllerImpl implements InterfaceController {
+
+		@Override
+		public void post(Foo foo) {}
+	}
+
+	static class InterfaceControllerImplOverridesRequestBody implements InterfaceController {
+
+		@Override
+		public void post(@RequestBody(required = true) Foo foo) {}
+	}
 
 	@HttpExchange
 	@Target(ElementType.TYPE)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aot.AotDetector;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.lang.Nullable;
 import org.springframework.test.annotation.DirtiesContext.HierarchyMode;
 import org.springframework.test.context.ApplicationContextFailureProcessor;
 import org.springframework.test.context.CacheAwareContextLoaderDelegate;
@@ -57,6 +57,11 @@ import org.springframework.util.Assert;
  * feature described in {@link CacheAwareContextLoaderDelegate#loadContext},
  * delegating to {@link ContextCacheUtils#retrieveContextFailureThreshold()} to
  * obtain the threshold value to use.
+ *
+ * <p>As of Spring Framework 7.0, this class provides support for
+ * {@linkplain #registerContextUsage(MergedContextConfiguration, Class) registering} and
+ * {@linkplain #unregisterContextUsage(MergedContextConfiguration, Class) unregistering}
+ * context usage.
  *
  * @author Sam Brannen
  * @since 4.1
@@ -201,6 +206,22 @@ public class DefaultCacheAwareContextLoaderDelegate implements CacheAwareContext
 		mergedConfig = replaceIfNecessary(mergedConfig);
 		synchronized (this.contextCache) {
 			this.contextCache.remove(mergedConfig, hierarchyMode);
+		}
+	}
+
+	@Override
+	public void registerContextUsage(MergedContextConfiguration mergedConfig, Class<?> testClass) {
+		mergedConfig = replaceIfNecessary(mergedConfig);
+		synchronized (this.contextCache) {
+			this.contextCache.registerContextUsage(mergedConfig, testClass);
+		}
+	}
+
+	@Override
+	public void unregisterContextUsage(MergedContextConfiguration mergedConfig, Class<?> testClass) {
+		mergedConfig = replaceIfNecessary(mergedConfig);
+		synchronized (this.contextCache) {
+			this.contextCache.unregisterContextUsage(mergedConfig, testClass);
 		}
 	}
 

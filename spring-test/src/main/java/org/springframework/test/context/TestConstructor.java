@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import java.util.Locale;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@code @TestConstructor} is an annotation that can be applied to a test class
@@ -39,9 +38,8 @@ import org.springframework.lang.Nullable;
  * on a test class, the default <em>test constructor autowire mode</em> will be
  * used. See {@link #TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME} for details on
  * how to change the default mode. Note, however, that a local declaration of
- * {@link org.springframework.beans.factory.annotation.Autowired @Autowired}
- * {@link jakarta.inject.Inject @jakarta.inject.Inject}, or
- * {@link javax.inject.Inject @javax.inject.Inject} on a constructor takes
+ * {@link org.springframework.beans.factory.annotation.Autowired @Autowired} or
+ * {@link jakarta.inject.Inject @jakarta.inject.Inject} on a constructor takes
  * precedence over both {@code @TestConstructor} and the default mode.
  *
  * <p>This annotation may be used as a <em>meta-annotation</em> to create custom
@@ -55,15 +53,13 @@ import org.springframework.lang.Nullable;
  * {@link org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig @SpringJUnitWebConfig}
  * or various test-related annotations from Spring Boot Test.
  *
- * <p>As of Spring Framework 5.3, this annotation will be inherited from an
- * enclosing test class by default. See
- * {@link NestedTestConfiguration @NestedTestConfiguration} for details.
+ * <p>This annotation will be inherited from an enclosing test class by default.
+ * See {@link NestedTestConfiguration @NestedTestConfiguration} for details.
  *
  * @author Sam Brannen
  * @since 5.2
  * @see org.springframework.beans.factory.annotation.Autowired @Autowired
  * @see jakarta.inject.Inject @jakarta.inject.Inject
- * @see javax.inject.Inject @javax.inject.Inject
  * @see org.springframework.test.context.junit.jupiter.SpringExtension SpringExtension
  * @see org.springframework.test.context.junit.jupiter.SpringJUnitConfig @SpringJUnitConfig
  * @see org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig @SpringJUnitWebConfig
@@ -91,7 +87,7 @@ public @interface TestConstructor {
 	 * <p>May alternatively be configured via the
 	 * {@link org.springframework.core.SpringProperties SpringProperties}
 	 * mechanism.
-	 * <p>As of Spring Framework 5.3, this property may also be configured as a
+	 * <p>This property may also be configured as a
 	 * <a href="https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params">JUnit
 	 * Platform configuration parameter</a>.
 	 * @see #autowireMode
@@ -109,7 +105,6 @@ public @interface TestConstructor {
 	 * @see #TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME
 	 * @see org.springframework.beans.factory.annotation.Autowired @Autowired
 	 * @see jakarta.inject.Inject @jakarta.inject.Inject
-	 * @see javax.inject.Inject @javax.inject.Inject
 	 * @see AutowireMode#ALL
 	 * @see AutowireMode#ANNOTATED
 	 */
@@ -126,9 +121,8 @@ public @interface TestConstructor {
 		/**
 		 * All test constructor parameters will be autowired as if the constructor
 		 * itself were annotated with
-		 * {@link org.springframework.beans.factory.annotation.Autowired @Autowired},
-		 * {@link jakarta.inject.Inject @jakarta.inject.Inject}, or
-		 * {@link javax.inject.Inject @javax.inject.Inject}.
+		 * {@link org.springframework.beans.factory.annotation.Autowired @Autowired} or
+		 * {@link jakarta.inject.Inject @jakarta.inject.Inject}.
 		 * @see #ANNOTATED
 		 */
 		ALL,
@@ -140,9 +134,8 @@ public @interface TestConstructor {
 		 * {@link org.springframework.beans.factory.annotation.Qualifier @Qualifier},
 		 * or {@link org.springframework.beans.factory.annotation.Value @Value},
 		 * or if the constructor itself is annotated with
-		 * {@link org.springframework.beans.factory.annotation.Autowired @Autowired},
-		 * {@link jakarta.inject.Inject @jakarta.inject.Inject}, or
-		 * {@link javax.inject.Inject @javax.inject.Inject}.
+		 * {@link org.springframework.beans.factory.annotation.Autowired @Autowired} or
+		 * {@link jakarta.inject.Inject @jakarta.inject.Inject}.
 		 * @see #ALL
 		 */
 		ANNOTATED;
@@ -156,8 +149,7 @@ public @interface TestConstructor {
 		 * @since 5.3
 		 * @see AutowireMode#valueOf(String)
 		 */
-		@Nullable
-		public static AutowireMode from(@Nullable String name) {
+		public static @Nullable AutowireMode from(@Nullable String name) {
 			if (name == null) {
 				return null;
 			}

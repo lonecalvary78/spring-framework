@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.messaging.simp;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.CompositeMessageCondition;
 import org.springframework.messaging.handler.DestinationPatternsMessageCondition;
@@ -64,8 +65,7 @@ public class SimpMessageMappingInfo implements MessageCondition<SimpMessageMappi
 	}
 
 	@Override
-	@Nullable
-	public SimpMessageMappingInfo getMatchingCondition(Message<?> message) {
+	public @Nullable SimpMessageMappingInfo getMatchingCondition(Message<?> message) {
 		CompositeMessageCondition condition = this.delegate.getMatchingCondition(message);
 		return condition != null ? new SimpMessageMappingInfo(condition) : null;
 	}

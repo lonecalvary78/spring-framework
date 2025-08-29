@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.orm.jpa;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import jakarta.persistence.EntityManagerFactory;
@@ -24,14 +26,19 @@ import jakarta.persistence.SharedCacheMode;
 import jakarta.persistence.ValidationMode;
 import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceUnitInfo;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.weaving.LoadTimeWeaverAware;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.instrument.classloading.LoadTimeWeaver;
 import org.springframework.jdbc.datasource.lookup.SingleDataSourceLookup;
-import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager;
 import org.springframework.orm.jpa.persistenceunit.ManagedClassNameFilter;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
@@ -40,6 +47,8 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.orm.jpa.persistenceunit.SmartPersistenceUnitInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * {@link org.springframework.beans.factory.FactoryBean} that creates a JPA
@@ -89,13 +98,11 @@ import org.springframework.util.ClassUtils;
 public class LocalContainerEntityManagerFactoryBean extends AbstractEntityManagerFactoryBean
 		implements ResourceLoaderAware, LoadTimeWeaverAware {
 
-	@Nullable
-	private PersistenceUnitManager persistenceUnitManager;
+	private @Nullable PersistenceUnitManager persistenceUnitManager;
 
 	private final DefaultPersistenceUnitManager internalPersistenceUnitManager = new DefaultPersistenceUnitManager();
 
-	@Nullable
-	private PersistenceUnitInfo persistenceUnitInfo;
+	private @Nullable PersistenceUnitInfo persistenceUnitInfo;
 
 
 	/**
@@ -363,6 +370,25 @@ public class LocalContainerEntityManagerFactoryBean extends AbstractEntityManage
 			}
 		}
 
+		String scope = this.persistenceUnitInfo.getScopeAnnotationName();
+		if (StringUtils.hasText(scope)) {
+			logger.info("Scope annotation name for persistence unit ignored by Spring: " + scope);
+		}
+
+		List<String> qualifiers = this.persistenceUnitInfo.getQualifierAnnotationNames();
+		if (!CollectionUtils.isEmpty(qualifiers)) {
+			BeanFactory beanFactory = getBeanFactory();
+			String beanName = getBeanName();
+			if (beanFactory instanceof ConfigurableBeanFactory cbf && beanName != null) {
+				BeanDefinition bd = cbf.getMergedBeanDefinition(beanName);
+				if (bd instanceof AbstractBeanDefinition abd) {
+					for (String qualifier : qualifiers) {
+						abd.addQualifier(new AutowireCandidateQualifier(qualifier));
+					}
+				}
+			}
+		}
+
 		super.afterPropertiesSet();
 	}
 
@@ -426,14 +452,12 @@ public class LocalContainerEntityManagerFactoryBean extends AbstractEntityManage
 
 
 	@Override
-	@Nullable
-	public PersistenceUnitInfo getPersistenceUnitInfo() {
+	public @Nullable PersistenceUnitInfo getPersistenceUnitInfo() {
 		return this.persistenceUnitInfo;
 	}
 
 	@Override
-	@Nullable
-	public String getPersistenceUnitName() {
+	public @Nullable String getPersistenceUnitName() {
 		if (this.persistenceUnitInfo != null) {
 			return this.persistenceUnitInfo.getPersistenceUnitName();
 		}
@@ -441,8 +465,7 @@ public class LocalContainerEntityManagerFactoryBean extends AbstractEntityManage
 	}
 
 	@Override
-	@Nullable
-	public DataSource getDataSource() {
+	public @Nullable DataSource getDataSource() {
 		if (this.persistenceUnitInfo != null) {
 			return (this.persistenceUnitInfo.getJtaDataSource() != null ?
 					this.persistenceUnitInfo.getJtaDataSource() :

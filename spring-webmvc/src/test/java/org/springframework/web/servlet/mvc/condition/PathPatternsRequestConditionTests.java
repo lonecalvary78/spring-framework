@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,29 +124,6 @@ class PathPatternsRequestConditionTests {
 		PathPatternsRequestCondition expected = createCondition("/foo/bar", "/foo/*", "/**");
 
 		assertThat(match).isEqualTo(expected);
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	void matchTrailingSlash() {
-		MockHttpServletRequest request = createRequest("/foo/");
-
-		PathPatternParser patternParser = new PathPatternParser();
-		patternParser.setMatchOptionalTrailingSeparator(true);
-
-		PathPatternsRequestCondition condition = new PathPatternsRequestCondition(patternParser, "/foo");
-		PathPatternsRequestCondition match = condition.getMatchingCondition(request);
-
-		assertThat(match).isNotNull();
-		assertThat(match.getPatternValues()).containsExactly("/foo");
-
-		PathPatternParser strictParser = new PathPatternParser();
-		strictParser.setMatchOptionalTrailingSeparator(false);
-
-		condition = new PathPatternsRequestCondition(strictParser, "/foo");
-		match = condition.getMatchingCondition(request);
-
-		assertThat(match).isNull();
 	}
 
 	@Test

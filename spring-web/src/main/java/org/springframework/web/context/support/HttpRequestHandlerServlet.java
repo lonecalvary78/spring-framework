@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestHandler;
@@ -45,8 +45,7 @@ import org.springframework.web.context.WebApplicationContext;
 @SuppressWarnings("serial")
 public class HttpRequestHandlerServlet extends HttpServlet {
 
-	@Nullable
-	private HttpRequestHandler target;
+	private @Nullable HttpRequestHandler target;
 
 
 	@Override

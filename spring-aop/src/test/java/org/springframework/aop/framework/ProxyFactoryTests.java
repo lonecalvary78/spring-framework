@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -338,6 +338,18 @@ class ProxyFactoryTests {
 		assertThat(proxy).isInstanceOf(MyDate.class);
 		assertThat(proxy).isInstanceOf(TimeStamped.class);
 		assertThat(AopProxyUtils.ultimateTargetClass(proxy)).isEqualTo(MyDate.class);
+	}
+
+	@Test
+	void proxyInterfaceInCaseOfIntroducedInterfaceOnly() {
+		ProxyFactory pf = new ProxyFactory();
+		pf.addInterface(TimeStamped.class);
+		TimestampIntroductionInterceptor ti = new TimestampIntroductionInterceptor(0L);
+		pf.addAdvisor(new DefaultIntroductionAdvisor(ti, TimeStamped.class));
+		Object proxy = pf.getProxy();
+		assertThat(AopUtils.isJdkDynamicProxy(proxy)).as("Proxy is a JDK proxy").isTrue();
+		assertThat(proxy).isInstanceOf(TimeStamped.class);
+		assertThat(AopProxyUtils.ultimateTargetClass(proxy)).isEqualTo(proxy.getClass());
 	}
 
 	@Test

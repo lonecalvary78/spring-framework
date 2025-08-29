@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,13 @@ public class AbstractMockHttpServletResponseAssertTests {
 		assertThatExceptionOfType(AssertionError.class)
 				.isThrownBy(() -> assertThat(fromResponse(response)).hasRedirectedUrl("another"))
 				.withMessageContainingAll("Redirected URL", redirectedUrl, "another");
+	}
+
+	@Test
+	void hasServletErrorMessage() throws Exception{
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		response.sendError(403, "expected error message");
+		assertThat(fromResponse(response)).hasErrorMessage("expected error message");
 	}
 
 

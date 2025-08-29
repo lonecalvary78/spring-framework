@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import jakarta.jms.JMSException;
 import jakarta.jms.Session;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jms.JmsException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -63,8 +63,7 @@ public abstract class JmsAccessor implements InitializingBean {
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	private ConnectionFactory connectionFactory;
+	private @Nullable ConnectionFactory connectionFactory;
 
 	private boolean sessionTransacted = false;
 
@@ -82,8 +81,7 @@ public abstract class JmsAccessor implements InitializingBean {
 	 * Return the ConnectionFactory that this accessor uses for obtaining
 	 * JMS {@link Connection Connections}.
 	 */
-	@Nullable
-	public ConnectionFactory getConnectionFactory() {
+	public @Nullable ConnectionFactory getConnectionFactory() {
 		return this.connectionFactory;
 	}
 

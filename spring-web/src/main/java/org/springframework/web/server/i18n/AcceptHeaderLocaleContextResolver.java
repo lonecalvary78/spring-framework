@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.i18n.LocaleContext;
 import org.springframework.context.i18n.SimpleLocaleContext;
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -48,8 +49,7 @@ public class AcceptHeaderLocaleContextResolver implements LocaleContextResolver 
 
 	private final List<Locale> supportedLocales = new ArrayList<>(4);
 
-	@Nullable
-	private Locale defaultLocale;
+	private @Nullable Locale defaultLocale;
 
 
 	/**
@@ -94,8 +94,7 @@ public class AcceptHeaderLocaleContextResolver implements LocaleContextResolver 
 	 * The configured default locale, if any.
 	 * <p>This method may be overridden in subclasses.
 	 */
-	@Nullable
-	public Locale getDefaultLocale() {
+	public @Nullable Locale getDefaultLocale() {
 		return this.defaultLocale;
 	}
 
@@ -112,8 +111,7 @@ public class AcceptHeaderLocaleContextResolver implements LocaleContextResolver 
 		return new SimpleLocaleContext(resolveSupportedLocale(requestLocales));
 	}
 
-	@Nullable
-	private Locale resolveSupportedLocale(@Nullable List<Locale> requestLocales) {
+	private @Nullable Locale resolveSupportedLocale(@Nullable List<Locale> requestLocales) {
 		if (CollectionUtils.isEmpty(requestLocales)) {
 			return getDefaultLocale();  // may be null
 		}

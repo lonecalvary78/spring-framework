@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.web.reactive.result.method;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -51,8 +51,7 @@ public interface SyncHandlerMethodArgumentResolver extends HandlerMethodArgument
 	 * @param exchange the current exchange
 	 * @return the resolved value, if any
 	 */
-	@Nullable
-	Object resolveArgumentValue(
+	@Nullable Object resolveArgumentValue(
 			MethodParameter parameter, BindingContext bindingContext, ServerWebExchange exchange);
 
 }

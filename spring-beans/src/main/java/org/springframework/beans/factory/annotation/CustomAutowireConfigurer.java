@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ package org.springframework.beans.factory.annotation;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -51,11 +52,9 @@ public class CustomAutowireConfigurer implements BeanFactoryPostProcessor, BeanC
 
 	private int order = Ordered.LOWEST_PRECEDENCE;  // default: same as non-Ordered
 
-	@Nullable
-	private Set<?> customQualifierTypes;
+	private @Nullable Set<?> customQualifierTypes;
 
-	@Nullable
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+	private @Nullable ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
 
 	public void setOrder(int order) {

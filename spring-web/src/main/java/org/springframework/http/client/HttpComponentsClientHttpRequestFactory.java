@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,10 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.HttpMethod;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -66,14 +66,14 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 
 	private HttpClient httpClient;
 
-	@Nullable
-	private BiFunction<HttpMethod, URI, HttpContext> httpContextFactory;
+	private @Nullable BiFunction<HttpMethod, URI, HttpContext> httpContextFactory;
 
 	private long connectTimeout = -1;
 
 	private long connectionRequestTimeout = -1;
 
 	private long readTimeout = -1;
+
 
 	/**
 	 * Create a new instance of the {@code HttpComponentsClientHttpRequestFactory}
@@ -210,18 +210,6 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 	}
 
 	/**
-	 * Indicates whether this request factory should buffer the request body internally.
-	 * <p>Default is {@code true}. When sending large amounts of data via POST or PUT, it is
-	 * recommended to change this property to {@code false}, so as not to run out of memory.
-	 * @since 4.0
-	 * @deprecated since 6.1 requests are never buffered, as if this property is {@code false}
-	 */
-	@Deprecated(since = "6.1", forRemoval = true)
-	public void setBufferRequestBody(boolean bufferRequestBody) {
-		// no-op
-	}
-
-	/**
 	 * Configure a factory to pre-create the {@link HttpContext} for each request.
 	 * <p>This may be useful for example in mutual TLS authentication where a
 	 * different {@code RestTemplate} for each client certificate such that
@@ -248,9 +236,8 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 			context = HttpClientContext.create();
 		}
 
-		// Request configuration not set in the context
-		if (!(context instanceof HttpClientContext clientContext && clientContext.getRequestConfig() != null) &&
-				context.getAttribute(HttpClientContext.REQUEST_CONFIG) == null) {
+		// No custom request configuration was set
+		if (!hasCustomRequestConfig(context)) {
 			RequestConfig config = null;
 			// Use request configuration given by the user, when available
 			if (httpRequest instanceof Configurable configurable) {
@@ -269,6 +256,18 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 		return new HttpComponentsClientHttpRequest(client, httpRequest, context);
 	}
 
+	@SuppressWarnings("deprecation")  // HttpClientContext.REQUEST_CONFIG
+	private static boolean hasCustomRequestConfig(HttpContext context) {
+		if (context instanceof HttpClientContext clientContext) {
+			// Prior to 5.4, the default config was set to RequestConfig.DEFAULT
+			// As of 5.4, it is set to null
+			RequestConfig requestConfig = clientContext.getRequestConfig();
+			return requestConfig != null && !requestConfig.equals(RequestConfig.DEFAULT);
+		}
+		// Prior to 5.4, the config was stored as an attribute
+		return context.getAttribute(HttpClientContext.REQUEST_CONFIG) != null;
+	}
+
 
 	/**
 	 * Create a default {@link RequestConfig} to use with the given client.
@@ -281,8 +280,7 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 	 * @since 4.2
 	 * @see #mergeRequestConfig(RequestConfig)
 	 */
-	@Nullable
-	protected RequestConfig createRequestConfig(Object client) {
+	protected @Nullable RequestConfig createRequestConfig(Object client) {
 		if (client instanceof Configurable configurableClient) {
 			RequestConfig clientRequestConfig = configurableClient.getConfig();
 			return mergeRequestConfig(clientRequestConfig);
@@ -360,14 +358,13 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 	}
 
 	/**
-	 * Template methods that creates a {@link HttpContext} for the given HTTP method and URI.
+	 * Template method that creates a {@link HttpContext} for the given HTTP method and URI.
 	 * <p>The default implementation returns {@code null}.
 	 * @param httpMethod the HTTP method
 	 * @param uri the URI
 	 * @return the http context
 	 */
-	@Nullable
-	protected HttpContext createHttpContext(HttpMethod httpMethod, URI uri) {
+	protected @Nullable HttpContext createHttpContext(HttpMethod httpMethod, URI uri) {
 		return (this.httpContextFactory != null ? this.httpContextFactory.apply(httpMethod, uri) : null);
 	}
 

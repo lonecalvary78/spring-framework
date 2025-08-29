@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,17 +110,10 @@ class StatusResultMatchersDsl internal constructor (private val actions: ResultA
 	/**
 	 * @see StatusResultMatchers.isProcessing
 	 */
+	@Deprecated("Removed from WebDAV specification RFC 4918")
+	@Suppress("DEPRECATION")
 	fun isProcessing() {
 		actions.andExpect(matchers.isProcessing())
-	}
-
-	/**
-	 * @see isEarlyHints
-	 */
-	@Deprecated("use isEarlyHints() instead", replaceWith= ReplaceWith("isEarlyHints()"))
-	fun isCheckpoint() {
-		@Suppress("DEPRECATION")
-		actions.andExpect(matchers.isCheckpoint())
 	}
 
 	/**
@@ -335,8 +328,17 @@ class StatusResultMatchersDsl internal constructor (private val actions: ResultA
 	}
 
 	/**
+	 * @see StatusResultMatchers.isContentTooLarge
+	 */
+	fun isContentTooLarge() {
+		actions.andExpect(matchers.isContentTooLarge())
+	}
+
+	/**
 	 * @see StatusResultMatchers.isPayloadTooLarge
 	 */
+	@Deprecated("Use Content Too Large instead", replaceWith = ReplaceWith("isContentTooLarge()"))
+	@Suppress("DEPRECATION")
 	fun isPayloadTooLarge() {
 		actions.andExpect(matchers.isPayloadTooLarge())
 	}
@@ -372,13 +374,33 @@ class StatusResultMatchersDsl internal constructor (private val actions: ResultA
 	/**
 	 * @see StatusResultMatchers.isIAmATeapot
 	 */
+	@Deprecated("Marked as unused in RFC 9110")
+	@Suppress("DEPRECATION")
 	fun isIAmATeapot() {
 		actions.andExpect(matchers.isIAmATeapot())
 	}
 
 	/**
+	 * @see StatusResultMatchers.isMisdirectedRequest
+	 * @since 7.0
+	 */
+	fun isMisdirectedRequest() {
+		actions.andExpect(matchers.isMisdirectedRequest())
+	}
+
+	/**
+	 * @see StatusResultMatchers.isUnprocessableContent
+	 * @since 7.0
+	 */
+	fun isUnprocessableContent() {
+		actions.andExpect(matchers.isUnprocessableContent())
+	}
+
+	/**
 	 * @see StatusResultMatchers.isUnprocessableEntity
 	 */
+	@Deprecated("Use UnprocessableContent instead.", ReplaceWith("isUnprocessableContent()"))
+	@Suppress("DEPRECATION")
 	fun isUnprocessableEntity() {
 		actions.andExpect(matchers.isUnprocessableEntity())
 	}
@@ -505,6 +527,8 @@ class StatusResultMatchersDsl internal constructor (private val actions: ResultA
 	/**
 	 * @see StatusResultMatchers.isBandwidthLimitExceeded
 	 */
+	@Deprecated("This is now unassigned")
+	@Suppress("DEPRECATION")
 	fun isBandwidthLimitExceeded() {
 		actions.andExpect(matchers.isBandwidthLimitExceeded())
 	}
@@ -512,6 +536,8 @@ class StatusResultMatchersDsl internal constructor (private val actions: ResultA
 	/**
 	 * @see StatusResultMatchers.isNotExtended
 	 */
+	@Deprecated("This is marked as 'historic' and is not endorsed by a standards body")
+	@Suppress("DEPRECATION")
 	fun isNotExtended() {
 		actions.andExpect(matchers.isNotExtended())
 	}

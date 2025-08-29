@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.Mergeable;
-import org.springframework.lang.Nullable;
 
 /**
  * Tag collection class used to hold managed List elements, which may
@@ -39,11 +40,9 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class ManagedList<E> extends ArrayList<E> implements Mergeable, BeanMetadataElement {
 
-	@Nullable
-	private Object source;
+	private @Nullable Object source;
 
-	@Nullable
-	private String elementTypeName;
+	private @Nullable String elementTypeName;
 
 	private boolean mergeEnabled;
 
@@ -80,8 +79,7 @@ public class ManagedList<E> extends ArrayList<E> implements Mergeable, BeanMetad
 	}
 
 	@Override
-	@Nullable
-	public Object getSource() {
+	public @Nullable Object getSource() {
 		return this.source;
 	}
 
@@ -95,8 +93,7 @@ public class ManagedList<E> extends ArrayList<E> implements Mergeable, BeanMetad
 	/**
 	 * Return the default element type name (class name) to be used for this list.
 	 */
-	@Nullable
-	public String getElementTypeName() {
+	public @Nullable String getElementTypeName() {
 		return this.elementTypeName;
 	}
 

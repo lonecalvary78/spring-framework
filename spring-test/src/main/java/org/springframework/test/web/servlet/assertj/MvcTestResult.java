@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.test.web.servlet.assertj;
 
 import org.assertj.core.api.AssertProvider;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MvcResult;
@@ -77,7 +77,6 @@ public interface MvcTestResult extends AssertProvider<MvcTestResultAssert> {
 	 * Return the exception that was thrown unexpectedly while processing the
 	 * request, if any.
 	 */
-	@Nullable
-	Exception getUnresolvedException();
+	@Nullable Exception getUnresolvedException();
 
 }

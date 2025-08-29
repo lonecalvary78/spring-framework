@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.util.FastByteArrayOutputStream;
 
 /**
@@ -51,14 +51,11 @@ public class ContentCachingResponseWrapper extends HttpServletResponseWrapper {
 
 	private final FastByteArrayOutputStream content = new FastByteArrayOutputStream(1024);
 
-	@Nullable
-	private ServletOutputStream outputStream;
+	private @Nullable ServletOutputStream outputStream;
 
-	@Nullable
-	private PrintWriter writer;
+	private @Nullable PrintWriter writer;
 
-	@Nullable
-	private Integer contentLength;
+	private @Nullable Integer contentLength;
 
 
 	/**
@@ -164,7 +161,13 @@ public class ContentCachingResponseWrapper extends HttpServletResponseWrapper {
 	@Override
 	public void setHeader(String name, String value) {
 		if (HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name)) {
-			this.contentLength = toContentLengthInt(Long.parseLong(value));
+			if (value != null) {
+				this.contentLength = toContentLengthInt(Long.parseLong(value));
+			}
+			else {
+				this.contentLength = null;
+				super.setHeader(name, null);
+			}
 		}
 		else {
 			super.setHeader(name, value);
@@ -202,8 +205,7 @@ public class ContentCachingResponseWrapper extends HttpServletResponseWrapper {
 	}
 
 	@Override
-	@Nullable
-	public String getHeader(String name) {
+	public @Nullable String getHeader(String name) {
 		if (this.contentLength != null && HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name)) {
 			return this.contentLength.toString();
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -52,8 +52,7 @@ abstract class ErrorHandlingServerResponse implements ServerResponse {
 		this.errorHandlers.add(new ErrorHandler<>(predicate, errorHandler));
 	}
 
-	@Nullable
-	protected final ModelAndView handleError(Throwable t, HttpServletRequest servletRequest,
+	protected final @Nullable ModelAndView handleError(Throwable t, HttpServletRequest servletRequest,
 			HttpServletResponse servletResponse, Context context) throws ServletException, IOException {
 
 		ServerResponse serverResponse = errorResponse(t, servletRequest);
@@ -71,8 +70,7 @@ abstract class ErrorHandlingServerResponse implements ServerResponse {
 		}
 	}
 
-	@Nullable
-	protected final ServerResponse errorResponse(Throwable t, HttpServletRequest servletRequest) {
+	protected final @Nullable ServerResponse errorResponse(Throwable t, HttpServletRequest servletRequest) {
 		for (ErrorHandler<?> errorHandler : this.errorHandlers) {
 			if (errorHandler.test(t)) {
 				ServerRequest serverRequest = (ServerRequest)

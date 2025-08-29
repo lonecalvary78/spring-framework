@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.core.convert.converter;
 import java.util.Comparator;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.ConversionService;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.comparator.Comparators;
 
@@ -120,8 +121,7 @@ public class ConvertingComparator<S, T> implements Comparator<S> {
 		}
 
 		@Override
-		@Nullable
-		public T convert(S source) {
+		public @Nullable T convert(S source) {
 			return this.conversionService.convert(source, this.targetType);
 		}
 	}

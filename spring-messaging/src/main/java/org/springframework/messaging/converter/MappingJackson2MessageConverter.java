@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -56,7 +56,9 @@ import org.springframework.util.MimeType;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  * @since 4.0
+ * @deprecated since 7.0 in favor of {@link JacksonJsonMessageConverter}
  */
+@Deprecated(since = "7.0", forRemoval = true)
 public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 
 	private static final MimeType[] DEFAULT_MIME_TYPES = new MimeType[] {
@@ -64,8 +66,7 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 
 	private ObjectMapper objectMapper;
 
-	@Nullable
-	private Boolean prettyPrint;
+	private @Nullable Boolean prettyPrint;
 
 
 	/**
@@ -202,8 +203,8 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 		}
 
 		// Do not log warning for serializer not found (note: different message wording on Jackson 2.9)
-		boolean debugLevel = (cause instanceof JsonMappingException && cause.getMessage() != null
-				&& cause.getMessage().startsWith("Cannot find"));
+		boolean debugLevel = (cause instanceof JsonMappingException && cause.getMessage() != null &&
+				cause.getMessage().startsWith("Cannot find"));
 
 		if (debugLevel ? logger.isDebugEnabled() : logger.isWarnEnabled()) {
 			String msg = "Failed to evaluate Jackson " + (type instanceof JavaType ? "de" : "") +
@@ -227,8 +228,7 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 	}
 
 	@Override
-	@Nullable
-	protected Object convertFromInternal(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
+	protected @Nullable Object convertFromInternal(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
 		JavaType javaType = this.objectMapper.constructType(getResolvedType(targetClass, conversionHint));
 		Object payload = message.getPayload();
 		Class<?> view = getSerializationView(conversionHint);
@@ -260,8 +260,7 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 	}
 
 	@Override
-	@Nullable
-	protected Object convertToInternal(Object payload, @Nullable MessageHeaders headers,
+	protected @Nullable Object convertToInternal(Object payload, @Nullable MessageHeaders headers,
 			@Nullable Object conversionHint) {
 
 		try {
@@ -304,8 +303,7 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 	 * @return the serialization view class, or {@code null} if none
 	 * @since 4.2
 	 */
-	@Nullable
-	protected Class<?> getSerializationView(@Nullable Object conversionHint) {
+	protected @Nullable Class<?> getSerializationView(@Nullable Object conversionHint) {
 		if (conversionHint instanceof MethodParameter param) {
 			JsonView annotation = (param.getParameterIndex() >= 0 ?
 					param.getParameterAnnotation(JsonView.class) : param.getMethodAnnotation(JsonView.class));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.aop.aspectj;
 import java.lang.reflect.Method;
 
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,6 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.testfixture.beans.ITestBean;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Adrian Colyer
@@ -106,8 +106,8 @@ class AspectAndAdvicePrecedenceTests {
 		private void checkAdvice(String whatJustHappened) {
 			//System.out.println("[" + adviceInvocationNumber + "] " + whatJustHappened + " ==> " + EXPECTED[adviceInvocationNumber]);
 			if (adviceInvocationNumber > (EXPECTED.length - 1)) {
-				throw new AssertionError("Too many advice invocations, expecting " + EXPECTED.length
-						+ " but had " + adviceInvocationNumber);
+				throw new AssertionError("Too many advice invocations, expecting " + EXPECTED.length +
+						" but had " + adviceInvocationNumber);
 			}
 			String expecting = EXPECTED[adviceInvocationNumber++];
 			if (!whatJustHappened.equals(expecting)) {

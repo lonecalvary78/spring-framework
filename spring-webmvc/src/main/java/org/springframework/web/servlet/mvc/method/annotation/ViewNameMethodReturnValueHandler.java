@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.web.servlet.mvc.method.annotation;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
@@ -44,8 +45,7 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
  */
 public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
-	@Nullable
-	private String[] redirectPatterns;
+	private String @Nullable [] redirectPatterns;
 
 
 	/**
@@ -55,15 +55,14 @@ public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValu
 	 * There must be a custom View that recognizes the prefix as well.
 	 * @since 4.1
 	 */
-	public void setRedirectPatterns(@Nullable String... redirectPatterns) {
+	public void setRedirectPatterns(String @Nullable ... redirectPatterns) {
 		this.redirectPatterns = redirectPatterns;
 	}
 
 	/**
 	 * The configured redirect patterns, if any.
 	 */
-	@Nullable
-	public String[] getRedirectPatterns() {
+	public String @Nullable [] getRedirectPatterns() {
 		return this.redirectPatterns;
 	}
 

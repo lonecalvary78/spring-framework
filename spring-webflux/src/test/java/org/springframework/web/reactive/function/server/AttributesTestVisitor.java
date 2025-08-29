@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Arjen Poutsma
@@ -37,8 +37,7 @@ class AttributesTestVisitor implements RouterFunctions.Visitor {
 
 	private Deque<Map<String, Object>> nestedAttributes = new LinkedList<>();
 
-	@Nullable
-	private Map<String, Object> attributes;
+	private @Nullable Map<String, Object> attributes;
 
 	private List<List<Map<String, Object>>> routerFunctionsAttributes = new LinkedList<>();
 

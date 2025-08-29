@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.format.datetime.standard;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.NamedThreadLocal;
-import org.springframework.lang.Nullable;
 
 /**
  * A holder for a thread-local user {@link DateTimeContext}.
@@ -64,8 +65,7 @@ public final class DateTimeContextHolder {
 	 * Return the DateTimeContext associated with the current thread, if any.
 	 * @return the current DateTimeContext, or {@code null} if none
 	 */
-	@Nullable
-	public static DateTimeContext getDateTimeContext() {
+	public static @Nullable DateTimeContext getDateTimeContext() {
 		return dateTimeContextHolder.get();
 	}
 

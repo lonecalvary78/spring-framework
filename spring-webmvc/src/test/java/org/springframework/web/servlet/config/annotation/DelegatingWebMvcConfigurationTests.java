@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverters;
 import org.springframework.util.PathMatcher;
 import org.springframework.validation.DefaultMessageCodesResolver;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -92,6 +92,7 @@ public class DelegatingWebMvcConfigurationTests {
 
 
 	@Test
+	@SuppressWarnings("removal")
 	void requestMappingHandlerAdapter() {
 		webMvcConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
 		RequestMappingHandlerAdapter adapter = this.webMvcConfig.requestMappingHandlerAdapter(
@@ -122,16 +123,11 @@ public class DelegatingWebMvcConfigurationTests {
 	@Test
 	void configureMessageConverters() {
 		HttpMessageConverter<?> customConverter = mock();
-		StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
 		WebMvcConfigurer configurer = new WebMvcConfigurer() {
-			@Override
-			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-				converters.add(stringConverter);
-			}
 
 			@Override
-			public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-				converters.add(0, customConverter);
+			public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
+				builder.customMessageConverter(customConverter);
 			}
 		};
 		webMvcConfig.setConfigurers(Collections.singletonList(configurer));
@@ -141,9 +137,7 @@ public class DelegatingWebMvcConfigurationTests {
 				this.webMvcConfig.mvcConversionService(),
 				this.webMvcConfig.mvcValidator());
 
-		assertThat(adapter.getMessageConverters()).as("One custom converter expected").hasSize(2);
-		assertThat(adapter.getMessageConverters()).element(0).isSameAs(customConverter);
-		assertThat(adapter.getMessageConverters()).element(1).isSameAs(stringConverter);
+		assertThat(adapter.getMessageConverters()).as("One custom converter expected").contains(customConverter);
 	}
 
 	@Test
@@ -167,6 +161,7 @@ public class DelegatingWebMvcConfigurationTests {
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	void handlerExceptionResolver() {
 		webMvcConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
 		webMvcConfig.handlerExceptionResolver(webMvcConfig.mvcContentNegotiationManager());
@@ -230,20 +225,17 @@ public class DelegatingWebMvcConfigurationTests {
 		assertThat(resolver.getErrorResponseInterceptors()).containsExactly(interceptor);
 	}
 
+	@SuppressWarnings("removal")
 	@Test
-	@SuppressWarnings("deprecation")
 	public void configurePathMatcher() {
 		PathMatcher pathMatcher = mock();
 		UrlPathHelper pathHelper = mock();
 
 		WebMvcConfigurer configurer = new WebMvcConfigurer() {
 			@Override
-			@SuppressWarnings("deprecation")
+			@SuppressWarnings("removal")
 			public void configurePathMatch(PathMatchConfigurer configurer) {
-				configurer.setUseRegisteredSuffixPatternMatch(true)
-						.setUseTrailingSlashMatch(false)
-						.setUrlPathHelper(pathHelper)
-						.setPathMatcher(pathMatcher);
+				configurer.setUrlPathHelper(pathHelper).setPathMatcher(pathMatcher);
 			}
 			@Override
 			public void addViewControllers(ViewControllerRegistry registry) {
@@ -267,14 +259,10 @@ public class DelegatingWebMvcConfigurationTests {
 		};
 
 		RequestMappingHandlerMapping annotationsMapping = webMvcConfig.requestMappingHandlerMapping(
-				webMvcConfig.mvcContentNegotiationManager(),
-				webMvcConfig.mvcConversionService(),
-				webMvcConfig.mvcResourceUrlProvider());
+				webMvcConfig.mvcContentNegotiationManager(), webMvcConfig.mvcApiVersionStrategy(),
+				webMvcConfig.mvcConversionService(), webMvcConfig.mvcResourceUrlProvider());
 
 		assertThat(annotationsMapping).isNotNull();
-		assertThat(annotationsMapping.useRegisteredSuffixPatternMatch()).isTrue();
-		assertThat(annotationsMapping.useSuffixPatternMatch()).isTrue();
-		assertThat(annotationsMapping.useTrailingSlashMatch()).isFalse();
 		configAssertion.accept(annotationsMapping.getUrlPathHelper(), annotationsMapping.getPathMatcher());
 
 		SimpleUrlHandlerMapping mapping = (SimpleUrlHandlerMapping) webMvcConfig.viewControllerHandlerMapping(
@@ -299,6 +287,7 @@ public class DelegatingWebMvcConfigurationTests {
 		configAssertion.accept(webMvcConfig.mvcUrlPathHelper(), webMvcConfig.mvcPathMatcher());
 	}
 
+	@SuppressWarnings("removal")
 	@Test
 	void configurePathPatternParser() {
 		PathPatternParser patternParser = new PathPatternParser();
@@ -306,6 +295,7 @@ public class DelegatingWebMvcConfigurationTests {
 		UrlPathHelper pathHelper = mock();
 
 		WebMvcConfigurer configurer = new WebMvcConfigurer() {
+			@SuppressWarnings("removal")
 			@Override
 			public void configurePathMatch(PathMatchConfigurer configurer) {
 				configurer.setPatternParser(patternParser)
@@ -334,9 +324,8 @@ public class DelegatingWebMvcConfigurationTests {
 		};
 
 		RequestMappingHandlerMapping annotationsMapping = webMvcConfig.requestMappingHandlerMapping(
-				webMvcConfig.mvcContentNegotiationManager(),
-				webMvcConfig.mvcConversionService(),
-				webMvcConfig.mvcResourceUrlProvider());
+				webMvcConfig.mvcContentNegotiationManager(), webMvcConfig.mvcApiVersionStrategy(),
+				webMvcConfig.mvcConversionService(), webMvcConfig.mvcResourceUrlProvider());
 
 		assertThat(annotationsMapping).isNotNull();
 		assertThat(annotationsMapping.getPatternParser())

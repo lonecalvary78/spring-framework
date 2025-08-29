@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.messaging.simp.stomp;
 
 import java.util.function.Consumer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a STOMP session with operations to send messages,
@@ -136,8 +136,7 @@ public interface StompSession {
 		 * Return the receipt id, or {@code null} if the STOMP frame for which
 		 * the handle was returned did not have a "receipt" header.
 		 */
-		@Nullable
-		String getReceiptId();
+		@Nullable String getReceiptId();
 
 		/**
 		 * Task to invoke when a receipt is received.
@@ -173,8 +172,7 @@ public interface StompSession {
 		/**
 		 * Return the id for the subscription.
 		 */
-		@Nullable
-		String getSubscriptionId();
+		@Nullable String getSubscriptionId();
 
 		/**
 		 * Return the headers used on the SUBSCRIBE frame.
@@ -184,17 +182,19 @@ public interface StompSession {
 
 		/**
 		 * Remove the subscription by sending an UNSUBSCRIBE frame.
+		 * <p>As of 7.0, this method returns {@link Receiptable}.
 		 */
-		void unsubscribe();
+		Receiptable unsubscribe();
 
 		/**
 		 * Alternative to {@link #unsubscribe()} with additional custom headers
-		 * to send to the server.
-		 * <p><strong>Note:</strong> There is no need to set the subscription id.
+		 * to send to the server. Note, however, there is no need to set the
+		 * subscription id.
+		 * <p>As of 7.0, this method returns {@link Receiptable}.
 		 * @param headers the custom headers, if any
 		 * @since 5.0
 		 */
-		void unsubscribe(@Nullable StompHeaders headers);
+		Receiptable unsubscribe(@Nullable StompHeaders headers);
 	}
 
 }

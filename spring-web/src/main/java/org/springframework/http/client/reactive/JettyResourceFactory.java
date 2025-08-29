@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
 import org.eclipse.jetty.util.thread.Scheduler;
 import org.eclipse.jetty.util.thread.ThreadPool;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -46,14 +46,11 @@ import org.springframework.util.Assert;
  */
 public class JettyResourceFactory implements InitializingBean, DisposableBean {
 
-	@Nullable
-	private Executor executor;
+	private @Nullable Executor executor;
 
-	@Nullable
-	private ByteBufferPool byteBufferPool;
+	private @Nullable ByteBufferPool byteBufferPool;
 
-	@Nullable
-	private Scheduler scheduler;
+	private @Nullable Scheduler scheduler;
 
 	private String threadPrefix = "jetty-http";
 
@@ -100,24 +97,21 @@ public class JettyResourceFactory implements InitializingBean, DisposableBean {
 	/**
 	 * Return the configured {@link Executor}.
 	 */
-	@Nullable
-	public Executor getExecutor() {
+	public @Nullable Executor getExecutor() {
 		return this.executor;
 	}
 
 	/**
 	 * Return the configured {@link ByteBufferPool}.
 	 */
-	@Nullable
-	public ByteBufferPool getByteBufferPool() {
+	public @Nullable ByteBufferPool getByteBufferPool() {
 		return this.byteBufferPool;
 	}
 
 	/**
 	 * Return the configured {@link Scheduler}.
 	 */
-	@Nullable
-	public Scheduler getScheduler() {
+	public @Nullable Scheduler getScheduler() {
 		return this.scheduler;
 	}
 

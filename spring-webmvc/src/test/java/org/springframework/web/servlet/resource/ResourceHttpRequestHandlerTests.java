@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.web.servlet.resource;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,14 +30,14 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.springframework.web.accept.ContentNegotiationManager;
-import org.springframework.web.accept.ContentNegotiationManagerFactoryBean;
 import org.springframework.web.context.support.StaticWebApplicationContext;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.resource.GzipSupport.GzippedFiles;
 import org.springframework.web.testfixture.servlet.MockHttpServletRequest;
 import org.springframework.web.testfixture.servlet.MockHttpServletResponse;
 import org.springframework.web.testfixture.servlet.MockServletContext;
@@ -127,18 +128,12 @@ class ResourceHttpRequestHandlerTests {
 		}
 
 		@Test  // SPR-13658
-		@SuppressWarnings("deprecation")
 		void getResourceWithRegisteredMediaType() throws Exception {
-			ContentNegotiationManagerFactoryBean factory = new ContentNegotiationManagerFactoryBean();
-			factory.addMediaType("bar", new MediaType("foo", "bar"));
-			factory.afterPropertiesSet();
-			ContentNegotiationManager manager = factory.getObject();
-
 			List<Resource> paths = List.of(new ClassPathResource("test/", getClass()));
 			ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
 			handler.setServletContext(new MockServletContext());
+			handler.setMediaTypes(Map.of("bar", new MediaType("foo", "bar")));
 			handler.setLocations(paths);
-			handler.setContentNegotiationManager(manager);
 			handler.afterPropertiesSet();
 
 			this.request.setAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, "foo.bar");
@@ -148,19 +143,12 @@ class ResourceHttpRequestHandlerTests {
 			assertThat(this.response.getContentAsString()).isEqualTo("h1 { color:red; }");
 		}
 
-		@Test  // SPR-14577
-		@SuppressWarnings("deprecation")
+		@Test // SPR-14577
 		void getMediaTypeWithFavorPathExtensionOff() throws Exception {
-			ContentNegotiationManagerFactoryBean factory = new ContentNegotiationManagerFactoryBean();
-			factory.setFavorPathExtension(false);
-			factory.afterPropertiesSet();
-			ContentNegotiationManager manager = factory.getObject();
-
 			List<Resource> paths = List.of(new ClassPathResource("test/", getClass()));
 			ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
 			handler.setServletContext(new MockServletContext());
 			handler.setLocations(paths);
-			handler.setContentNegotiationManager(manager);
 			handler.afterPropertiesSet();
 
 			this.request.addHeader("Accept", "application/json,text/plain,*/*");
@@ -333,6 +321,7 @@ class ResourceHttpRequestHandlerTests {
 			this.handler.handleRequest(this.request, this.response);
 
 			assertThat(this.response.getStatus()).isEqualTo(416);
+			assertThat(this.response.getHeaderNames()).doesNotContain(HttpHeaders.CONTENT_TYPE);
 			assertThat(this.response.getHeader("Content-Range")).isEqualTo("bytes */10");
 			assertThat(this.response.getHeader("Accept-Ranges")).isEqualTo("bytes");
 			assertThat(this.response.getHeaders("Accept-Ranges")).hasSize(1);
@@ -369,7 +358,7 @@ class ResourceHttpRequestHandlerTests {
 		}
 
 		@Test  // gh-25976
-		void partialContentByteRangeWithEncodedResource(GzipSupport.GzippedFiles gzippedFiles) throws Exception {
+		void partialContentByteRangeWithEncodedResource(GzippedFiles gzippedFiles) throws Exception {
 			String path = "js/foo.js";
 			gzippedFiles.create(path);
 
@@ -479,11 +468,13 @@ class ResourceHttpRequestHandlerTests {
 
 		@Test
 		void shouldRespondWithNotModifiedWhenModifiedSince() throws Exception {
+			this.handler.setCacheSeconds(3600);
 			this.handler.afterPropertiesSet();
 			this.request.setAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, "foo.css");
 			this.request.addHeader("If-Modified-Since", resourceLastModified("test/foo.css"));
 			this.handler.handleRequest(this.request, this.response);
 			assertThat(this.response.getStatus()).isEqualTo(HttpServletResponse.SC_NOT_MODIFIED);
+			assertThat(this.response.getHeader("Cache-Control")).isEqualTo("max-age=3600");
 		}
 
 		@Test
@@ -498,12 +489,14 @@ class ResourceHttpRequestHandlerTests {
 
 		@Test
 		void shouldRespondWithNotModifiedWhenEtag() throws Exception {
+			this.handler.setCacheSeconds(3600);
 			this.handler.setEtagGenerator(resource -> "testEtag");
 			this.handler.afterPropertiesSet();
 			this.request.setAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, "foo.css");
 			this.request.addHeader("If-None-Match", "\"testEtag\"");
 			this.handler.handleRequest(this.request, this.response);
 			assertThat(this.response.getStatus()).isEqualTo(HttpServletResponse.SC_NOT_MODIFIED);
+			assertThat(this.response.getHeader("Cache-Control")).isEqualTo("max-age=3600");
 		}
 
 		@Test

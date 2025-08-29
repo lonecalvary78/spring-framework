@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -43,7 +44,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.codec.ResourceHttpMessageWriter;
 import org.springframework.http.server.PathContainer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -90,8 +90,7 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 	private static final Log logger = LogFactory.getLog(ResourceWebHandler.class);
 
 
-	@Nullable
-	private ResourceLoader resourceLoader;
+	private @Nullable ResourceLoader resourceLoader;
 
 	private final List<String> locationValues = new ArrayList<>(4);
 
@@ -103,25 +102,19 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 
 	private final List<ResourceTransformer> resourceTransformers = new ArrayList<>(4);
 
-	@Nullable
-	private ResourceResolverChain resolverChain;
+	private @Nullable ResourceResolverChain resolverChain;
 
-	@Nullable
-	private ResourceTransformerChain transformerChain;
+	private @Nullable ResourceTransformerChain transformerChain;
 
-	@Nullable
-	private CacheControl cacheControl;
+	private @Nullable CacheControl cacheControl;
 
-	@Nullable
-	private ResourceHttpMessageWriter resourceHttpMessageWriter;
+	private @Nullable ResourceHttpMessageWriter resourceHttpMessageWriter;
 
-	@Nullable
-	private Map<String, MediaType> mediaTypes;
+	private @Nullable Map<String, MediaType> mediaTypes;
 
 	private boolean useLastModified = true;
 
-	@Nullable
-	private Function<Resource, String> etagGenerator;
+	private @Nullable Function<Resource, String> etagGenerator;
 
 	private boolean optimizeLocations = false;
 
@@ -168,13 +161,13 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 	}
 
 	/**
-	 * Return the {@code List} of {@code Resource} paths to use as sources
-	 * for serving static resources.
+	 * Return the {@code List} of {@code Resource} paths to use as sources for
+	 * serving static resources.
 	 * <p>Note that if {@link #setLocationValues(List) locationValues} are provided,
-	 * instead of loaded Resource-based locations, this method will return
-	 * empty until after initialization via {@link #afterPropertiesSet()}.
-	 * <p><strong>Note:</strong> As of 5.3.11 the list of locations may be filtered to
-	 * exclude those that don't actually exist and therefore the list returned from this
+	 * instead of loaded Resource-based locations, this method will return empty
+	 * until after initialization via {@link #afterPropertiesSet()}.
+	 * <p><strong>Note:</strong> The list of locations may be filtered to exclude
+	 * those that don't actually exist and therefore the list returned from this
 	 * method may be a subset of all given locations. See {@link #setOptimizeLocations}.
 	 * @see #setLocationValues
 	 * @see #setLocations
@@ -235,8 +228,7 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 	/**
 	 * Return the configured resource message writer.
 	 */
-	@Nullable
-	public ResourceHttpMessageWriter getResourceHttpMessageWriter() {
+	public @Nullable ResourceHttpMessageWriter getResourceHttpMessageWriter() {
 		return this.resourceHttpMessageWriter;
 	}
 
@@ -252,8 +244,7 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 	 * Return the {@link org.springframework.http.CacheControl} instance to build
 	 * the Cache-Control HTTP response header.
 	 */
-	@Nullable
-	public CacheControl getCacheControl() {
+	public @Nullable CacheControl getCacheControl() {
 		return this.cacheControl;
 	}
 
@@ -296,8 +287,7 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 	 * @return the HTTP ETag generator function
 	 * @since 6.1
 	 */
-	@Nullable
-	public Function<Resource, String> getEtagGenerator() {
+	public @Nullable Function<Resource, String> getEtagGenerator() {
 		return this.etagGenerator;
 	}
 
@@ -333,7 +323,6 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 	 * @param mediaTypes media type mappings
 	 * @since 5.3.2
 	 */
-	@SuppressWarnings("NullAway")
 	public void setMediaTypes(Map<String, MediaType> mediaTypes) {
 		if (this.mediaTypes == null) {
 			this.mediaTypes = new HashMap<>(mediaTypes.size());
@@ -428,8 +417,10 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		return getResource(exchange)
 				.switchIfEmpty(Mono.defer(() -> {
-					logger.debug(exchange.getLogPrefix() + "Resource not found");
-					return Mono.error(new NoResourceFoundException(getResourcePath(exchange)));
+					if (logger.isDebugEnabled()) {
+						logger.debug(exchange.getLogPrefix() + "Resource not found");
+					}
+					return Mono.error(new NoResourceFoundException(exchange.getRequest().getURI(), getResourcePath(exchange)));
 				}))
 				.flatMap(resource -> {
 					try {
@@ -446,10 +437,12 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 						}
 
 						// Header phase
-						String eTagValue = (this.getEtagGenerator() != null) ? this.getEtagGenerator().apply(resource) : null;
+						String eTagValue = (getEtagGenerator() != null) ? getEtagGenerator().apply(resource) : null;
 						Instant lastModified = isUseLastModified() ? Instant.ofEpochMilli(resource.lastModified()) : Instant.MIN;
 						if (exchange.checkNotModified(eTagValue, lastModified)) {
-							logger.trace(exchange.getLogPrefix() + "Resource not modified");
+							if (logger.isTraceEnabled()) {
+								logger.trace(exchange.getLogPrefix() + "Resource not modified");
+							}
 							return Mono.empty();
 						}
 
@@ -484,7 +477,7 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 				});
 	}
 
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Lambda
 	protected Mono<Resource> getResource(ServerWebExchange exchange) {
 		String rawPath = getResourcePath(exchange);
 		String path = processPath(rawPath);
@@ -525,8 +518,7 @@ public class ResourceWebHandler implements WebHandler, InitializingBean {
 		return false;
 	}
 
-	@Nullable
-	private MediaType getMediaType(Resource resource) {
+	private @Nullable MediaType getMediaType(Resource resource) {
 		MediaType mediaType = null;
 		String filename = resource.getFilename();
 		if (!CollectionUtils.isEmpty(this.mediaTypes)) {

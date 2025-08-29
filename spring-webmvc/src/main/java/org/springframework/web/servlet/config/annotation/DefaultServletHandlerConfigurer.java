@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.web.servlet.config.annotation;
 import java.util.Collections;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
@@ -46,8 +46,7 @@ public class DefaultServletHandlerConfigurer {
 
 	private final ServletContext servletContext;
 
-	@Nullable
-	private DefaultServletHttpRequestHandler handler;
+	private @Nullable DefaultServletHttpRequestHandler handler;
 
 
 	/**
@@ -93,8 +92,7 @@ public class DefaultServletHandlerConfigurer {
 	 * enabled.
 	 * @since 4.3.12
 	 */
-	@Nullable
-	protected SimpleUrlHandlerMapping buildHandlerMapping() {
+	protected @Nullable SimpleUrlHandlerMapping buildHandlerMapping() {
 		if (this.handler == null) {
 			return null;
 		}

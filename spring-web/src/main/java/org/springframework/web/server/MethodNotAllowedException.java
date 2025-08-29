@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -74,17 +75,6 @@ public class MethodNotAllowedException extends ResponseStatusException {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAllow(this.httpMethods);
 		return headers;
-	}
-
-	/**
-	 * Delegates to {@link #getHeaders()}.
-	 * @since 5.1.13
-	 * @deprecated as of 6.0 in favor of {@link #getHeaders()}
-	 */
-	@Deprecated(since = "6.0")
-	@Override
-	public HttpHeaders getResponseHeaders() {
-		return getHeaders();
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -29,8 +30,8 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.accept.DefaultApiVersionStrategy;
 import org.springframework.web.filter.ServerHttpObservationFilter;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RouterFunction;
@@ -55,10 +56,10 @@ import org.springframework.web.util.pattern.PathPatternParser;
  * @author Brian Clozel
  * @since 5.2
  */
+@SuppressWarnings("removal")
 public class RouterFunctionMapping extends AbstractHandlerMapping implements InitializingBean, MatchableHandlerMapping {
 
-	@Nullable
-	private RouterFunction<?> routerFunction;
+	private @Nullable RouterFunction<?> routerFunction;
 
 	private List<HttpMessageConverter<?>> messageConverters = Collections.emptyList();
 
@@ -98,8 +99,7 @@ public class RouterFunctionMapping extends AbstractHandlerMapping implements Ini
 	 * prior to {@link #afterPropertiesSet()}.
 	 * @return the router function or {@code null}
 	 */
-	@Nullable
-	public RouterFunction<?> getRouterFunction() {
+	public @Nullable RouterFunction<?> getRouterFunction() {
 		return this.routerFunction;
 	}
 
@@ -129,9 +129,11 @@ public class RouterFunctionMapping extends AbstractHandlerMapping implements Ini
 		if (this.routerFunction == null) {
 			initRouterFunctions();
 		}
+
 		if (CollectionUtils.isEmpty(this.messageConverters)) {
 			initMessageConverters();
 		}
+
 		if (this.routerFunction != null) {
 			PathPatternParser patternParser = getPatternParser();
 			if (patternParser == null) {
@@ -139,6 +141,12 @@ public class RouterFunctionMapping extends AbstractHandlerMapping implements Ini
 				setPatternParser(patternParser);
 			}
 			RouterFunctions.changeParser(this.routerFunction, patternParser);
+
+			if (getApiVersionStrategy() instanceof DefaultApiVersionStrategy davs) {
+				if (davs.detectSupportedVersions()) {
+					this.routerFunction.accept(new SupportedVersionVisitor(davs));
+				}
+			}
 		}
 	}
 
@@ -197,17 +205,14 @@ public class RouterFunctionMapping extends AbstractHandlerMapping implements Ini
 
 
 	@Override
-	@Nullable
-	protected Object getHandlerInternal(HttpServletRequest servletRequest) throws Exception {
-		if (this.routerFunction != null) {
-			ServerRequest request = ServerRequest.create(servletRequest, this.messageConverters);
-			HandlerFunction<?> handlerFunction = this.routerFunction.route(request).orElse(null);
-			setAttributes(servletRequest, request, handlerFunction);
-			return handlerFunction;
-		}
-		else {
+	protected @Nullable Object getHandlerInternal(HttpServletRequest servletRequest) throws Exception {
+		if (this.routerFunction == null) {
 			return null;
 		}
+		ServerRequest request = ServerRequest.create(servletRequest, this.messageConverters, getApiVersionStrategy());
+		HandlerFunction<?> handlerFunction = this.routerFunction.route(request).orElse(null);
+		setAttributes(servletRequest, request, handlerFunction);
+		return handlerFunction;
 	}
 
 	private void setAttributes(HttpServletRequest servletRequest, ServerRequest request,
@@ -225,9 +230,10 @@ public class RouterFunctionMapping extends AbstractHandlerMapping implements Ini
 		servletRequest.setAttribute(RouterFunctions.REQUEST_ATTRIBUTE, request);
 	}
 
-	@Nullable
+	@SuppressWarnings("removal")
+	@Deprecated(since = "7.0", forRemoval = true)
 	@Override
-	public RequestMatchResult match(HttpServletRequest request, String pattern) {
+	public @Nullable RequestMatchResult match(HttpServletRequest request, String pattern) {
 		throw new UnsupportedOperationException("This HandlerMapping uses PathPatterns");
 	}
 }

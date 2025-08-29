@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -107,8 +108,7 @@ public class MappingMediaTypeFileExtensionResolver implements MediaTypeFileExten
 	 * Use this method for a reverse lookup from extension to MediaType.
 	 * @return a MediaType for the extension, or {@code null} if none found
 	 */
-	@Nullable
-	protected MediaType lookupMediaType(String extension) {
+	protected @Nullable MediaType lookupMediaType(String extension) {
 		return this.mediaTypes.get(extension.toLowerCase(Locale.ROOT));
 	}
 

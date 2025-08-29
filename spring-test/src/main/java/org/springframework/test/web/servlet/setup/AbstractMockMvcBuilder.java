@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.mock.web.MockServletConfig;
 import org.springframework.test.web.servlet.DispatcherServletCustomizer;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,10 +36,12 @@ import org.springframework.test.web.servlet.MockMvcBuilderSupport;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.ConfigurableSmartRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.util.Assert;
+import org.springframework.web.client.ApiVersionInserter;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
@@ -62,11 +64,11 @@ public abstract class AbstractMockMvcBuilder<B extends AbstractMockMvcBuilder<B>
 
 	private final List<Filter> filters = new ArrayList<>();
 
-	@Nullable
-	private RequestBuilder defaultRequestBuilder;
+	private @Nullable ApiVersionInserter apiVersionInserter;
 
-	@Nullable
-	private Charset defaultResponseCharacterEncoding;
+	private @Nullable RequestBuilder defaultRequestBuilder;
+
+	private @Nullable Charset defaultResponseCharacterEncoding;
 
 	private final List<ResultMatcher> globalResultMatchers = new ArrayList<>();
 
@@ -105,6 +107,12 @@ public abstract class AbstractMockMvcBuilder<B extends AbstractMockMvcBuilder<B>
 
 		filter = new MockMvcFilterDecorator(filter, filterName, initParams, dispatcherTypes, urlPatterns);
 		this.filters.add(filter);
+		return self();
+	}
+
+	@Override
+	public <T extends B> T apiVersionInserter(ApiVersionInserter versionInserter) {
+		this.apiVersionInserter = versionInserter;
 		return self();
 	}
 
@@ -191,8 +199,17 @@ public abstract class AbstractMockMvcBuilder<B extends AbstractMockMvcBuilder<B>
 					filterDecorator.initIfRequired(servletContext);
 				}
 				catch (ServletException ex) {
-					throw new RuntimeException("Failed to initialize Filter " + filter, ex);
+					throw new IllegalStateException("Failed to initialize Filter " + filter, ex);
 				}
+			}
+		}
+
+		if (this.apiVersionInserter != null) {
+			if (this.defaultRequestBuilder == null) {
+				this.defaultRequestBuilder = MockMvcRequestBuilders.get("/");
+			}
+			if (this.defaultRequestBuilder instanceof AbstractMockHttpServletRequestBuilder<?> srb) {
+				srb.apiVersionInserter(this.apiVersionInserter);
 			}
 		}
 

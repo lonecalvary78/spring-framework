@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.MultiValueMap;
 
 /**
@@ -48,8 +49,7 @@ public interface MultipartRequest {
 	 * @param name a String specifying the parameter name of the multipart file
 	 * @return the uploaded content in the form of a {@link MultipartFile} object
 	 */
-	@Nullable
-	MultipartFile getFile(String name);
+	@Nullable MultipartFile getFile(String name);
 
 	/**
 	 * Return the contents plus description of uploaded files in this request,
@@ -81,7 +81,6 @@ public interface MultipartRequest {
 	 * @return the associated content type, or {@code null} if not defined
 	 * @since 3.1
 	 */
-	@Nullable
-	String getMultipartContentType(String paramOrFileName);
+	@Nullable String getMultipartContentType(String paramOrFileName);
 
 }

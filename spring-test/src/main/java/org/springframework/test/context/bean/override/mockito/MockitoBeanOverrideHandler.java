@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.mockito.Answers;
 import org.mockito.MockSettings;
 import org.mockito.Mockito;
@@ -30,7 +31,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.bean.override.BeanOverrideHandler;
 import org.springframework.test.context.bean.override.BeanOverrideStrategy;
 import org.springframework.util.Assert;
@@ -57,20 +57,24 @@ class MockitoBeanOverrideHandler extends AbstractMockitoBeanOverrideHandler {
 	private final boolean serializable;
 
 
-	MockitoBeanOverrideHandler(Field field, ResolvableType typeToMock, MockitoBean mockitoBean) {
-		this(field, typeToMock, (!mockitoBean.name().isBlank() ? mockitoBean.name() : null),
-			(mockitoBean.enforceOverride() ? REPLACE : REPLACE_OR_CREATE),
-			mockitoBean.reset(), mockitoBean.extraInterfaces(), mockitoBean.answers(), mockitoBean.serializable());
+	MockitoBeanOverrideHandler(ResolvableType typeToMock, MockitoBean mockitoBean) {
+		this(null, typeToMock, mockitoBean);
 	}
 
-	private MockitoBeanOverrideHandler(Field field, ResolvableType typeToMock, @Nullable String beanName,
-			BeanOverrideStrategy strategy, MockReset reset, Class<?>[] extraInterfaces, @Nullable Answers answers,
-			boolean serializable) {
+	MockitoBeanOverrideHandler(@Nullable Field field, ResolvableType typeToMock, MockitoBean mockitoBean) {
+		this(field, typeToMock, (!mockitoBean.name().isBlank() ? mockitoBean.name() : null),
+				mockitoBean.contextName(), (mockitoBean.enforceOverride() ? REPLACE : REPLACE_OR_CREATE),
+				mockitoBean.reset(), mockitoBean.extraInterfaces(), mockitoBean.answers(), mockitoBean.serializable());
+	}
 
-		super(field, typeToMock, beanName, strategy, reset);
+	private MockitoBeanOverrideHandler(@Nullable Field field, ResolvableType typeToMock, @Nullable String beanName,
+			String contextName, BeanOverrideStrategy strategy, MockReset reset, Class<?>[] extraInterfaces,
+			Answers answers, boolean serializable) {
+
+		super(field, typeToMock, beanName, contextName, strategy, reset);
 		Assert.notNull(typeToMock, "'typeToMock' must not be null");
 		this.extraInterfaces = asClassSet(extraInterfaces);
-		this.answers = (answers != null ? answers : Answers.RETURNS_DEFAULTS);
+		this.answers = answers;
 		this.serializable = serializable;
 	}
 
@@ -109,7 +113,9 @@ class MockitoBeanOverrideHandler extends AbstractMockitoBeanOverrideHandler {
 	}
 
 	@Override
-	protected Object createOverrideInstance(String beanName, @Nullable BeanDefinition existingBeanDefinition, @Nullable Object existingBeanInstance) {
+	protected Object createOverrideInstance(String beanName,
+			@Nullable BeanDefinition existingBeanDefinition, @Nullable Object existingBeanInstance) {
+
 		return createMock(beanName);
 	}
 
@@ -154,6 +160,7 @@ class MockitoBeanOverrideHandler extends AbstractMockitoBeanOverrideHandler {
 				.append("field", getField())
 				.append("beanType", getBeanType())
 				.append("beanName", getBeanName())
+				.append("contextName", getContextName())
 				.append("strategy", getStrategy())
 				.append("reset", getReset())
 				.append("extraInterfaces", getExtraInterfaces())

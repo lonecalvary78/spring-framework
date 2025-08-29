@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package org.springframework.web.servlet.mvc;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.WebContentGenerator;
 import org.springframework.web.util.WebUtils;
@@ -151,8 +151,7 @@ public abstract class AbstractController extends WebContentGenerator implements 
 
 
 	@Override
-	@Nullable
-	public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response)
+	public @Nullable ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response)
 			throws Exception {
 
 		if (HttpMethod.OPTIONS.matches(request.getMethod())) {
@@ -183,8 +182,7 @@ public abstract class AbstractController extends WebContentGenerator implements 
 	 * The contract is the same as for {@code handleRequest}.
 	 * @see #handleRequest
 	 */
-	@Nullable
-	protected abstract ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
+	protected abstract @Nullable ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
 			throws Exception;
 
 }

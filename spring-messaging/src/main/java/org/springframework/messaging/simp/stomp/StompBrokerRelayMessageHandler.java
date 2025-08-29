@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -43,13 +44,10 @@ import org.springframework.messaging.support.MessageHeaderInitializer;
 import org.springframework.messaging.tcp.FixedIntervalReconnectStrategy;
 import org.springframework.messaging.tcp.TcpConnection;
 import org.springframework.messaging.tcp.TcpOperations;
-import org.springframework.messaging.tcp.reactor.ReactorNetty2TcpClient;
 import org.springframework.messaging.tcp.reactor.ReactorNettyCodec;
 import org.springframework.messaging.tcp.reactor.ReactorNettyTcpClient;
-import org.springframework.messaging.tcp.reactor.TcpMessageCodec;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler} that handles messages by
@@ -104,18 +102,10 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 
 	private static final Message<byte[]> HEARTBEAT_MESSAGE;
 
-	private static final boolean reactorNettyClientPresent;
-
-	private static final boolean reactorNetty2ClientPresent;
-
 	static {
 		HEART_BEAT_ACCESSOR = StompHeaderAccessor.createForHeartbeat();
 		HEARTBEAT_MESSAGE = MessageBuilder.createMessage(
 				StompDecoder.HEARTBEAT_PAYLOAD, HEART_BEAT_ACCESSOR.getMessageHeaders());
-
-		ClassLoader classLoader = StompBrokerRelayMessageHandler.class.getClassLoader();
-		reactorNettyClientPresent = ClassUtils.isPresent("reactor.netty.http.client.HttpClient", classLoader);
-		reactorNetty2ClientPresent = ClassUtils.isPresent("reactor.netty5.http.client.HttpClient", classLoader);
 	}
 
 
@@ -137,21 +127,17 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 
 	private final Map<String, MessageHandler> systemSubscriptions = new HashMap<>(4);
 
-	@Nullable
-	private String virtualHost;
+	private @Nullable String virtualHost;
 
-	@Nullable
-	private TcpOperations<byte[]> tcpClient;
+	private @Nullable TcpOperations<byte[]> tcpClient;
 
-	@Nullable
-	private MessageHeaderInitializer headerInitializer;
+	private @Nullable MessageHeaderInitializer headerInitializer;
 
 	private final DefaultStats stats = new DefaultStats();
 
 	private final Map<String, RelayConnectionHandler> connectionHandlers = new ConcurrentHashMap<>();
 
-	@Nullable
-	private TaskScheduler taskScheduler;
+	private @Nullable TaskScheduler taskScheduler;
 
 
 	/**
@@ -349,15 +335,13 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 	/**
 	 * Return the configured virtual host value.
 	 */
-	@Nullable
-	public String getVirtualHost() {
+	public @Nullable String getVirtualHost() {
 		return this.virtualHost;
 	}
 
 	/**
 	 * Configure a TCP client for managing TCP connections to the STOMP broker.
-	 * <p>By default {@link ReactorNettyTcpClient} or
-	 * {@link ReactorNetty2TcpClient} is used.
+	 * <p>By default {@link ReactorNettyTcpClient} is used.
 	 * <p><strong>Note:</strong> when this property is used, any
 	 * {@link #setRelayHost(String) host} or {@link #setRelayPort(int) port}
 	 * specified are effectively ignored.
@@ -371,8 +355,7 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 	 * invoked and this method is invoked before the handler is started and
 	 * hence a default implementation initialized).
 	 */
-	@Nullable
-	public TcpOperations<byte[]> getTcpClient() {
+	public @Nullable TcpOperations<byte[]> getTcpClient() {
 		return this.tcpClient;
 	}
 
@@ -389,8 +372,7 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 	/**
 	 * Return the configured header initializer.
 	 */
-	@Nullable
-	public MessageHeaderInitializer getHeaderInitializer() {
+	public @Nullable MessageHeaderInitializer getHeaderInitializer() {
 		return this.headerInitializer;
 	}
 
@@ -429,8 +411,7 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 		this.taskScheduler = taskScheduler;
 	}
 
-	@Nullable
-	public TaskScheduler getTaskScheduler() {
+	public @Nullable TaskScheduler getTaskScheduler() {
 		return this.taskScheduler;
 	}
 
@@ -475,19 +456,10 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 		if (this.headerInitializer != null) {
 			decoder.setHeaderInitializer(this.headerInitializer);
 		}
-		if (reactorNettyClientPresent) {
-			ReactorNettyCodec<byte[]> codec = new StompReactorNettyCodec(decoder);
-			ReactorNettyTcpClient<byte[]> client = new ReactorNettyTcpClient<>(this.relayHost, this.relayPort, codec);
-			client.setLogger(SimpLogging.forLog(client.getLogger()));
-			return client;
-		}
-		else if (reactorNetty2ClientPresent) {
-			TcpMessageCodec<byte[]> codec = new StompTcpMessageCodec(decoder);
-			ReactorNetty2TcpClient<byte[]> client = new ReactorNetty2TcpClient<>(this.relayHost, this.relayPort, codec);
-			client.setLogger(SimpLogging.forLog(client.getLogger()));
-			return client;
-		}
-		throw new IllegalStateException("No compatible version of Reactor Netty");
+		ReactorNettyCodec<byte[]> codec = new StompReactorNettyCodec(decoder);
+		ReactorNettyTcpClient<byte[]> client = new ReactorNettyTcpClient<>(this.relayHost, this.relayPort, codec);
+		client.setLogger(SimpLogging.forLog(client.getLogger()));
+		return client;
 	}
 
 	@Override
@@ -644,15 +616,13 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 
 		private final MessageChannel outboundChannel;
 
-		@Nullable
-		private volatile TcpConnection<byte[]> tcpConnection;
+		private volatile @Nullable TcpConnection<byte[]> tcpConnection;
 
 		private volatile boolean isStompConnected;
 
 		private long clientSendInterval;
 
-		@Nullable
-		private final AtomicInteger clientSendMessageCount;
+		private final @Nullable AtomicInteger clientSendMessageCount;
 
 		private long clientSendMessageTimestamp;
 
@@ -691,8 +661,7 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 			return this.connectHeaders;
 		}
 
-		@Nullable
-		protected TcpConnection<byte[]> getTcpConnection() {
+		protected @Nullable TcpConnection<byte[]> getTcpConnection() {
 			return this.tcpConnection;
 		}
 

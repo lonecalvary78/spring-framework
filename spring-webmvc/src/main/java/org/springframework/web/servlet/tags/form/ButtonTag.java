@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.web.servlet.tags.form;
 
 import jakarta.servlet.jsp.JspException;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.support.RequestDataValueProcessor;
 
@@ -78,14 +78,11 @@ public class ButtonTag extends AbstractHtmlElementTag {
 	public static final String DISABLED_ATTRIBUTE = "disabled";
 
 
-	@Nullable
-	private TagWriter tagWriter;
+	private @Nullable TagWriter tagWriter;
 
-	@Nullable
-	private String name;
+	private @Nullable String name;
 
-	@Nullable
-	private String value;
+	private @Nullable String value;
 
 	private boolean disabled;
 
@@ -101,8 +98,7 @@ public class ButtonTag extends AbstractHtmlElementTag {
 	 * Set the value of the '{@code name}' attribute.
 	 */
 	@Override
-	@Nullable
-	public String getName() {
+	public @Nullable String getName() {
 		return this.name;
 	}
 
@@ -116,8 +112,7 @@ public class ButtonTag extends AbstractHtmlElementTag {
 	/**
 	 * Get the value of the '{@code value}' attribute.
 	 */
-	@Nullable
-	public String getValue() {
+	public @Nullable String getValue() {
 		return this.value;
 	}
 

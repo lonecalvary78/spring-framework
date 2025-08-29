@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.io.support.SpringFactoriesLoader;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -166,8 +167,7 @@ public final class AotServices<T> implements Iterable<T> {
 	 * @param beanName the bean name
 	 * @return the AOT service or {@code null}
 	 */
-	@Nullable
-	public T findByBeanName(String beanName) {
+	public @Nullable T findByBeanName(String beanName) {
 		return this.beans.get(beanName);
 	}
 
@@ -191,8 +191,7 @@ public final class AotServices<T> implements Iterable<T> {
 
 		private final SpringFactoriesLoader springFactoriesLoader;
 
-		@Nullable
-		private final ListableBeanFactory beanFactory;
+		private final @Nullable ListableBeanFactory beanFactory;
 
 
 		Loader(SpringFactoriesLoader springFactoriesLoader, @Nullable ListableBeanFactory beanFactory) {
@@ -212,9 +211,9 @@ public final class AotServices<T> implements Iterable<T> {
 		}
 
 		private <T> Map<String, T> loadBeans(Class<T> type) {
-			return (this.beanFactory != null) ? BeanFactoryUtils
-					.beansOfTypeIncludingAncestors(this.beanFactory, type, true, false)
-					: Collections.emptyMap();
+			return (this.beanFactory != null ?
+					BeanFactoryUtils.beansOfTypeIncludingAncestors(this.beanFactory, type, true, false) :
+					Collections.emptyMap());
 		}
 
 	}

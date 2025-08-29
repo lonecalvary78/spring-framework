@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -38,11 +38,9 @@ public class ContextExposingHttpServletRequest extends HttpServletRequestWrapper
 
 	private final WebApplicationContext webApplicationContext;
 
-	@Nullable
-	private final Set<String> exposedContextBeanNames;
+	private final @Nullable Set<String> exposedContextBeanNames;
 
-	@Nullable
-	private Set<String> explicitAttributes;
+	private @Nullable Set<String> explicitAttributes;
 
 
 	/**
@@ -81,8 +79,7 @@ public class ContextExposingHttpServletRequest extends HttpServletRequestWrapper
 
 
 	@Override
-	@Nullable
-	public Object getAttribute(String name) {
+	public @Nullable Object getAttribute(String name) {
 		if ((this.explicitAttributes == null || !this.explicitAttributes.contains(name)) &&
 				(this.exposedContextBeanNames == null || this.exposedContextBeanNames.contains(name)) &&
 				this.webApplicationContext.containsBean(name)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package org.springframework.web.jsf;
 
 import jakarta.faces.application.NavigationHandler;
 import jakarta.faces.context.FacesContext;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Base class for JSF NavigationHandler implementations that want
@@ -39,8 +38,7 @@ import org.springframework.lang.Nullable;
  */
 public abstract class DecoratingNavigationHandler extends NavigationHandler {
 
-	@Nullable
-	private NavigationHandler decoratedNavigationHandler;
+	private @Nullable NavigationHandler decoratedNavigationHandler;
 
 
 	/**
@@ -61,8 +59,7 @@ public abstract class DecoratingNavigationHandler extends NavigationHandler {
 	 * Return the fixed original NavigationHandler decorated by this handler, if any
 	 * (that is, if passed in through the constructor).
 	 */
-	@Nullable
-	public final NavigationHandler getDecoratedNavigationHandler() {
+	public final @Nullable NavigationHandler getDecoratedNavigationHandler() {
 		return this.decoratedNavigationHandler;
 	}
 

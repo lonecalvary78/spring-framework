@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,15 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Objects;
 
 import org.aopalliance.intercept.MethodInterceptor;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.IndicativeSentencesGeneration;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
-import org.springframework.lang.Nullable;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
@@ -41,6 +40,7 @@ import static org.mockito.Mockito.mock;
  * @see JdkProxyExceptionHandlingTests
  * @see CglibProxyExceptionHandlingTests
  */
+@IndicativeSentencesGeneration(generator = SentenceFragmentDisplayNameGenerator.class)
 abstract class AbstractProxyExceptionHandlingTests {
 
 	private static final RuntimeException uncheckedException = new RuntimeException();
@@ -68,7 +68,12 @@ abstract class AbstractProxyExceptionHandlingTests {
 
 
 	private void invokeProxy() {
-		throwableSeenByCaller = catchThrowable(() -> Objects.requireNonNull(proxy).doSomething());
+		try {
+			Objects.requireNonNull(proxy).doSomething();
+		}
+		catch (Throwable throwable) {
+			throwableSeenByCaller = throwable;
+		}
 	}
 
 	@SuppressWarnings("SameParameterValue")
@@ -80,10 +85,10 @@ abstract class AbstractProxyExceptionHandlingTests {
 
 
 	@Nested
+	@SentenceFragment("when there is one interceptor")
 	class WhenThereIsOneInterceptorTests {
 
-		@Nullable
-		private Throwable throwableSeenByInterceptor;
+		private @Nullable Throwable throwableSeenByInterceptor;
 
 		@BeforeEach
 		void beforeEach() {
@@ -93,16 +98,18 @@ abstract class AbstractProxyExceptionHandlingTests {
 		}
 
 		@Test
+		@SentenceFragment("and the target throws an undeclared checked exception")
 		void targetThrowsUndeclaredCheckedException() throws DeclaredCheckedException {
 			willAnswer(sneakyThrow(undeclaredCheckedException)).given(target).doSomething();
 			invokeProxy();
 			assertThat(throwableSeenByInterceptor).isSameAs(undeclaredCheckedException);
 			assertThat(throwableSeenByCaller)
 					.isInstanceOf(UndeclaredThrowableException.class)
-					.hasCauseReference(undeclaredCheckedException);
+					.cause().isSameAs(undeclaredCheckedException);
 		}
 
 		@Test
+		@SentenceFragment("and the target throws a declared checked exception")
 		void targetThrowsDeclaredCheckedException() throws DeclaredCheckedException {
 			willThrow(declaredCheckedException).given(target).doSomething();
 			invokeProxy();
@@ -111,6 +118,7 @@ abstract class AbstractProxyExceptionHandlingTests {
 		}
 
 		@Test
+		@SentenceFragment("and the target throws an unchecked exception")
 		void targetThrowsUncheckedException() throws DeclaredCheckedException {
 			willThrow(uncheckedException).given(target).doSomething();
 			invokeProxy();
@@ -133,6 +141,7 @@ abstract class AbstractProxyExceptionHandlingTests {
 
 
 	@Nested
+	@SentenceFragment("when there are no interceptors")
 	class WhenThereAreNoInterceptorsTests {
 
 		@BeforeEach
@@ -142,15 +151,17 @@ abstract class AbstractProxyExceptionHandlingTests {
 		}
 
 		@Test
+		@SentenceFragment("and the target throws an undeclared checked exception")
 		void targetThrowsUndeclaredCheckedException() throws DeclaredCheckedException {
 			willAnswer(sneakyThrow(undeclaredCheckedException)).given(target).doSomething();
 			invokeProxy();
 			assertThat(throwableSeenByCaller)
 					.isInstanceOf(UndeclaredThrowableException.class)
-					.hasCauseReference(undeclaredCheckedException);
+					.cause().isSameAs(undeclaredCheckedException);
 		}
 
 		@Test
+		@SentenceFragment("and the target throws a declared checked exception")
 		void targetThrowsDeclaredCheckedException() throws DeclaredCheckedException {
 			willThrow(declaredCheckedException).given(target).doSomething();
 			invokeProxy();
@@ -158,6 +169,7 @@ abstract class AbstractProxyExceptionHandlingTests {
 		}
 
 		@Test
+		@SentenceFragment("and the target throws an unchecked exception")
 		void targetThrowsUncheckedException() throws DeclaredCheckedException {
 			willThrow(uncheckedException).given(target).doSomething();
 			invokeProxy();

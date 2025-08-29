@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ package org.springframework.web.reactive.result.view;
 import java.util.Collection;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.Model;
 
 /**
@@ -46,8 +47,7 @@ public interface Rendering {
 	/**
 	 * Return the selected {@link String} view name or {@link View} object.
 	 */
-	@Nullable
-	Object view();
+	@Nullable Object view();
 
 	/**
 	 * Return attributes to add to the model.
@@ -57,8 +57,7 @@ public interface Rendering {
 	/**
 	 * Return the HTTP status to set the response to.
 	 */
-	@Nullable
-	HttpStatusCode status();
+	@Nullable HttpStatusCode status();
 
 	/**
 	 * Return headers to add to the response.

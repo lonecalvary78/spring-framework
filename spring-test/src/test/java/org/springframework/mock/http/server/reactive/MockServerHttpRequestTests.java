@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.mock.http.server.reactive;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -24,15 +25,16 @@ import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.internal.util.MockUtil;
 
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.junit.jupiter.api.Named.named;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link MockServerHttpRequest}.
@@ -66,6 +68,19 @@ class MockServerHttpRequestTests {
 		assertThat(request.getURI().toString()).isEqualTo("/foo%20bar?a=b&name%20A=value%20A1&name%20A=value%20A2&name%20B=value%20B1");
 	}
 
+	/**
+	 * Ensure that {@code sslInfo()} can be used with the fluent builder pattern.
+	 */
+	@Test  // gh-35075
+	void sslInfo() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("/test")
+				.sslInfo(mock())
+				.build();
+
+		assertThat(request.getSslInfo()).as("is mock").satisfies(sslInfo -> MockUtil.isMock(sslInfo));
+		assertThat(request.getURI().toString()).isEqualTo("/test");
+	}
+
 	@ParameterizedTest(name = "[{index}] {0}")
 	@MethodSource
 	void httpMethodNotNullOrEmpty(ThrowingCallable callable) {
@@ -74,15 +89,12 @@ class MockServerHttpRequestTests {
 			.withMessageContaining("HTTP method is required.");
 	}
 
-	@SuppressWarnings("deprecation")
 	static Stream<Named<ThrowingCallable>> httpMethodNotNullOrEmpty() {
 		String uriTemplate = "/foo bar?a=b";
+		URI uri = UriComponentsBuilder.fromUriString(uriTemplate).build().toUri();
 		return Stream.of(
-				named("null HttpMethod, URI", () -> MockServerHttpRequest.method(null, UriComponentsBuilder.fromUriString(uriTemplate).build("")).build()),
-				named("null HttpMethod, uriTemplate", () -> MockServerHttpRequest.method((HttpMethod) null, uriTemplate).build()),
-				named("null String, uriTemplate", () -> MockServerHttpRequest.method((String) null, uriTemplate).build()),
-				named("empty String, uriTemplate", () -> MockServerHttpRequest.method("", uriTemplate).build()),
-				named("blank String, uriTemplate", () -> MockServerHttpRequest.method("   ", uriTemplate).build())
+				named("null HttpMethod, URI", () -> MockServerHttpRequest.method(null, uri).build()),
+				named("null HttpMethod, uriTemplate", () -> MockServerHttpRequest.method(null, uriTemplate).build())
 		);
 	}
 

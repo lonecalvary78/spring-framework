@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,12 +41,12 @@ import kotlin.reflect.jvm.KCallablesJvm;
 import kotlin.reflect.jvm.ReflectJvmMapping;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.log.LogMessage;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -101,11 +101,10 @@ public class SpringFactoriesLoader {
 
 	private static final Log logger = LogFactory.getLog(SpringFactoriesLoader.class);
 
-	static final Map<ClassLoader, Map<String, SpringFactoriesLoader>> cache = new ConcurrentReferenceHashMap<>();
+	static final Map<ClassLoader, Map<String, Factories>> cache = new ConcurrentReferenceHashMap<>();
 
 
-	@Nullable
-	private final ClassLoader classLoader;
+	private final @Nullable ClassLoader classLoader;
 
 	private final Map<String, List<String>> factories;
 
@@ -126,13 +125,12 @@ public class SpringFactoriesLoader {
 	 * Load and instantiate the factory implementations of the given type from
 	 * {@value #FACTORIES_RESOURCE_LOCATION}, using the configured class loader
 	 * and a default argument resolver that expects a no-arg constructor.
-	 * <p>The returned factories are sorted through {@link AnnotationAwareOrderComparator}.
+	 * <p>The returned factories are sorted using {@link AnnotationAwareOrderComparator}.
 	 * <p>If a custom instantiation strategy is required, use {@code load(...)}
 	 * with a custom {@link ArgumentResolver ArgumentResolver} and/or
 	 * {@link FailureHandler FailureHandler}.
-	 * <p>As of Spring Framework 5.3, if duplicate implementation class names are
-	 * discovered for a given factory type, only one instance of the duplicated
-	 * implementation type will be instantiated.
+	 * <p>If duplicate implementation class names are discovered for a given factory
+	 * type, only one instance of the duplicated implementation type will be instantiated.
 	 * @param factoryType the interface or abstract class representing the factory
 	 * @throws IllegalArgumentException if any factory implementation class cannot
 	 * be loaded or if an error occurs while instantiating any factory
@@ -146,10 +144,9 @@ public class SpringFactoriesLoader {
 	 * Load and instantiate the factory implementations of the given type from
 	 * {@value #FACTORIES_RESOURCE_LOCATION}, using the configured class loader
 	 * and the given argument resolver.
-	 * <p>The returned factories are sorted through {@link AnnotationAwareOrderComparator}.
-	 * <p>As of Spring Framework 5.3, if duplicate implementation class names are
-	 * discovered for a given factory type, only one instance of the duplicated
-	 * implementation type will be instantiated.
+	 * <p>The returned factories are sorted using {@link AnnotationAwareOrderComparator}.
+	 * <p>If duplicate implementation class names are discovered for a given factory
+	 * type, only one instance of the duplicated implementation type will be instantiated.
 	 * @param factoryType the interface or abstract class representing the factory
 	 * @param argumentResolver strategy used to resolve constructor arguments by their type
 	 * @throws IllegalArgumentException if any factory implementation class cannot
@@ -164,10 +161,9 @@ public class SpringFactoriesLoader {
 	 * Load and instantiate the factory implementations of the given type from
 	 * {@value #FACTORIES_RESOURCE_LOCATION}, using the configured class loader
 	 * with custom failure handling provided by the given failure handler.
-	 * <p>The returned factories are sorted through {@link AnnotationAwareOrderComparator}.
-	 * <p>As of Spring Framework 5.3, if duplicate implementation class names are
-	 * discovered for a given factory type, only one instance of the duplicated
-	 * implementation type will be instantiated.
+	 * <p>The returned factories are sorted using {@link AnnotationAwareOrderComparator}.
+	 * <p>If duplicate implementation class names are discovered for a given factory
+	 * type, only one instance of the duplicated implementation type will be instantiated.
 	 * <p>For any factory implementation class that cannot be loaded or error that
 	 * occurs while instantiating it, the given failure handler is called.
 	 * @param factoryType the interface or abstract class representing the factory
@@ -183,10 +179,9 @@ public class SpringFactoriesLoader {
 	 * {@value #FACTORIES_RESOURCE_LOCATION}, using the configured class loader,
 	 * the given argument resolver, and custom failure handling provided by the given
 	 * failure handler.
-	 * <p>The returned factories are sorted through {@link AnnotationAwareOrderComparator}.
-	 * <p>As of Spring Framework 5.3, if duplicate implementation class names are
-	 * discovered for a given factory type, only one instance of the duplicated
-	 * implementation type will be instantiated.
+	 * <p>The returned factories are sorted using {@link AnnotationAwareOrderComparator}.
+	 * <p>If duplicate implementation class names are discovered for a given factory
+	 * type, only one instance of the duplicated implementation type will be instantiated.
 	 * <p>For any factory implementation class that cannot be loaded or error that
 	 * occurs while instantiating it, the given failure handler is called.
 	 * @param factoryType the interface or abstract class representing the factory
@@ -216,8 +211,7 @@ public class SpringFactoriesLoader {
 		return this.factories.getOrDefault(factoryType.getName(), Collections.emptyList());
 	}
 
-	@Nullable
-	protected <T> T instantiateFactory(String implementationName, Class<T> type,
+	protected <T> @Nullable T instantiateFactory(String implementationName, Class<T> type,
 			@Nullable ArgumentResolver argumentResolver, FailureHandler failureHandler) {
 
 		try {
@@ -237,12 +231,11 @@ public class SpringFactoriesLoader {
 	/**
 	 * Load and instantiate the factory implementations of the given type from
 	 * {@value #FACTORIES_RESOURCE_LOCATION}, using the given class loader.
-	 * <p>The returned factories are sorted through {@link AnnotationAwareOrderComparator}.
-	 * <p>As of Spring Framework 5.3, if duplicate implementation class names are
-	 * discovered for a given factory type, only one instance of the duplicated
-	 * implementation type will be instantiated.
+	 * <p>The returned factories are sorted using {@link AnnotationAwareOrderComparator}.
+	 * <p>If duplicate implementation class names are discovered for a given factory
+	 * type, only one instance of the duplicated implementation type will be instantiated.
 	 * <p>For more advanced factory loading with {@link ArgumentResolver} or
-	 * {@link FailureHandler} support use {@link #forDefaultResourceLocation(ClassLoader)}
+	 * {@link FailureHandler} support, use {@link #forDefaultResourceLocation(ClassLoader)}
 	 * to obtain a {@link SpringFactoriesLoader} instance.
 	 * @param factoryType the interface or abstract class representing the factory
 	 * @param classLoader the ClassLoader to use for loading (can be {@code null}
@@ -258,9 +251,8 @@ public class SpringFactoriesLoader {
 	 * Load the fully qualified class names of factory implementations of the
 	 * given type from {@value #FACTORIES_RESOURCE_LOCATION}, using the given
 	 * class loader.
-	 * <p>As of Spring Framework 5.3, if a particular implementation class name
-	 * is discovered more than once for the given factory type, duplicates will
-	 * be ignored.
+	 * <p>If a particular implementation class name is discovered more than once
+	 * for the given factory type, duplicates will be ignored.
 	 * @param factoryType the interface or abstract class representing the factory
 	 * @param classLoader the ClassLoader to use for loading resources; can be
 	 * {@code null} to use the default
@@ -327,10 +319,11 @@ public class SpringFactoriesLoader {
 		Assert.hasText(resourceLocation, "'resourceLocation' must not be empty");
 		ClassLoader resourceClassLoader = (classLoader != null ? classLoader :
 				SpringFactoriesLoader.class.getClassLoader());
-		Map<String, SpringFactoriesLoader> loaders = cache.computeIfAbsent(
+		Map<String, Factories> factoriesCache = cache.computeIfAbsent(
 				resourceClassLoader, key -> new ConcurrentReferenceHashMap<>());
-		return loaders.computeIfAbsent(resourceLocation, key ->
-				new SpringFactoriesLoader(classLoader, loadFactoriesResource(resourceClassLoader, resourceLocation)));
+		Factories factories = factoriesCache.computeIfAbsent(resourceLocation, key ->
+				new Factories(loadFactoriesResource(resourceClassLoader, resourceLocation)));
+		return new SpringFactoriesLoader(classLoader, factories.byType());
 	}
 
 	protected static Map<String, List<String>> loadFactoriesResource(ClassLoader classLoader, String resourceLocation) {
@@ -376,7 +369,7 @@ public class SpringFactoriesLoader {
 
 		T instantiate(@Nullable ArgumentResolver argumentResolver) throws Exception {
 			Object[] args = resolveArgs(argumentResolver);
-			if (isKotlinType(this.constructor.getDeclaringClass())) {
+			if (KotlinDetector.isKotlinType(this.constructor.getDeclaringClass())) {
 				return KotlinDelegate.instantiate(this.constructor, args);
 			}
 			return this.constructor.newInstance(args);
@@ -397,8 +390,7 @@ public class SpringFactoriesLoader {
 			return new FactoryInstantiator<>((Constructor<T>) constructor);
 		}
 
-		@Nullable
-		private static Constructor<?> findConstructor(Class<?> factoryImplementationClass) {
+		private static @Nullable Constructor<?> findConstructor(Class<?> factoryImplementationClass) {
 			// Same algorithm as BeanUtils.getResolvableConstructor
 			Constructor<?> constructor = findPrimaryKotlinConstructor(factoryImplementationClass);
 			constructor = (constructor != null ? constructor :
@@ -410,23 +402,16 @@ public class SpringFactoriesLoader {
 			return constructor;
 		}
 
-		@Nullable
-		private static Constructor<?> findPrimaryKotlinConstructor(Class<?> factoryImplementationClass) {
-			return (isKotlinType(factoryImplementationClass) ?
+		private static @Nullable Constructor<?> findPrimaryKotlinConstructor(Class<?> factoryImplementationClass) {
+			return (KotlinDetector.isKotlinType(factoryImplementationClass) ?
 					KotlinDelegate.findPrimaryConstructor(factoryImplementationClass) : null);
 		}
 
-		private static boolean isKotlinType(Class<?> factoryImplementationClass) {
-			return KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isKotlinType(factoryImplementationClass);
-		}
-
-		@Nullable
-		private static Constructor<?> findSingleConstructor(Constructor<?>[] constructors) {
+		private static @Nullable Constructor<?> findSingleConstructor(Constructor<?>[] constructors) {
 			return (constructors.length == 1 ? constructors[0] : null);
 		}
 
-		@Nullable
-		private static Constructor<?> findDeclaredConstructor(Class<?> factoryImplementationClass) {
+		private static @Nullable Constructor<?> findDeclaredConstructor(Class<?> factoryImplementationClass) {
 			try {
 				return factoryImplementationClass.getDeclaredConstructor();
 			}
@@ -443,8 +428,7 @@ public class SpringFactoriesLoader {
 	 */
 	private static class KotlinDelegate {
 
-		@Nullable
-		static <T> Constructor<T> findPrimaryConstructor(Class<T> clazz) {
+		static <T> @Nullable Constructor<T> findPrimaryConstructor(Class<T> clazz) {
 			try {
 				KFunction<T> primaryConstructor = KClasses.getPrimaryConstructor(JvmClassMappingKt.getKotlinClass(clazz));
 				if (primaryConstructor != null) {
@@ -455,8 +439,7 @@ public class SpringFactoriesLoader {
 					return constructor;
 				}
 			}
-			catch (UnsupportedOperationException ex) {
-				// ignore
+			catch (UnsupportedOperationException ignored) {
 			}
 			return null;
 		}
@@ -472,8 +455,8 @@ public class SpringFactoriesLoader {
 
 		private static <T> void makeAccessible(Constructor<T> constructor,
 				KFunction<T> kotlinConstructor) {
-			if ((!Modifier.isPublic(constructor.getModifiers())
-					|| !Modifier.isPublic(constructor.getDeclaringClass().getModifiers()))) {
+			if ((!Modifier.isPublic(constructor.getModifiers()) ||
+					!Modifier.isPublic(constructor.getDeclaringClass().getModifiers()))) {
 				KCallablesJvm.setAccessible(kotlinConstructor, true);
 			}
 		}
@@ -512,8 +495,7 @@ public class SpringFactoriesLoader {
 		 * @param type the argument type
 		 * @return the resolved argument value or {@code null}
 		 */
-		@Nullable
-		<T> T resolve(Class<T> type);
+		<T> @Nullable T resolve(Class<T> type);
 
 		/**
 		 * Create a new composed {@link ArgumentResolver} by combining this resolver
@@ -592,11 +574,11 @@ public class SpringFactoriesLoader {
 		 * @param function the resolver function
 		 * @return a new {@link ArgumentResolver} instance backed by the function
 		 */
-		static ArgumentResolver from(Function<Class<?>, Object> function) {
+		static ArgumentResolver from(Function<Class<?>, @Nullable Object> function) {
 			return new ArgumentResolver() {
 				@SuppressWarnings("unchecked")
 				@Override
-				public <T> T resolve(Class<T> type) {
+				public <T> @Nullable T resolve(Class<T> type) {
 					return (T) function.apply(type);
 				}
 			};
@@ -673,4 +655,8 @@ public class SpringFactoriesLoader {
 		}
 	}
 
+
+	private record Factories(Map<String, List<String>> byType) {
+
+	}
 }

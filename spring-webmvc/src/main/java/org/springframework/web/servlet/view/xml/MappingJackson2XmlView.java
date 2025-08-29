@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.View;
@@ -41,7 +41,10 @@ import org.springframework.web.servlet.view.json.AbstractJackson2View;
  * @author Sebastien Deleuze
  * @since 4.1
  * @see org.springframework.web.servlet.view.json.MappingJackson2JsonView
+ * @deprecated since 7.0 in favor of {@link JacksonXmlView}
  */
+@Deprecated(since = "7.0", forRemoval = true)
+@SuppressWarnings("removal")
 public class MappingJackson2XmlView extends AbstractJackson2View {
 
 	/**
@@ -50,8 +53,7 @@ public class MappingJackson2XmlView extends AbstractJackson2View {
 	public static final String DEFAULT_CONTENT_TYPE = "application/xml";
 
 
-	@Nullable
-	private String modelKey;
+	private @Nullable String modelKey;
 
 
 	/**

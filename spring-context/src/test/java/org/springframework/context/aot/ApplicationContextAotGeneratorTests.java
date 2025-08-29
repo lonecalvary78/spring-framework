@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.context.aot;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -51,7 +51,9 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.MethodReplacer;
 import org.springframework.beans.factory.support.RegisteredBean;
+import org.springframework.beans.factory.support.ReplaceOverride;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.testfixture.beans.Employee;
 import org.springframework.beans.testfixture.beans.Pet;
@@ -66,8 +68,10 @@ import org.springframework.context.annotation.CommonAnnotationBeanPostProcessor;
 import org.springframework.context.annotation.ContextAnnotationAutowireCandidateResolver;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.context.testfixture.context.annotation.AutowiredCglibConfiguration;
 import org.springframework.context.testfixture.context.annotation.AutowiredComponent;
 import org.springframework.context.testfixture.context.annotation.AutowiredGenericTemplate;
+import org.springframework.context.testfixture.context.annotation.AutowiredMixedCglibConfiguration;
 import org.springframework.context.testfixture.context.annotation.CglibConfiguration;
 import org.springframework.context.testfixture.context.annotation.ConfigurableCglibConfiguration;
 import org.springframework.context.testfixture.context.annotation.GenericTemplateConfiguration;
@@ -79,9 +83,11 @@ import org.springframework.context.testfixture.context.annotation.LazyConstructo
 import org.springframework.context.testfixture.context.annotation.LazyFactoryMethodArgumentComponent;
 import org.springframework.context.testfixture.context.annotation.LazyResourceFieldComponent;
 import org.springframework.context.testfixture.context.annotation.LazyResourceMethodComponent;
+import org.springframework.context.testfixture.context.annotation.LookupComponent;
 import org.springframework.context.testfixture.context.annotation.PropertySourceConfiguration;
 import org.springframework.context.testfixture.context.annotation.QualifierConfiguration;
 import org.springframework.context.testfixture.context.annotation.ResourceComponent;
+import org.springframework.context.testfixture.context.annotation.ValueCglibConfiguration;
 import org.springframework.context.testfixture.context.generator.SimpleComponent;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -109,12 +115,106 @@ class ApplicationContextAotGeneratorTests {
 	void processAheadOfTimeWhenHasSimpleBean() {
 		GenericApplicationContext applicationContext = new GenericApplicationContext();
 		applicationContext.registerBeanDefinition("test", new RootBeanDefinition(SimpleComponent.class));
+
 		testCompiledResult(applicationContext, (initializer, compiled) -> {
 			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 			assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("test");
 			assertThat(freshApplicationContext.getBean("test")).isInstanceOf(SimpleComponent.class);
 		});
 	}
+
+	@Test
+	void processAheadOfTimeWhenHasNoAotContributions() {
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+
+		testCompiledResult(applicationContext, (initializer, compiled) -> {
+			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+			assertThat(freshApplicationContext.getBeanDefinitionNames()).isEmpty();
+			assertThat(compiled.getSourceFile())
+					.contains("beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver())")
+					.contains("beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE)");
+		});
+	}
+
+	@Test
+	void processAheadOfTimeWhenHasBeanFactoryInitializationAotProcessorExcludesProcessor() {
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		applicationContext.registerBeanDefinition("test",
+				new RootBeanDefinition(NoOpBeanFactoryInitializationAotProcessor.class));
+
+		testCompiledResult(applicationContext, (initializer, compiled) -> {
+			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+			assertThat(freshApplicationContext.getBeanDefinitionNames()).isEmpty();
+		});
+	}
+
+	@Test
+	void processAheadOfTimeWhenHasBeanRegistrationAotProcessorExcludesProcessor() {
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		applicationContext.registerBeanDefinition("test",
+				new RootBeanDefinition(NoOpBeanRegistrationAotProcessor.class));
+
+		testCompiledResult(applicationContext, (initializer, compiled) -> {
+			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+			assertThat(freshApplicationContext.getBeanDefinitionNames()).isEmpty();
+		});
+	}
+
+	@Test
+	void processAheadOfTimeWithPropertySource() {
+		GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+		applicationContext.registerBean(PropertySourceConfiguration.class);
+
+		testCompiledResult(applicationContext, (initializer, compiled) -> {
+			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+			ConfigurableEnvironment environment = freshApplicationContext.getEnvironment();
+			PropertySource<?> propertySource = environment.getPropertySources().get("testp1");
+			assertThat(propertySource).isNotNull();
+			assertThat(propertySource.getProperty("from.p1")).isEqualTo("p1Value");
+		});
+	}
+
+	@Test
+	void processAheadOfTimeWithQualifier() {
+		GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+		applicationContext.registerBean(QualifierConfiguration.class);
+
+		testCompiledResult(applicationContext, (initializer, compiled) -> {
+			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+			QualifierConfiguration configuration = freshApplicationContext.getBean(QualifierConfiguration.class);
+			assertThat(configuration).hasFieldOrPropertyWithValue("bean", "one");
+		});
+	}
+
+	@Test
+	void processAheadOfTimeWithInjectionPoint() {
+		GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+		applicationContext.registerBean(InjectionPointConfiguration.class);
+
+		testCompiledResult(applicationContext, (initializer, compiled) -> {
+			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+			assertThat(freshApplicationContext.getBean("classToString"))
+					.isEqualTo(InjectionPointConfiguration.class.getName());
+		});
+	}
+
+	@Test  // gh-30689
+	void processAheadOfTimeWithExplicitResolvableType() {
+		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		DefaultListableBeanFactory beanFactory = applicationContext.getDefaultListableBeanFactory();
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(One.class);
+		beanDefinition.setResolvedFactoryMethod(ReflectionUtils.findMethod(TestHierarchy.class, "oneBean"));
+		// Override target type
+		beanDefinition.setTargetType(Two.class);
+		beanFactory.registerBeanDefinition("hierarchyBean", beanDefinition);
+
+		testCompiledResult(applicationContext, (initializer, compiled) -> {
+			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+			assertThat(freshApplicationContext.getBean(Two.class))
+					.isInstanceOf(Implementation.class);
+		});
+	}
+
 
 	@Nested
 	class Autowiring {
@@ -126,6 +226,7 @@ class ApplicationContextAotGeneratorTests {
 					AnnotationConfigUtils.AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME, AutowiredAnnotationBeanPostProcessor.class);
 			applicationContext.registerBeanDefinition("autowiredComponent", new RootBeanDefinition(AutowiredComponent.class));
 			registerIntegerBean(applicationContext, "number", 42);
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("autowiredComponent", "number");
@@ -136,10 +237,55 @@ class ApplicationContextAotGeneratorTests {
 		}
 
 		@Test
+		void processAheadOfTimeWhenHasReplacer() {
+			GenericApplicationContext applicationContext = new GenericApplicationContext();
+			registerBeanPostProcessor(applicationContext,
+					AnnotationConfigUtils.AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME, AutowiredAnnotationBeanPostProcessor.class);
+			RootBeanDefinition rbd = new RootBeanDefinition(AutowiredComponent.class);
+			rbd.getMethodOverrides().addOverride(
+					new ReplaceOverride("getCounter", "replacer"));
+			applicationContext.registerBeanDefinition("autowiredComponent", rbd);
+			registerIntegerBean(applicationContext, "number", 42);
+			applicationContext.registerBean("replacer", DummyReplacer.class);
+
+			testCompiledResult(applicationContext, (initializer, compiled) -> {
+				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+				assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("autowiredComponent", "number", "replacer");
+				AutowiredComponent bean = freshApplicationContext.getBean(AutowiredComponent.class);
+				assertThat(bean.getEnvironment()).isSameAs(freshApplicationContext.getEnvironment());
+				assertThat(bean.getCounter()).isEqualTo(44);
+				assertThat(bean.getCounter(0)).isEqualTo(42);
+			});
+		}
+
+		@Test
+		void processAheadOfTimeWhenHasLookup() {
+			GenericApplicationContext applicationContext = new GenericApplicationContext();
+			registerBeanPostProcessor(applicationContext,
+					AnnotationConfigUtils.AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME, AutowiredAnnotationBeanPostProcessor.class);
+			RootBeanDefinition rbd = new RootBeanDefinition(LookupComponent.class);
+			rbd.getMethodOverrides().addOverride(
+					new ReplaceOverride("getCounter", "replacer", List.of( "Integer")));
+			applicationContext.registerBeanDefinition("autowiredComponent", rbd);
+			registerIntegerBean(applicationContext, "number", 42);
+			applicationContext.registerBean("replacer", DummyReplacer.class);
+
+			testCompiledResult(applicationContext, (initializer, compiled) -> {
+				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+				assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("autowiredComponent", "number", "replacer");
+				LookupComponent bean = freshApplicationContext.getBean(LookupComponent.class);
+				assertThat(bean.getEnvironment()).isSameAs(freshApplicationContext.getEnvironment());
+				assertThat(bean.getCounter()).isEqualTo(42);
+				assertThat(bean.getCounter(0)).isEqualTo(44);
+			});
+		}
+
+		@Test
 		void processAheadOfTimeWhenHasAutowiringOnUnresolvedGeneric() {
 			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
 			applicationContext.registerBean(GenericTemplateConfiguration.class);
 			applicationContext.registerBean("autowiredComponent", AutowiredGenericTemplate.class);
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				AutowiredGenericTemplate bean = freshApplicationContext.getBean(AutowiredGenericTemplate.class);
@@ -159,7 +305,6 @@ class ApplicationContextAotGeneratorTests {
 				assertThat(runtimeHints.proxies().jdkProxyHints()).anySatisfy(proxyHint ->
 						assertThat(proxyHint.getProxiedInterfaces()).isEqualTo(TypeReference.listOf(
 								environment.getClass().getInterfaces())));
-
 			});
 		}
 
@@ -223,14 +368,15 @@ class ApplicationContextAotGeneratorTests {
 					AnnotationConfigUtils.AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME, AutowiredAnnotationBeanPostProcessor.class);
 			applicationContext.registerBeanDefinition("testComponent", beanDefinition);
 			TestGenerationContext generationContext = processAheadOfTime(applicationContext);
+
 			testCompiledResult(generationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("testComponent");
 				assertions.accept(freshApplicationContext.getBean("testComponent", type), generationContext);
 			});
 		}
-
 	}
+
 
 	@Nested
 	class ResourceAutowiring {
@@ -244,6 +390,7 @@ class ApplicationContextAotGeneratorTests {
 			registerStringBean(applicationContext, "text2", "hello2");
 			registerIntegerBean(applicationContext, "number", 42);
 			applicationContext.registerBeanDefinition("resourceComponent", new RootBeanDefinition(ResourceComponent.class));
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("resourceComponent", "text", "text2", "number");
@@ -297,6 +444,7 @@ class ApplicationContextAotGeneratorTests {
 					AnnotationConfigUtils.COMMON_ANNOTATION_PROCESSOR_BEAN_NAME, CommonAnnotationBeanPostProcessor.class);
 			applicationContext.registerBeanDefinition("testComponent", beanDefinition);
 			TestGenerationContext generationContext = processAheadOfTime(applicationContext);
+
 			testCompiledResult(generationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("testComponent");
@@ -304,6 +452,7 @@ class ApplicationContextAotGeneratorTests {
 			});
 		}
 	}
+
 
 	@Nested
 	class InitDestroy {
@@ -315,6 +464,7 @@ class ApplicationContextAotGeneratorTests {
 					AnnotationConfigUtils.COMMON_ANNOTATION_PROCESSOR_BEAN_NAME, CommonAnnotationBeanPostProcessor.class);
 			applicationContext.registerBeanDefinition("initDestroyComponent",
 					new RootBeanDefinition(InitDestroyComponent.class));
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("initDestroyComponent");
@@ -334,6 +484,7 @@ class ApplicationContextAotGeneratorTests {
 			beanDefinition.setInitMethodName("customInit");
 			beanDefinition.setDestroyMethodName("customDestroy");
 			applicationContext.registerBeanDefinition("initDestroyComponent", beanDefinition);
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				assertThat(freshApplicationContext.getBeanDefinitionNames()).containsOnly("initDestroyComponent");
@@ -343,105 +494,21 @@ class ApplicationContextAotGeneratorTests {
 				assertThat(bean.events).containsExactly("init", "customInit", "destroy", "customDestroy");
 			});
 		}
-
 	}
 
-	@Test
-	void processAheadOfTimeWhenHasNoAotContributions() {
-		GenericApplicationContext applicationContext = new GenericApplicationContext();
-		testCompiledResult(applicationContext, (initializer, compiled) -> {
-			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
-			assertThat(freshApplicationContext.getBeanDefinitionNames()).isEmpty();
-			assertThat(compiled.getSourceFile())
-					.contains("beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver())")
-					.contains("beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE)");
-		});
-	}
-
-	@Test
-	void processAheadOfTimeWhenHasBeanFactoryInitializationAotProcessorExcludesProcessor() {
-		GenericApplicationContext applicationContext = new GenericApplicationContext();
-		applicationContext.registerBeanDefinition("test",
-				new RootBeanDefinition(NoOpBeanFactoryInitializationAotProcessor.class));
-		testCompiledResult(applicationContext, (initializer, compiled) -> {
-			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
-			assertThat(freshApplicationContext.getBeanDefinitionNames()).isEmpty();
-		});
-	}
-
-	@Test
-	void processAheadOfTimeWhenHasBeanRegistrationAotProcessorExcludesProcessor() {
-		GenericApplicationContext applicationContext = new GenericApplicationContext();
-		applicationContext.registerBeanDefinition("test",
-				new RootBeanDefinition(NoOpBeanRegistrationAotProcessor.class));
-		testCompiledResult(applicationContext, (initializer, compiled) -> {
-			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
-			assertThat(freshApplicationContext.getBeanDefinitionNames()).isEmpty();
-		});
-	}
-
-
-	@Test
-	void processAheadOfTimeWithPropertySource() {
-		GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
-		applicationContext.registerBean(PropertySourceConfiguration.class);
-		testCompiledResult(applicationContext, (initializer, compiled) -> {
-			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
-			ConfigurableEnvironment environment = freshApplicationContext.getEnvironment();
-			PropertySource<?> propertySource = environment.getPropertySources().get("testp1");
-			assertThat(propertySource).isNotNull();
-			assertThat(propertySource.getProperty("from.p1")).isEqualTo("p1Value");
-		});
-	}
-
-	@Test
-	void processAheadOfTimeWithQualifier() {
-		GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
-		applicationContext.registerBean(QualifierConfiguration.class);
-		testCompiledResult(applicationContext, (initializer, compiled) -> {
-			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
-			QualifierConfiguration configuration = freshApplicationContext.getBean(QualifierConfiguration.class);
-			assertThat(configuration).hasFieldOrPropertyWithValue("bean", "one");
-		});
-	}
-
-	@Test
-	void processAheadOfTimeWithInjectionPoint() {
-		GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
-		applicationContext.registerBean(InjectionPointConfiguration.class);
-		testCompiledResult(applicationContext, (initializer, compiled) -> {
-			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
-			assertThat(freshApplicationContext.getBean("classToString"))
-					.isEqualTo(InjectionPointConfiguration.class.getName());
-		});
-	}
-
-	@Test // gh-30689
-	void processAheadOfTimeWithExplicitResolvableType() {
-		GenericApplicationContext applicationContext = new GenericApplicationContext();
-		DefaultListableBeanFactory beanFactory = applicationContext.getDefaultListableBeanFactory();
-		RootBeanDefinition beanDefinition = new RootBeanDefinition(One.class);
-		beanDefinition.setResolvedFactoryMethod(ReflectionUtils.findMethod(TestHierarchy.class, "oneBean"));
-		// Override target type
-		beanDefinition.setTargetType(Two.class);
-		beanFactory.registerBeanDefinition("hierarchyBean", beanDefinition);
-		testCompiledResult(applicationContext, (initializer, compiled) -> {
-			GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
-			assertThat(freshApplicationContext.getBean(Two.class))
-					.isInstanceOf(Implementation.class);
-		});
-	}
 
 	@Nested
 	@CompileWithForkedClassLoader
 	class ConfigurationClassCglibProxy {
+
+		private static final String CGLIB_CONFIGURATION_CLASS_SUFFIX = "$$SpringCGLIB$$0";
 
 		@Test
 		void processAheadOfTimeWhenHasCglibProxyWriteProxyAndGenerateReflectionHints() throws IOException {
 			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
 			applicationContext.registerBean(CglibConfiguration.class);
 			TestGenerationContext context = processAheadOfTime(applicationContext);
-			isRegisteredCglibClass(context, CglibConfiguration.class.getName() + "$$SpringCGLIB$$0");
+			isRegisteredCglibClass(context, CglibConfiguration.class.getName() + CGLIB_CONFIGURATION_CLASS_SUFFIX);
 			isRegisteredCglibClass(context, CglibConfiguration.class.getName() + "$$SpringCGLIB$$FastClass$$0");
 			isRegisteredCglibClass(context, CglibConfiguration.class.getName() + "$$SpringCGLIB$$FastClass$$1");
 		}
@@ -454,9 +521,47 @@ class ApplicationContextAotGeneratorTests {
 		}
 
 		@Test
+		void processAheadOfTimeExposeUserClassForCglibProxy() {
+			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+			applicationContext.registerBean("config", ValueCglibConfiguration.class);
+
+			testCompiledResult(applicationContext, (initializer, compiled) -> {
+				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+				assertThat(freshApplicationContext).satisfies(hasBeanDefinitionOfBeanClass("config", ValueCglibConfiguration.class));
+				assertThat(compiled.getSourceFile(".*ValueCglibConfiguration__BeanDefinitions"))
+						.contains("new RootBeanDefinition(ValueCglibConfiguration.class)")
+						.contains("new %s(".formatted(toCglibClassSimpleName(ValueCglibConfiguration.class)));
+			});
+		}
+
+		@Test
+		void processAheadOfTimeUsesCglibClassForFactoryMethod() {
+			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+			applicationContext.registerBean("config", CglibConfiguration.class);
+
+			testCompiledResult(applicationContext, (initializer, compiled) -> {
+				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
+				assertThat(freshApplicationContext).satisfies(hasBeanDefinitionOfBeanClass("config", CglibConfiguration.class));
+				assertThat(compiled.getSourceFile(".*CglibConfiguration__BeanDefinitions"))
+						.contains("new RootBeanDefinition(CglibConfiguration.class)")
+						.contains(">forFactoryMethod(%s.class,".formatted(toCglibClassSimpleName(CglibConfiguration.class)))
+						.doesNotContain(">forFactoryMethod(%s.class,".formatted(CglibConfiguration.class));
+			});
+		}
+
+		private Consumer<GenericApplicationContext> hasBeanDefinitionOfBeanClass(String name, Class<?> beanClass) {
+			return context -> {
+				assertThat(context.containsBean(name)).isTrue();
+				assertThat(context.getBeanDefinition(name)).isInstanceOfSatisfying(RootBeanDefinition.class,
+						rbd -> assertThat(rbd.getBeanClass()).isEqualTo(beanClass));
+			};
+		}
+
+		@Test
 		void processAheadOfTimeWhenHasCglibProxyUseProxy() {
 			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
 			applicationContext.registerBean(CglibConfiguration.class);
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				assertThat(freshApplicationContext.getBean("prefix", String.class)).isEqualTo("Hello0");
@@ -465,9 +570,54 @@ class ApplicationContextAotGeneratorTests {
 		}
 
 		@Test
+		void processAheadOfTimeWhenHasCglibProxyAndAutowiring() {
+			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+			applicationContext.registerBean(AutowiredCglibConfiguration.class);
+
+			testCompiledResult(applicationContext, (initializer, compiled) -> {
+				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(context -> {
+					context.setEnvironment(new MockEnvironment().withProperty("hello", "Hi"));
+					initializer.initialize(context);
+				});
+				assertThat(freshApplicationContext.getBean("text", String.class)).isEqualTo("Hi World");
+			});
+		}
+
+		@Test
+		void processAheadOfTimeWhenHasCglibProxyAndMixedAutowiring() {
+			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+			applicationContext.registerBean(AutowiredMixedCglibConfiguration.class);
+
+			testCompiledResult(applicationContext, (initializer, compiled) -> {
+				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(context -> {
+					context.setEnvironment(new MockEnvironment().withProperty("hello", "Hi")
+							.withProperty("world", "AOT World"));
+					initializer.initialize(context);
+				});
+				assertThat(freshApplicationContext.getBean("text", String.class)).isEqualTo("Hi AOT World");
+			});
+		}
+
+		@Test
+		void processAheadOfTimeWhenHasCglibProxyWithAnnotationsOnTheUserClasConstructor() {
+			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+			applicationContext.registerBean("config", ValueCglibConfiguration.class);
+
+			testCompiledResult(applicationContext, (initializer, compiled) -> {
+				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(context -> {
+					context.setEnvironment(new MockEnvironment().withProperty("name", "AOT World"));
+					initializer.initialize(context);
+				});
+				assertThat(freshApplicationContext.getBean(ValueCglibConfiguration.class)
+						.getName()).isEqualTo("AOT World");
+			});
+		}
+
+		@Test
 		void processAheadOfTimeWhenHasCglibProxyWithArgumentsUseProxy() {
 			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
 			applicationContext.registerBean(ConfigurableCglibConfiguration.class);
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = createFreshApplicationContext(initializer);
 				freshApplicationContext.setEnvironment(new MockEnvironment().withProperty("test.prefix", "Hi"));
@@ -482,12 +632,15 @@ class ApplicationContextAotGeneratorTests {
 			GenericApplicationContext applicationContext = new AnnotationConfigApplicationContext();
 			applicationContext.registerBean(ConfigurableCglibConfiguration.class);
 			TestGenerationContext generationContext = processAheadOfTime(applicationContext);
-			Constructor<?> userConstructor = ConfigurableCglibConfiguration.class.getDeclaredConstructors()[0];
-			assertThat(RuntimeHintsPredicates.reflection().onConstructor(userConstructor).introspect())
+			assertThat(RuntimeHintsPredicates.reflection().onType(ConfigurableCglibConfiguration.class))
 					.accepts(generationContext.getRuntimeHints());
 		}
 
+		private String toCglibClassSimpleName(Class<?> configClass) {
+			return configClass.getSimpleName() + CGLIB_CONFIGURATION_CLASS_SUFFIX;
+		}
 	}
+
 
 	@Nested
 	class ActiveProfile {
@@ -499,6 +652,7 @@ class ApplicationContextAotGeneratorTests {
 			if (aotProfiles.length != 0) {
 				applicationContext.getEnvironment().setActiveProfiles(aotProfiles);
 			}
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = new GenericApplicationContext();
 				if (runtimeProfiles.length != 0) {
@@ -517,8 +671,8 @@ class ApplicationContextAotGeneratorTests {
 					Arguments.of(new String[] { "aot", "prod" }, new String[] { "aot", "prod" }, new String[] { "aot", "prod" }),
 					Arguments.of(new String[] { "default" }, new String[] {}, new String[] {}));
 		}
-
 	}
+
 
 	@Nested
 	class XmlSupport {
@@ -526,8 +680,9 @@ class ApplicationContextAotGeneratorTests {
 		@Test
 		void processAheadOfTimeWhenHasTypedStringValue() {
 			GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
-			applicationContext
-					.load(new ClassPathResource("applicationContextAotGeneratorTests-values.xml", getClass()));
+			applicationContext.load(
+					new ClassPathResource("applicationContextAotGeneratorTests-values.xml", getClass()));
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				Employee employee = freshApplicationContext.getBean(Employee.class);
@@ -544,8 +699,9 @@ class ApplicationContextAotGeneratorTests {
 		@Test
 		void processAheadOfTimeWhenHasTypedStringValueWithType() {
 			GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
-			applicationContext
-					.load(new ClassPathResource("applicationContextAotGeneratorTests-values-types.xml", getClass()));
+			applicationContext.load(
+					new ClassPathResource("applicationContextAotGeneratorTests-values-types.xml", getClass()));
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				Employee employee = freshApplicationContext.getBean(Employee.class);
@@ -560,8 +716,9 @@ class ApplicationContextAotGeneratorTests {
 		@Test
 		void processAheadOfTimeWhenHasTypedStringValueWithExpression() {
 			GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
-			applicationContext
-					.load(new ClassPathResource("applicationContextAotGeneratorTests-values-expressions.xml", getClass()));
+			applicationContext.load(
+					new ClassPathResource("applicationContextAotGeneratorTests-values-expressions.xml", getClass()));
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				Employee employee = freshApplicationContext.getBean(Employee.class);
@@ -576,8 +733,9 @@ class ApplicationContextAotGeneratorTests {
 		@Test
 		void processAheadOfTimeWhenXmlHasBeanReferences() {
 			GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
-			applicationContext
-					.load(new ClassPathResource("applicationContextAotGeneratorTests-references.xml", getClass()));
+			applicationContext.load(
+					new ClassPathResource("applicationContextAotGeneratorTests-references.xml", getClass()));
+
 			testCompiledResult(applicationContext, (initializer, compiled) -> {
 				GenericApplicationContext freshApplicationContext = toFreshApplicationContext(initializer);
 				assertThat(freshApplicationContext.getBean("petInnerBean", Pet.class)
@@ -586,11 +744,11 @@ class ApplicationContextAotGeneratorTests {
 						.getName()).isEqualTo("Dofi");
 			});
 		}
-
 	}
 
+
 	@Nested
-	class ExceptionHanding {
+	class ExceptionHandling {
 
 		@Test
 		void failureProcessingBeanFactoryAotContribution() {
@@ -604,6 +762,7 @@ class ApplicationContextAotGeneratorTests {
 					.withMessageContaining("Test exception");
 		}
 	}
+
 
 	private static void registerBeanPostProcessor(GenericApplicationContext applicationContext,
 			String beanName, Class<?> beanPostProcessorClass) {
@@ -629,7 +788,7 @@ class ApplicationContextAotGeneratorTests {
 				.getBeanDefinition());
 	}
 
-	private Consumer<List<? extends JdkProxyHint>> doesNotHaveProxyFor(Class<?> target) {
+	private static Consumer<List<? extends JdkProxyHint>> doesNotHaveProxyFor(Class<?> target) {
 		return hints -> assertThat(hints).noneMatch(hint ->
 				hint.getProxiedInterfaces().get(0).equals(TypeReference.of(target)));
 	}
@@ -684,7 +843,6 @@ class ApplicationContextAotGeneratorTests {
 		public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
 			return null;
 		}
-
 	}
 
 
@@ -695,14 +853,23 @@ class ApplicationContextAotGeneratorTests {
 		public BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
 			return null;
 		}
-
 	}
+
 
 	static class FailingBeanFactoryInitializationAotContribution implements BeanFactoryInitializationAotProcessor {
 
 		@Override
 		public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
 			throw new IllegalStateException("Test exception");
+		}
+	}
+
+
+	public static class DummyReplacer implements MethodReplacer {
+
+		@Override
+		public Object reimplement(Object obj, Method method, Object[] args) throws Throwable {
+			return 44;
 		}
 	}
 

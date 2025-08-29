@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.core;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 
 import kotlin.Unit;
 import kotlin.coroutines.CoroutineContext;
@@ -41,12 +42,11 @@ import kotlinx.coroutines.GlobalScope;
 import kotlinx.coroutines.flow.Flow;
 import kotlinx.coroutines.reactor.MonoKt;
 import kotlinx.coroutines.reactor.ReactorFlowKt;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.SynchronousSink;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -109,7 +109,7 @@ public abstract class CoroutinesUtils {
 	 * @throws IllegalArgumentException if {@code method} is not a suspending function
 	 * @since 6.0
 	 */
-	@SuppressWarnings({"deprecation", "DataFlowIssue", "NullAway"})
+	@SuppressWarnings({"DataFlowIssue", "NullAway"})
 	public static Publisher<?> invokeSuspendingFunction(
 			CoroutineContext context, Method method, @Nullable Object target, @Nullable Object... args) {
 
@@ -132,11 +132,7 @@ public abstract class CoroutinesUtils {
 									if (!(type.isMarkedNullable() && arg == null) &&
 											type.getClassifier() instanceof KClass<?> kClass &&
 											KotlinDetector.isInlineClass(JvmClassMappingKt.getJavaClass(kClass))) {
-										KFunction<?> constructor = KClasses.getPrimaryConstructor(kClass);
-										if (!KCallablesJvm.isAccessible(constructor)) {
-											KCallablesJvm.setAccessible(constructor, true);
-										}
-										arg = constructor.call(arg);
+										arg = box(kClass, arg);
 									}
 									argMap.put(parameter, arg);
 								}
@@ -146,7 +142,7 @@ public abstract class CoroutinesUtils {
 					}
 					return KCallables.callSuspendBy(function, argMap, continuation);
 				})
-				.handle(CoroutinesUtils::handleResult)
+				.filter(result -> result != Unit.INSTANCE)
 				.onErrorMap(InvocationTargetException.class, InvocationTargetException::getTargetException);
 
 		KType returnType = function.getReturnType();
@@ -162,26 +158,22 @@ public abstract class CoroutinesUtils {
 		return mono;
 	}
 
+	private static Object box(KClass<?> kClass, @Nullable Object arg) {
+		KFunction<?> constructor = Objects.requireNonNull(KClasses.getPrimaryConstructor(kClass));
+		KType type = constructor.getParameters().get(0).getType();
+		if (!(type.isMarkedNullable() && arg == null) &&
+				type.getClassifier() instanceof KClass<?> parameterClass &&
+				KotlinDetector.isInlineClass(JvmClassMappingKt.getJavaClass(parameterClass))) {
+			arg = box(parameterClass, arg);
+		}
+		if (!KCallablesJvm.isAccessible(constructor)) {
+			KCallablesJvm.setAccessible(constructor, true);
+		}
+		return constructor.call(arg);
+	}
+
 	private static Flux<?> asFlux(Object flow) {
 		return ReactorFlowKt.asFlux(((Flow<?>) flow));
 	}
 
-	private static void handleResult(Object result, SynchronousSink<Object> sink) {
-		if (result == Unit.INSTANCE) {
-			sink.complete();
-		}
-		else if (KotlinDetector.isInlineClass(result.getClass())) {
-			try {
-				sink.next(result.getClass().getDeclaredMethod("unbox-impl").invoke(result));
-				sink.complete();
-			}
-			catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ex) {
-				sink.error(ex);
-			}
-		}
-		else {
-			sink.next(result);
-			sink.complete();
-		}
-	}
 }

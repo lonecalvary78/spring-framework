@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyAccessor;
@@ -35,7 +37,6 @@ import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
 import org.springframework.util.StringUtils;
@@ -74,10 +75,10 @@ import org.springframework.util.StringUtils;
  * @author Rob Harrop
  * @since 26.11.2003
  * @see DefaultListableBeanFactory
- * @deprecated as of 5.3, in favor of Spring's common bean definition formats
- * and/or custom reader implementations
+ * @deprecated in favor of Spring's common bean definition formats and/or
+ * custom reader implementations
  */
-@Deprecated
+@Deprecated(since = "5.3")
 public class PropertiesBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
@@ -145,8 +146,7 @@ public class PropertiesBeanDefinitionReader extends AbstractBeanDefinitionReader
 	public static final String CONSTRUCTOR_ARG_PREFIX = "$";
 
 
-	@Nullable
-	private String defaultParentBean;
+	private @Nullable String defaultParentBean;
 
 	private PropertiesPersister propertiesPersister = DefaultPropertiesPersister.INSTANCE;
 
@@ -180,8 +180,7 @@ public class PropertiesBeanDefinitionReader extends AbstractBeanDefinitionReader
 	/**
 	 * Return the default parent bean for this bean factory.
 	 */
-	@Nullable
-	public String getDefaultParentBean() {
+	public @Nullable String getDefaultParentBean() {
 		return this.defaultParentBean;
 	}
 
@@ -405,10 +404,10 @@ public class PropertiesBeanDefinitionReader extends AbstractBeanDefinitionReader
 	/**
 	 * Get all property values, given a prefix (which will be stripped)
 	 * and add the bean they define to the factory with the given name.
-	 * @param beanName name of the bean to define
+	 * @param beanName the name of the bean to define
 	 * @param map a Map containing string pairs
-	 * @param prefix prefix of each entry, which will be stripped
-	 * @param resourceDescription description of the resource that the
+	 * @param prefix the prefix of each entry, which will be stripped
+	 * @param resourceDescription the description of the resource that the
 	 * Map came from (for logging purposes)
 	 * @throws BeansException if the bean definition could not be parsed or registered
 	 */

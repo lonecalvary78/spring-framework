@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.format.Formatter;
 import org.springframework.format.annotation.DurationFormat;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link Formatter} implementation for a JSR-310 {@link Duration},
@@ -37,8 +38,8 @@ import org.springframework.lang.Nullable;
 public class DurationFormatter implements Formatter<Duration> {
 
 	private final DurationFormat.Style style;
-	@Nullable
-	private final DurationFormat.Unit defaultUnit;
+
+	private final DurationFormat.@Nullable Unit defaultUnit;
 
 	/**
 	 * Create a {@code DurationFormatter} following JSR-310's parsing rules for a Duration
@@ -69,7 +70,7 @@ public class DurationFormatter implements Formatter<Duration> {
 	 * @param style the {@code DurationStyle} to use
 	 * @param defaultUnit the {@code DurationFormat.Unit} to fall back to when parsing and printing
 	 */
-	public DurationFormatter(DurationFormat.Style style, @Nullable DurationFormat.Unit defaultUnit) {
+	public DurationFormatter(DurationFormat.Style style, DurationFormat.@Nullable Unit defaultUnit) {
 		this.style = style;
 		this.defaultUnit = defaultUnit;
 	}

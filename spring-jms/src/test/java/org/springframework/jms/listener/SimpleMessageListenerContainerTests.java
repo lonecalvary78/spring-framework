@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ import jakarta.jms.Message;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.MessageListener;
 import jakarta.jms.Session;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.jms.StubQueue;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ErrorHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;

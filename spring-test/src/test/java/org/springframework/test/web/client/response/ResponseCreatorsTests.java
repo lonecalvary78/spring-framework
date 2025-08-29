@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class ResponseCreatorsTests {
 		MockClientHttpResponse response = (MockClientHttpResponse) MockRestResponseCreators.withSuccess().createResponse(null);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getHeaders()).isEmpty();
+		assertThat(response.getHeaders().isEmpty()).as("isEmpty").isTrue();
 		assertThat(StreamUtils.copyToByteArray(response.getBody())).isEmpty();
 	}
 
@@ -95,7 +95,7 @@ class ResponseCreatorsTests {
 		MockClientHttpResponse response = (MockClientHttpResponse) responseCreator.createResponse(null);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(response.getHeaders()).isEmpty();
+		assertThat(response.getHeaders().isEmpty()).as("isEmpty").isTrue();
 		assertThat(StreamUtils.copyToByteArray(response.getBody())).isEmpty();
 	}
 
@@ -105,7 +105,7 @@ class ResponseCreatorsTests {
 		MockClientHttpResponse response = (MockClientHttpResponse) responseCreator.createResponse(null);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-		assertThat(response.getHeaders()).isEmpty();
+		assertThat(response.getHeaders().isEmpty()).as("isEmpty").isTrue();
 		assertThat(StreamUtils.copyToByteArray(response.getBody())).isEmpty();
 	}
 
@@ -115,7 +115,7 @@ class ResponseCreatorsTests {
 		MockClientHttpResponse response = (MockClientHttpResponse) responseCreator.createResponse(null);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-		assertThat(response.getHeaders()).isEmpty();
+		assertThat(response.getHeaders().isEmpty()).as("isEmpty").isTrue();
 		assertThat(StreamUtils.copyToByteArray(response.getBody())).isEmpty();
 	}
 
@@ -152,7 +152,7 @@ class ResponseCreatorsTests {
 		MockClientHttpResponse response = (MockClientHttpResponse) responseCreator.createResponse(null);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
-		assertThat(response.getHeaders()).doesNotContainKey(HttpHeaders.RETRY_AFTER);
+		assertThat(response.getHeaders().headerNames()).doesNotContain(HttpHeaders.RETRY_AFTER);
 		assertThat(StreamUtils.copyToByteArray(response.getBody())).isEmpty();
 	}
 
@@ -172,7 +172,7 @@ class ResponseCreatorsTests {
 		MockClientHttpResponse response = (MockClientHttpResponse) responseCreator.createResponse(null);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-		assertThat(response.getHeaders()).isEmpty();
+		assertThat(response.getHeaders().isEmpty()).as("isEmpty").isTrue();
 		assertThat(StreamUtils.copyToByteArray(response.getBody())).isEmpty();
 	}
 
@@ -209,7 +209,7 @@ class ResponseCreatorsTests {
 		MockClientHttpResponse response = (MockClientHttpResponse) responseCreator.createResponse(null);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-		assertThat(response.getHeaders()).isEmpty();
+		assertThat(response.getHeaders().isEmpty()).as("isEmpty").isTrue();
 		assertThat(StreamUtils.copyToByteArray(response.getBody())).isEmpty();
 	}
 

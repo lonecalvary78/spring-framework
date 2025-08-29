@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.beans.factory.parsing;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanMetadataElement;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -33,8 +34,7 @@ public class AliasDefinition implements BeanMetadataElement {
 
 	private final String alias;
 
-	@Nullable
-	private final Object source;
+	private final @Nullable Object source;
 
 
 	/**
@@ -76,8 +76,7 @@ public class AliasDefinition implements BeanMetadataElement {
 	}
 
 	@Override
-	@Nullable
-	public final Object getSource() {
+	public final @Nullable Object getSource() {
 		return this.source;
 	}
 

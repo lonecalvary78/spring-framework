@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,12 @@ import freemarker.template.SimpleHash;
 import freemarker.template.TemplateException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -81,28 +81,21 @@ public class FreeMarkerConfigurationFactory {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	private Resource configLocation;
+	private @Nullable Resource configLocation;
 
-	@Nullable
-	private Properties freemarkerSettings;
+	private @Nullable Properties freemarkerSettings;
 
-	@Nullable
-	private Map<String, Object> freemarkerVariables;
+	private @Nullable Map<String, Object> freemarkerVariables;
 
-	@Nullable
-	private String defaultEncoding;
+	private @Nullable String defaultEncoding;
 
 	private final List<TemplateLoader> templateLoaders = new ArrayList<>();
 
-	@Nullable
-	private List<TemplateLoader> preTemplateLoaders;
+	private @Nullable List<TemplateLoader> preTemplateLoaders;
 
-	@Nullable
-	private List<TemplateLoader> postTemplateLoaders;
+	private @Nullable List<TemplateLoader> postTemplateLoaders;
 
-	@Nullable
-	private String[] templateLoaderPaths;
+	private String @Nullable [] templateLoaderPaths;
 
 	private ResourceLoader resourceLoader = new DefaultResourceLoader();
 
@@ -418,8 +411,7 @@ public class FreeMarkerConfigurationFactory {
 	 * @param templateLoaders the final List of {@code TemplateLoader} instances
 	 * @return the aggregate TemplateLoader
 	 */
-	@Nullable
-	protected TemplateLoader getAggregateTemplateLoader(List<TemplateLoader> templateLoaders) {
+	protected @Nullable TemplateLoader getAggregateTemplateLoader(List<TemplateLoader> templateLoaders) {
 		return switch (templateLoaders.size()) {
 			case 0 -> {
 				logger.debug("No FreeMarker TemplateLoaders specified");

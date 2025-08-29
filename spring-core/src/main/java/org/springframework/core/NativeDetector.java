@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.core;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A common delegate for detecting a GraalVM native image environment.
@@ -27,8 +27,7 @@ import org.springframework.lang.Nullable;
 public abstract class NativeDetector {
 
 	// See https://github.com/oracle/graal/blob/master/sdk/src/org.graalvm.nativeimage/src/org/graalvm/nativeimage/ImageInfo.java
-	@Nullable
-	private static final String imageCode = System.getProperty("org.graalvm.nativeimage.imagecode");
+	private static final @Nullable String imageCode = System.getProperty("org.graalvm.nativeimage.imagecode");
 
 	private static final boolean inNativeImage = (imageCode != null);
 

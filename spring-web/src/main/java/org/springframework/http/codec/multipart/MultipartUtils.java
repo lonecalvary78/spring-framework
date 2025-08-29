@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 
 /**
  * Various static utility methods for dealing with multipart parsing.
@@ -50,8 +51,7 @@ abstract class MultipartUtils {
 		return StandardCharsets.UTF_8;
 	}
 
-	@Nullable
-	public static byte[] boundary(HttpMessage message, Charset headersCharset) {
+	public static byte @Nullable [] boundary(HttpMessage message, Charset headersCharset) {
 		MediaType contentType = message.getHeaders().getContentType();
 		if (contentType != null) {
 			String boundary = contentType.getParameter("boundary");
@@ -104,7 +104,7 @@ abstract class MultipartUtils {
 
 	public static boolean isFormField(HttpHeaders headers) {
 		MediaType contentType = headers.getContentType();
-		return (contentType == null || MediaType.TEXT_PLAIN.equalsTypeAndSubtype(contentType))
-				&& headers.getContentDisposition().getFilename() == null;
+		return (contentType == null || MediaType.TEXT_PLAIN.equalsTypeAndSubtype(contentType)) &&
+				headers.getContentDisposition().getFilename() == null;
 	}
 }

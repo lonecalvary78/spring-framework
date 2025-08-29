@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.transaction.support;
 
 import java.util.Date;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.TransactionTimedOutException;
 
 /**
@@ -39,8 +40,7 @@ public abstract class ResourceHolderSupport implements ResourceHolder {
 
 	private boolean rollbackOnly = false;
 
-	@Nullable
-	private Date deadline;
+	private @Nullable Date deadline;
 
 	private int referenceCount = 0;
 
@@ -113,8 +113,7 @@ public abstract class ResourceHolderSupport implements ResourceHolder {
 	 * Return the expiration deadline of this object.
 	 * @return the deadline as Date object
 	 */
-	@Nullable
-	public Date getDeadline() {
+	public @Nullable Date getDeadline() {
 		return this.deadline;
 	}
 

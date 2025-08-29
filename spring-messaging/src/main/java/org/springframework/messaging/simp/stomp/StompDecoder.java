@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpLogging;
 import org.springframework.messaging.support.MessageBuilder;
@@ -53,8 +53,7 @@ public class StompDecoder {
 
 	private static final Log logger = SimpLogging.forLogName(StompDecoder.class);
 
-	@Nullable
-	private MessageHeaderInitializer headerInitializer;
+	private @Nullable MessageHeaderInitializer headerInitializer;
 
 
 	/**
@@ -68,8 +67,7 @@ public class StompDecoder {
 	/**
 	 * Return the configured {@code MessageHeaderInitializer}, if any.
 	 */
-	@Nullable
-	public MessageHeaderInitializer getHeaderInitializer() {
+	public @Nullable MessageHeaderInitializer getHeaderInitializer() {
 		return this.headerInitializer;
 	}
 
@@ -129,9 +127,8 @@ public class StompDecoder {
 	/**
 	 * Decode a single STOMP frame from the given {@code byteBuffer} into a {@link Message}.
 	 */
-	@Nullable
-	@SuppressWarnings("NullAway")
-	private Message<byte[]> decodeMessage(ByteBuffer byteBuffer, @Nullable MultiValueMap<String, String> headers) {
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
+	private @Nullable Message<byte[]> decodeMessage(ByteBuffer byteBuffer, @Nullable MultiValueMap<String, String> headers) {
 		Message<byte[]> decodedMessage = null;
 		skipEol(byteBuffer);
 		byteBuffer.mark();
@@ -302,8 +299,7 @@ public class StompDecoder {
 		return sb.toString();
 	}
 
-	@Nullable
-	private byte[] readPayload(ByteBuffer byteBuffer, StompHeaderAccessor headerAccessor) {
+	private byte @Nullable [] readPayload(ByteBuffer byteBuffer, StompHeaderAccessor headerAccessor) {
 		Integer contentLength;
 		try {
 			contentLength = headerAccessor.getContentLength();

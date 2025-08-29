@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,10 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.SpringProperties;
 import org.springframework.jdbc.support.SqlValue;
-import org.springframework.lang.Nullable;
 
 /**
  * Utility methods for PreparedStatementSetter/Creator and CallableStatementCreator
@@ -85,8 +85,7 @@ public abstract class StatementCreatorUtils {
 
 	private static final Map<Class<?>, Integer> javaTypeToSqlTypeMap = new HashMap<>(64);
 
-	@Nullable
-	static Boolean shouldIgnoreGetParameterType;
+	static @Nullable Boolean shouldIgnoreGetParameterType = SpringProperties.checkFlag(IGNORE_GETPARAMETERTYPE_PROPERTY_NAME);
 
 	static {
 		javaTypeToSqlTypeMap.put(boolean.class, Types.BOOLEAN);
@@ -115,11 +114,6 @@ public abstract class StatementCreatorUtils {
 		javaTypeToSqlTypeMap.put(java.sql.Timestamp.class, Types.TIMESTAMP);
 		javaTypeToSqlTypeMap.put(Blob.class, Types.BLOB);
 		javaTypeToSqlTypeMap.put(Clob.class, Types.CLOB);
-
-		String flag = SpringProperties.getProperty(IGNORE_GETPARAMETERTYPE_PROPERTY_NAME);
-		if (flag != null) {
-			shouldIgnoreGetParameterType = Boolean.valueOf(flag);
-		}
 	}
 
 
@@ -494,7 +488,7 @@ public abstract class StatementCreatorUtils {
 	 * @see DisposableSqlTypeValue#cleanup()
 	 * @see org.springframework.jdbc.core.support.SqlLobValue#cleanup()
 	 */
-	public static void cleanupParameters(@Nullable Object... paramValues) {
+	public static void cleanupParameters(@Nullable Object @Nullable ... paramValues) {
 		if (paramValues != null) {
 			cleanupParameters(Arrays.asList(paramValues));
 		}

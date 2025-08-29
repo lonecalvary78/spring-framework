@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.core.log.LogFormatUtils;
 import org.springframework.http.HttpMethod;
@@ -38,7 +40,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -50,6 +51,7 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.server.support.HandshakeInterceptorChain;
 import org.springframework.web.socket.sockjs.SockJsException;
 import org.springframework.web.socket.sockjs.frame.Jackson2SockJsMessageCodec;
+import org.springframework.web.socket.sockjs.frame.JacksonJsonSockJsMessageCodec;
 import org.springframework.web.socket.sockjs.frame.SockJsMessageCodec;
 import org.springframework.web.socket.sockjs.support.AbstractSockJsService;
 
@@ -69,21 +71,22 @@ import org.springframework.web.socket.sockjs.support.AbstractSockJsService;
  */
 public class TransportHandlingSockJsService extends AbstractSockJsService implements SockJsServiceConfig, Lifecycle {
 
+	private static final boolean jacksonPresent = ClassUtils.isPresent(
+			"tools.jackson.databind.ObjectMapper", TransportHandlingSockJsService.class.getClassLoader());
+
 	private static final boolean jackson2Present = ClassUtils.isPresent(
 			"com.fasterxml.jackson.databind.ObjectMapper", TransportHandlingSockJsService.class.getClassLoader());
 
 
 	private final Map<TransportType, TransportHandler> handlers = new EnumMap<>(TransportType.class);
 
-	@Nullable
-	private SockJsMessageCodec messageCodec;
+	private @Nullable SockJsMessageCodec messageCodec;
 
 	private final List<HandshakeInterceptor> interceptors = new ArrayList<>();
 
 	private final Map<String, SockJsSession> sessions = new ConcurrentHashMap<>();
 
-	@Nullable
-	private ScheduledFuture<?> sessionCleanupTask;
+	private @Nullable ScheduledFuture<?> sessionCleanupTask;
 
 	private volatile boolean running;
 
@@ -106,6 +109,7 @@ public class TransportHandlingSockJsService extends AbstractSockJsService implem
 	 * initialized at start-up and shuts down when the application stops
 	 * @param handlers one or more {@link TransportHandler} implementations to use
 	 */
+	@SuppressWarnings("removal")
 	public TransportHandlingSockJsService(TaskScheduler scheduler, Collection<TransportHandler> handlers) {
 		super(scheduler);
 
@@ -119,7 +123,10 @@ public class TransportHandlingSockJsService extends AbstractSockJsService implem
 			}
 		}
 
-		if (jackson2Present) {
+		if (jacksonPresent) {
+			this.messageCodec = new JacksonJsonSockJsMessageCodec();
+		}
+		else if (jackson2Present) {
 			this.messageCodec = new Jackson2SockJsMessageCodec();
 		}
 	}

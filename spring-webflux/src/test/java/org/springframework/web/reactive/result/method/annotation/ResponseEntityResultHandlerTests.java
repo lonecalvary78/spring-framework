@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
@@ -49,7 +49,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.EncoderHttpMessageWriter;
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ResourceHttpMessageWriter;
-import org.springframework.http.codec.json.Jackson2JsonEncoder;
+import org.springframework.http.codec.json.JacksonJsonEncoder;
 import org.springframework.http.codec.xml.Jaxb2XmlEncoder;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.ErrorResponse;
@@ -90,7 +90,7 @@ class ResponseEntityResultHandlerTests {
 				new EncoderHttpMessageWriter<>(CharSequenceEncoder.textPlainOnly()),
 				new ResourceHttpMessageWriter(),
 				new EncoderHttpMessageWriter<>(new Jaxb2XmlEncoder()),
-				new EncoderHttpMessageWriter<>(new Jackson2JsonEncoder()),
+				new EncoderHttpMessageWriter<>(new JacksonJsonEncoder()),
 				new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes()));
 		RequestedContentTypeResolver resolver = new RequestedContentTypeResolverBuilder().build();
 		return new ResponseEntityResultHandler(writerList, resolver);
@@ -157,7 +157,7 @@ class ResponseEntityResultHandlerTests {
 		this.resultHandler.handleResult(exchange, result).block(Duration.ofSeconds(5));
 
 		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-		assertThat(exchange.getResponse().getHeaders()).isEmpty();
+		assertThat(exchange.getResponse().getHeaders().isEmpty()).isTrue();
 		assertResponseBodyIsEmpty(exchange);
 	}
 
@@ -171,7 +171,7 @@ class ResponseEntityResultHandlerTests {
 		this.resultHandler.handleResult(exchange, result).block(Duration.ofSeconds(5));
 
 		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(exchange.getResponse().getHeaders()).hasSize(1);
+		assertThat(exchange.getResponse().getHeaders().size()).isOne();
 		assertThat(exchange.getResponse().getHeaders().getFirst("Allow")).isEqualTo("GET,POST,OPTIONS");
 		assertResponseBodyIsEmpty(exchange);
 	}
@@ -186,7 +186,7 @@ class ResponseEntityResultHandlerTests {
 		this.resultHandler.handleResult(exchange, result).block(Duration.ofSeconds(5));
 
 		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(exchange.getResponse().getHeaders()).hasSize(1);
+		assertThat(exchange.getResponse().getHeaders().size()).isOne();
 		assertThat(exchange.getResponse().getHeaders().getLocation()).isEqualTo(location);
 		assertResponseBodyIsEmpty(exchange);
 	}
@@ -236,14 +236,15 @@ class ResponseEntityResultHandlerTests {
 		this.resultHandler.handleResult(exchange, result).block(Duration.ofSeconds(5));
 
 		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-		assertThat(exchange.getResponse().getHeaders()).hasSize(3);
+		assertThat(exchange.getResponse().getHeaders().size()).isEqualTo(3);
 		assertThat(exchange.getResponse().getHeaders().get("foo")).containsExactly("bar");
 		assertThat(exchange.getResponse().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PROBLEM_JSON);
-		assertResponseBody(exchange,
-				"{\"type\":\"about:blank\"," +
-						"\"title\":\"Bad Request\"," +
-						"\"status\":400," +
-						"\"instance\":\"/path\"}");
+		assertResponseBody(exchange,"""
+				{\
+				"instance":"/path",\
+				"status":400,\
+				"title":"Bad Request"\
+				}""");
 	}
 
 	@Test
@@ -256,13 +257,14 @@ class ResponseEntityResultHandlerTests {
 		this.resultHandler.handleResult(exchange, result).block(Duration.ofSeconds(5));
 
 		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-		assertThat(exchange.getResponse().getHeaders()).hasSize(2);
+		assertThat(exchange.getResponse().getHeaders().size()).isEqualTo(2);
 		assertThat(exchange.getResponse().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PROBLEM_JSON);
-		assertResponseBody(exchange,
-				"{\"type\":\"about:blank\"," +
-						"\"title\":\"Bad Request\"," +
-						"\"status\":400," +
-						"\"instance\":\"/path\"}");
+		assertResponseBody(exchange,"""
+				{\
+				"instance":"/path",\
+				"status":400,\
+				"title":"Bad Request"\
+				}""");
 	}
 
 	@Test
@@ -385,7 +387,7 @@ class ResponseEntityResultHandlerTests {
 		this.resultHandler.handleResult(exchange, result).block(Duration.ofSeconds(5));
 
 		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(exchange.getResponse().getHeaders()).hasSize(1);
+		assertThat(exchange.getResponse().getHeaders().size()).isOne();
 		assertThat(exchange.getResponse().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_JSON);
 		assertResponseBodyIsEmpty(exchange);
 	}
@@ -436,11 +438,10 @@ class ResponseEntityResultHandlerTests {
 		MediaType halFormsMediaType = MediaType.parseMediaType("application/prs.hal-forms+json");
 		MediaType halMediaType = MediaType.parseMediaType("application/hal+json");
 
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		JsonMapper jsonMapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build();
 
-		Jackson2JsonEncoder encoder = new Jackson2JsonEncoder();
-		encoder.registerObjectMappersForType(Person.class, map -> map.put(halMediaType, objectMapper));
+		JacksonJsonEncoder encoder = new JacksonJsonEncoder();
+		encoder.registerMappersForType(Person.class, map -> map.put(halMediaType, jsonMapper));
 		EncoderHttpMessageWriter<?> writer = new EncoderHttpMessageWriter<>(encoder);
 
 		ResponseEntityResultHandler handler = new ResponseEntityResultHandler(

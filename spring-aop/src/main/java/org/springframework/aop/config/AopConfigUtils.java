@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,17 @@ package org.springframework.aop.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator;
 import org.springframework.aop.aspectj.autoproxy.AspectJAwareAdvisorAutoProxyCreator;
+import org.springframework.aop.framework.ProxyConfig;
+import org.springframework.aop.framework.autoproxy.AutoProxyUtils;
 import org.springframework.aop.framework.autoproxy.InfrastructureAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -64,69 +67,67 @@ public abstract class AopConfigUtils {
 	}
 
 
-	@Nullable
-	public static BeanDefinition registerAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
+	public static @Nullable BeanDefinition registerAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
 		return registerAutoProxyCreatorIfNecessary(registry, null);
 	}
 
-	@Nullable
-	public static BeanDefinition registerAutoProxyCreatorIfNecessary(
+	public static @Nullable BeanDefinition registerAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		return registerOrEscalateApcAsRequired(InfrastructureAdvisorAutoProxyCreator.class, registry, source);
 	}
 
-	@Nullable
-	public static BeanDefinition registerAspectJAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
+	public static @Nullable BeanDefinition registerAspectJAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
 		return registerAspectJAutoProxyCreatorIfNecessary(registry, null);
 	}
 
-	@Nullable
-	public static BeanDefinition registerAspectJAutoProxyCreatorIfNecessary(
+	public static @Nullable BeanDefinition registerAspectJAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		return registerOrEscalateApcAsRequired(AspectJAwareAdvisorAutoProxyCreator.class, registry, source);
 	}
 
-	@Nullable
-	public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
+	public static @Nullable BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
 		return registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry, null);
 	}
 
-	@Nullable
-	public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(
+	public static @Nullable BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		return registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);
 	}
 
 	public static void forceAutoProxyCreatorToUseClassProxying(BeanDefinitionRegistry registry) {
-		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
-			BeanDefinition definition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
-			definition.getPropertyValues().add("proxyTargetClass", Boolean.TRUE);
-		}
+		defaultProxyConfig(registry).getPropertyValues().add("proxyTargetClass", Boolean.TRUE);
 	}
 
 	public static void forceAutoProxyCreatorToExposeProxy(BeanDefinitionRegistry registry) {
-		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
-			BeanDefinition definition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
-			definition.getPropertyValues().add("exposeProxy", Boolean.TRUE);
-		}
+		defaultProxyConfig(registry).getPropertyValues().add("exposeProxy", Boolean.TRUE);
 	}
 
-	@Nullable
-	private static BeanDefinition registerOrEscalateApcAsRequired(
+	private static BeanDefinition defaultProxyConfig(BeanDefinitionRegistry registry) {
+		if (registry.containsBeanDefinition(AutoProxyUtils.DEFAULT_PROXY_CONFIG_BEAN_NAME)) {
+			return registry.getBeanDefinition(AutoProxyUtils.DEFAULT_PROXY_CONFIG_BEAN_NAME);
+		}
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(ProxyConfig.class);
+		beanDefinition.setSource(AopConfigUtils.class);
+		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		registry.registerBeanDefinition(AutoProxyUtils.DEFAULT_PROXY_CONFIG_BEAN_NAME, beanDefinition);
+		return beanDefinition;
+	}
+
+	private static @Nullable BeanDefinition registerOrEscalateApcAsRequired(
 			Class<?> cls, BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
-			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
-			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
-				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
+			BeanDefinition beanDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
+			if (!cls.getName().equals(beanDefinition.getBeanClassName())) {
+				int currentPriority = findPriorityForClass(beanDefinition.getBeanClassName());
 				int requiredPriority = findPriorityForClass(cls);
 				if (currentPriority < requiredPriority) {
-					apcDefinition.setBeanClassName(cls.getName());
+					beanDefinition.setBeanClassName(cls.getName());
 				}
 			}
 			return null;
@@ -134,8 +135,8 @@ public abstract class AopConfigUtils {
 
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
-		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,9 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_NDJSON;
-import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
-import static org.springframework.http.codec.json.Jackson2CodecSupport.JSON_VIEW_HINT;
 
 /**
  * Tests for {@link Jackson2JsonDecoder}.
@@ -63,6 +61,7 @@ import static org.springframework.http.codec.json.Jackson2CodecSupport.JSON_VIEW
  * @author Sebastien Deleuze
  * @author Rossen Stoyanchev
  */
+@SuppressWarnings("removal")
 class Jackson2JsonDecoderTests extends AbstractDecoderTests<Jackson2JsonDecoder> {
 
 	private final Pojo pojo1 = new Pojo("f1", "b1");
@@ -77,11 +76,9 @@ class Jackson2JsonDecoderTests extends AbstractDecoderTests<Jackson2JsonDecoder>
 
 	@Override
 	@Test
-	@SuppressWarnings("deprecation")
 	public void canDecode() {
 		assertThat(decoder.canDecode(ResolvableType.forClass(Pojo.class), APPLICATION_JSON)).isTrue();
 		assertThat(decoder.canDecode(ResolvableType.forClass(Pojo.class), APPLICATION_NDJSON)).isTrue();
-		assertThat(decoder.canDecode(ResolvableType.forClass(Pojo.class), APPLICATION_STREAM_JSON)).isTrue();
 		assertThat(decoder.canDecode(ResolvableType.forClass(Pojo.class), null)).isTrue();
 
 		assertThat(decoder.canDecode(ResolvableType.forClass(String.class), null)).isFalse();
@@ -203,7 +200,8 @@ class Jackson2JsonDecoderTests extends AbstractDecoderTests<Jackson2JsonDecoder>
 				"{\"withView1\" : \"with\", \"withView2\" : \"with\", \"withoutView\" : \"without\"}"));
 
 		ResolvableType elementType = ResolvableType.forClass(JacksonViewBean.class);
-		Map<String, Object> hints = Collections.singletonMap(JSON_VIEW_HINT, MyJacksonView1.class);
+		Map<String, Object> hints = Map.of(
+				org.springframework.http.codec.json.Jackson2CodecSupport.JSON_VIEW_HINT, MyJacksonView1.class);
 
 		testDecode(input, elementType, step -> step
 				.consumeNextWith(value -> {
@@ -220,7 +218,8 @@ class Jackson2JsonDecoderTests extends AbstractDecoderTests<Jackson2JsonDecoder>
 				"{\"withView1\" : \"with\", \"withView2\" : \"with\", \"withoutView\" : \"without\"}"));
 
 		ResolvableType elementType = ResolvableType.forClass(JacksonViewBean.class);
-		Map<String, Object> hints = Collections.singletonMap(JSON_VIEW_HINT, MyJacksonView3.class);
+		Map<String, Object> hints = Map.of(
+				org.springframework.http.codec.json.Jackson2CodecSupport.JSON_VIEW_HINT, MyJacksonView3.class);
 
 		testDecode(input, elementType, step -> step
 				.consumeNextWith(value -> {

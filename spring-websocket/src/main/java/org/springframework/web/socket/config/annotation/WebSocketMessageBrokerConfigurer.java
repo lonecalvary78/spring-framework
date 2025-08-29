@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.springframework.web.socket.config.annotation;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.SmartLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
@@ -123,8 +124,7 @@ public interface WebSocketMessageBrokerConfigurer {
 	 * @since 6.1.4
 	 * @see SmartLifecycle
 	 */
-	@Nullable
-	default Integer getPhase() {
+	default @Nullable Integer getPhase() {
 		return null;
 	}
 

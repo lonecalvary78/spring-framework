@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import java.util.function.IntPredicate;
 import org.eclipse.jetty.util.BufferUtil;
 import org.eclipse.jetty.websocket.api.Callback;
 import org.eclipse.jetty.websocket.api.Session;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.buffer.CloseableDataBuffer;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.socket.CloseStatus;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -50,8 +50,7 @@ public class JettyWebSocketHandlerAdapter implements Session.Listener {
 
 	private final Function<Session, JettyWebSocketSession> sessionFactory;
 
-	@Nullable
-	private JettyWebSocketSession delegateSession;
+	private @Nullable JettyWebSocketSession delegateSession;
 
 
 	public JettyWebSocketHandlerAdapter(WebSocketHandler handler,
@@ -163,7 +162,7 @@ public class JettyWebSocketHandlerAdapter implements Session.Listener {
 		}
 
 		@Override
-		@Deprecated
+		@Deprecated(since = "6.0")
 		public DataBuffer capacity(int capacity) {
 			this.delegate.capacity(capacity);
 			return this;
@@ -250,7 +249,7 @@ public class JettyWebSocketHandlerAdapter implements Session.Listener {
 		}
 
 		@Override
-		@Deprecated
+		@Deprecated(since = "6.0")
 		public DataBuffer slice(int index, int length) {
 			DataBuffer delegateSlice = this.delegate.slice(index, length);
 			return new JettyCallbackDataBuffer(delegateSlice, this.callback);
@@ -263,19 +262,19 @@ public class JettyWebSocketHandlerAdapter implements Session.Listener {
 		}
 
 		@Override
-		@Deprecated
+		@Deprecated(since = "6.0")
 		public ByteBuffer asByteBuffer() {
 			return this.delegate.asByteBuffer();
 		}
 
 		@Override
-		@Deprecated
+		@Deprecated(since = "6.0")
 		public ByteBuffer asByteBuffer(int index, int length) {
 			return this.delegate.asByteBuffer(index, length);
 		}
 
 		@Override
-		@Deprecated
+		@Deprecated(since = "6.0.5")
 		public ByteBuffer toByteBuffer(int index, int length) {
 			return this.delegate.toByteBuffer(index, length);
 		}

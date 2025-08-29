@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.web.servlet.mvc.support;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.DataBinder;
 
@@ -35,8 +36,7 @@ import org.springframework.validation.DataBinder;
 @SuppressWarnings("serial")
 public class RedirectAttributesModelMap extends ModelMap implements RedirectAttributes {
 
-	@Nullable
-	private final DataBinder dataBinder;
+	private final @Nullable DataBinder dataBinder;
 
 	private final ModelMap flashAttributes = new ModelMap();
 
@@ -76,8 +76,7 @@ public class RedirectAttributesModelMap extends ModelMap implements RedirectAttr
 		return this;
 	}
 
-	@Nullable
-	private String formatValue(@Nullable Object value) {
+	private @Nullable String formatValue(@Nullable Object value) {
 		if (value == null) {
 			return null;
 		}

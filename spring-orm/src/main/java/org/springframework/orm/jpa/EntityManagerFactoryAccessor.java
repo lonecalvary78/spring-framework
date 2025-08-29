@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -46,11 +46,9 @@ public abstract class EntityManagerFactoryAccessor implements BeanFactoryAware {
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	private EntityManagerFactory entityManagerFactory;
+	private @Nullable EntityManagerFactory entityManagerFactory;
 
-	@Nullable
-	private String persistenceUnitName;
+	private @Nullable String persistenceUnitName;
 
 	private final Map<String, Object> jpaPropertyMap = new HashMap<>();
 
@@ -69,8 +67,7 @@ public abstract class EntityManagerFactoryAccessor implements BeanFactoryAware {
 	 * Return the JPA EntityManagerFactory that should be used to create
 	 * EntityManagers.
 	 */
-	@Nullable
-	public EntityManagerFactory getEntityManagerFactory() {
+	public @Nullable EntityManagerFactory getEntityManagerFactory() {
 		return this.entityManagerFactory;
 	}
 
@@ -101,8 +98,7 @@ public abstract class EntityManagerFactoryAccessor implements BeanFactoryAware {
 	/**
 	 * Return the name of the persistence unit to access the EntityManagerFactory for, if any.
 	 */
-	@Nullable
-	public String getPersistenceUnitName() {
+	public @Nullable String getPersistenceUnitName() {
 		return this.persistenceUnitName;
 	}
 
@@ -176,8 +172,7 @@ public abstract class EntityManagerFactoryAccessor implements BeanFactoryAware {
 	 * @see EntityManagerFactoryUtils#getTransactionalEntityManager(jakarta.persistence.EntityManagerFactory)
 	 * @see EntityManagerFactoryUtils#getTransactionalEntityManager(jakarta.persistence.EntityManagerFactory, java.util.Map)
 	 */
-	@Nullable
-	protected EntityManager getTransactionalEntityManager() throws IllegalStateException{
+	protected @Nullable EntityManager getTransactionalEntityManager() throws IllegalStateException{
 		EntityManagerFactory emf = obtainEntityManagerFactory();
 		return EntityManagerFactoryUtils.getTransactionalEntityManager(emf, getJpaPropertyMap());
 	}

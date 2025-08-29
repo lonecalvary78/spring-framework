@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.context.Lifecycle;
@@ -110,7 +111,7 @@ class WebSocketConnectionManagerTests {
 
 		@Override
 		public CompletableFuture<WebSocketSession> execute(WebSocketHandler handler,
-				String uriTemplate, Object... uriVars) {
+				String uriTemplate, @Nullable Object... uriVars) {
 
 			URI uri = UriComponentsBuilder.fromUriString(uriTemplate).buildAndExpand(uriVars).encode().toUri();
 			return execute(handler, null, uri);

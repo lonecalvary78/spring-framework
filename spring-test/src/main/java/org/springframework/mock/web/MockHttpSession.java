@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionBindingEvent;
 import jakarta.servlet.http.HttpSessionBindingListener;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -45,7 +45,6 @@ import org.springframework.util.Assert;
  * @author Vedran Pavic
  * @since 1.0.2
  */
-@SuppressWarnings("deprecation")
 public class MockHttpSession implements HttpSession {
 
 	/**
@@ -148,8 +147,7 @@ public class MockHttpSession implements HttpSession {
 	}
 
 	@Override
-	@Nullable
-	public Object getAttribute(String name) {
+	public @Nullable Object getAttribute(String name) {
 		assertIsValid();
 		Assert.notNull(name, "Attribute name must not be null");
 		return this.attributes.get(name);
@@ -239,6 +237,12 @@ public class MockHttpSession implements HttpSession {
 		assertIsValid();
 		return this.isNew;
 	}
+
+	@Override
+	public Accessor getAccessor() {
+		return sessionConsumer -> sessionConsumer.accept(MockHttpSession.this);
+	}
+
 
 	/**
 	 * Serialize the attributes of this session into an object that can be

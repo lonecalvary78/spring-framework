@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -93,8 +93,7 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	}
 
 	@SuppressWarnings("ForLoopReplaceableByForEach")
-	@Nullable
-	private HandlerMethodReturnValueHandler getReturnValueHandler(MethodParameter returnType) {
+	private @Nullable HandlerMethodReturnValueHandler getReturnValueHandler(MethodParameter returnType) {
 		for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers) {
 			if (handler.supportsReturnType(returnType)) {
 				return handler;

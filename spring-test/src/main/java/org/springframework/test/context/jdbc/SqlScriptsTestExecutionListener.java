@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.context.ApplicationContext;
@@ -35,7 +36,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestContextAnnotationUtils;
 import org.springframework.test.context.aot.AotTestExecutionListener;
@@ -117,6 +117,12 @@ import static org.springframework.util.ResourceUtils.CLASSPATH_URL_PREFIX;
  */
 public class SqlScriptsTestExecutionListener extends AbstractTestExecutionListener implements AotTestExecutionListener {
 
+	/**
+	 * The {@link #getOrder() order} value for this listener: {@value}.
+	 * @since 6.2.3
+	 */
+	public static final int ORDER = 5000;
+
 	private static final String SLASH = "/";
 
 	private static final Log logger = LogFactory.getLog(SqlScriptsTestExecutionListener.class);
@@ -126,11 +132,16 @@ public class SqlScriptsTestExecutionListener extends AbstractTestExecutionListen
 
 
 	/**
-	 * Returns {@code 5000}.
+	 * Returns {@value #ORDER}, which ensures that the {@code SqlScriptsTestExecutionListener}
+	 * is ordered after the
+	 * {@link org.springframework.test.context.transaction.TransactionalTestExecutionListener
+	 * TransactionalTestExecutionListener} and before the
+	 * {@link org.springframework.test.context.event.EventPublishingTestExecutionListener
+	 * EventPublishingTestExecutionListener}.
 	 */
 	@Override
 	public final int getOrder() {
-		return 5000;
+		return ORDER;
 	}
 
 	/**
@@ -182,10 +193,10 @@ public class SqlScriptsTestExecutionListener extends AbstractTestExecutionListen
 	@Override
 	public void processAheadOfTime(RuntimeHints runtimeHints, Class<?> testClass, ClassLoader classLoader) {
 		getSqlAnnotationsFor(testClass).forEach(sql ->
-			registerClasspathResources(getScripts(sql, testClass, null, true), runtimeHints, classLoader));
+				registerClasspathResources(getScripts(sql, testClass, null, true), runtimeHints, classLoader));
 		getSqlMethods(testClass).forEach(testMethod ->
-			getSqlAnnotationsFor(testMethod).forEach(sql ->
-				registerClasspathResources(getScripts(sql, testClass, testMethod, false), runtimeHints, classLoader)));
+				getSqlAnnotationsFor(testMethod).forEach(sql ->
+						registerClasspathResources(getScripts(sql, testClass, testMethod, false), runtimeHints, classLoader)));
 	}
 
 	/**
@@ -238,16 +249,14 @@ public class SqlScriptsTestExecutionListener extends AbstractTestExecutionListen
 	/**
 	 * Get the {@code @SqlMergeMode} annotation declared on the supplied class.
 	 */
-	@Nullable
-	private SqlMergeMode getSqlMergeModeFor(Class<?> clazz) {
+	private @Nullable SqlMergeMode getSqlMergeModeFor(Class<?> clazz) {
 		return TestContextAnnotationUtils.findMergedAnnotation(clazz, SqlMergeMode.class);
 	}
 
 	/**
 	 * Get the {@code @SqlMergeMode} annotation declared on the supplied method.
 	 */
-	@Nullable
-	private SqlMergeMode getSqlMergeModeFor(Method method) {
+	private @Nullable SqlMergeMode getSqlMergeModeFor(Method method) {
 		return AnnotatedElementUtils.findMergedAnnotation(method, SqlMergeMode.class);
 	}
 
@@ -386,8 +395,7 @@ public class SqlScriptsTestExecutionListener extends AbstractTestExecutionListen
 					.equals(TransactionSynchronizationUtils.unwrapResourceIfNecessary(ds2));
 	}
 
-	@Nullable
-	private DataSource getDataSourceFromTransactionManager(PlatformTransactionManager transactionManager) {
+	private @Nullable DataSource getDataSourceFromTransactionManager(PlatformTransactionManager transactionManager) {
 		try {
 			Method getDataSourceMethod = transactionManager.getClass().getMethod("getDataSource");
 			Object obj = ReflectionUtils.invokeMethod(getDataSourceMethod, transactionManager);
@@ -413,7 +421,7 @@ public class SqlScriptsTestExecutionListener extends AbstractTestExecutionListen
 	 * Detect a default SQL script by implementing the algorithm defined in
 	 * {@link Sql#scripts}.
 	 */
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private String detectDefaultScript(Class<?> testClass, @Nullable Method testMethod, boolean classLevel) {
 		Assert.state(classLevel || testMethod != null, "Method-level @Sql requires a testMethod");
 

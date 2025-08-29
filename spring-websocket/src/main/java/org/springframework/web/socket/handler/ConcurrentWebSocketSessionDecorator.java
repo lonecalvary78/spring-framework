@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -36,10 +36,10 @@ import org.springframework.web.socket.WebSocketSession;
  * Wrap a {@link org.springframework.web.socket.WebSocketSession WebSocketSession}
  * to guarantee only one thread can send messages at a time.
  *
- * <p>If a send is slow, subsequent attempts to send more messages from other threads
- * will not be able to acquire the flush lock and messages will be buffered instead.
- * At that time, the specified buffer-size limit and send-time limit will be checked
- * and the session will be closed if the limits are exceeded.
+ * <p>If a {@code send} is slow, subsequent attempts to send more messages from
+ * other threads will not be able to acquire the flush lock, and messages will be
+ * buffered instead. At that time, the specified buffer-size limit and send-time
+ * limit will be checked, and the session will be closed if the limits are exceeded.
  *
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
@@ -56,8 +56,7 @@ public class ConcurrentWebSocketSessionDecorator extends WebSocketSessionDecorat
 
 	private final OverflowStrategy overflowStrategy;
 
-	@Nullable
-	private Consumer<WebSocketMessage<?>> preSendCallback;
+	private @Nullable Consumer<WebSocketMessage<?>> preSendCallback;
 
 
 	private final Queue<WebSocketMessage<?>> buffer = new LinkedBlockingQueue<>();
@@ -91,7 +90,7 @@ public class ConcurrentWebSocketSessionDecorator extends WebSocketSessionDecorat
 	 * @param sendTimeLimit the send-time limit (milliseconds)
 	 * @param bufferSizeLimit the buffer-size limit (number of bytes)
 	 * @param overflowStrategy the overflow strategy to use; by default the
-	 * session is terminated.
+	 * session is terminated
 	 * @since 5.1
 	 */
 	public ConcurrentWebSocketSessionDecorator(
@@ -118,6 +117,14 @@ public class ConcurrentWebSocketSessionDecorator extends WebSocketSessionDecorat
 	 */
 	public int getBufferSizeLimit() {
 		return this.bufferSizeLimit;
+	}
+
+	/**
+	 * Return the configured {@link OverflowStrategy}.
+	 * @since 6.2.9
+	 */
+	public OverflowStrategy getOverflowStrategy() {
+		return this.overflowStrategy;
 	}
 
 	/**

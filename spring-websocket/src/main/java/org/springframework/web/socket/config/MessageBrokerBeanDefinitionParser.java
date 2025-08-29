@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.MutablePropertyValues;
@@ -38,11 +39,11 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.GsonMessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.JsonbMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
@@ -98,6 +99,7 @@ import org.springframework.web.socket.sockjs.support.SockJsHttpRequestHandler;
  *
  * @author Brian Clozel
  * @author Rossen Stoyanchev
+ * @author Sebastien Deleuze
  * @since 4.0
  */
 class MessageBrokerBeanDefinitionParser implements BeanDefinitionParser {
@@ -114,6 +116,8 @@ class MessageBrokerBeanDefinitionParser implements BeanDefinitionParser {
 
 	private static final int DEFAULT_MAPPING_ORDER = 1;
 
+	private static final boolean jacksonPresent;
+
 	private static final boolean jackson2Present;
 
 	private static final boolean gsonPresent;
@@ -124,6 +128,7 @@ class MessageBrokerBeanDefinitionParser implements BeanDefinitionParser {
 
 	static {
 		ClassLoader classLoader = MessageBrokerBeanDefinitionParser.class.getClassLoader();
+		jacksonPresent = ClassUtils.isPresent("tools.jackson.databind.ObjectMapper", classLoader);
 		jackson2Present = ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader) &&
 				ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", classLoader);
 		gsonPresent = ClassUtils.isPresent("com.google.gson.Gson", classLoader);
@@ -133,8 +138,7 @@ class MessageBrokerBeanDefinitionParser implements BeanDefinitionParser {
 
 
 	@Override
-	@Nullable
-	public BeanDefinition parse(Element element, ParserContext context) {
+	public @Nullable BeanDefinition parse(Element element, ParserContext context) {
 		Object source = context.extractSource(element);
 		CompositeComponentDefinition compDefinition = new CompositeComponentDefinition(element.getTagName(), source);
 		context.pushContainingComponent(compDefinition);
@@ -277,8 +281,7 @@ class MessageBrokerBeanDefinitionParser implements BeanDefinitionParser {
 		return new RuntimeBeanReference(name);
 	}
 
-	@Nullable
-	private RootBeanDefinition getDefaultExecutorBeanDefinition(String channelName) {
+	private @Nullable RootBeanDefinition getDefaultExecutorBeanDefinition(String channelName) {
 		if (channelName.equals("brokerChannel")) {
 			return null;
 		}
@@ -490,6 +493,7 @@ class MessageBrokerBeanDefinitionParser implements BeanDefinitionParser {
 		return new RuntimeBeanReference(beanName);
 	}
 
+	@SuppressWarnings("removal")
 	private RuntimeBeanReference registerMessageConverter(
 			Element element, ParserContext context, @Nullable Object source) {
 
@@ -506,7 +510,14 @@ class MessageBrokerBeanDefinitionParser implements BeanDefinitionParser {
 			converters.setSource(source);
 			converters.add(new RootBeanDefinition(StringMessageConverter.class));
 			converters.add(new RootBeanDefinition(ByteArrayMessageConverter.class));
-			if (jackson2Present) {
+			if (jacksonPresent) {
+				RootBeanDefinition jacksonConverterDef = new RootBeanDefinition(JacksonJsonMessageConverter.class);
+				RootBeanDefinition resolverDef = new RootBeanDefinition(DefaultContentTypeResolver.class);
+				resolverDef.getPropertyValues().add("defaultMimeType", MimeTypeUtils.APPLICATION_JSON);
+				jacksonConverterDef.getPropertyValues().add("contentTypeResolver", resolverDef);
+				converters.add(jacksonConverterDef);
+			}
+			else if (jackson2Present) {
 				RootBeanDefinition jacksonConverterDef = new RootBeanDefinition(MappingJackson2MessageConverter.class);
 				RootBeanDefinition resolverDef = new RootBeanDefinition(DefaultContentTypeResolver.class);
 				resolverDef.getPropertyValues().add("defaultMimeType", MimeTypeUtils.APPLICATION_JSON);
@@ -588,8 +599,7 @@ class MessageBrokerBeanDefinitionParser implements BeanDefinitionParser {
 		registerBeanDef(beanDef, context, source);
 	}
 
-	@Nullable
-	private RuntimeBeanReference getValidator(
+	private @Nullable RuntimeBeanReference getValidator(
 			Element messageBrokerElement, @Nullable Object source, ParserContext context) {
 
 		if (messageBrokerElement.hasAttribute("validator")) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -45,14 +46,13 @@ import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.ResourceRegionHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 import org.springframework.web.HttpRequestHandler;
-import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.web.cors.CorsConfiguration;
@@ -60,6 +60,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.support.WebContentGenerator;
 import org.springframework.web.util.UrlPathHelper;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * {@code HttpRequestHandler} that serves static resources in an optimized way
@@ -113,38 +114,27 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 
 	private final List<ResourceTransformer> resourceTransformers = new ArrayList<>(4);
 
-	@Nullable
-	private ResourceResolverChain resolverChain;
+	private @Nullable ResourceResolverChain resolverChain;
 
-	@Nullable
-	private ResourceTransformerChain transformerChain;
+	private @Nullable ResourceTransformerChain transformerChain;
 
-	@Nullable
-	private ResourceHttpMessageConverter resourceHttpMessageConverter;
+	private @Nullable ResourceHttpMessageConverter resourceHttpMessageConverter;
 
-	@Nullable
-	private ResourceRegionHttpMessageConverter resourceRegionHttpMessageConverter;
-
-	@Nullable
-	private ContentNegotiationManager contentNegotiationManager;
+	private @Nullable ResourceRegionHttpMessageConverter resourceRegionHttpMessageConverter;
 
 	private final Map<String, MediaType> mediaTypes = new HashMap<>(4);
 
-	@Nullable
-	private CorsConfiguration corsConfiguration;
+	private @Nullable CorsConfiguration corsConfiguration;
 
-	@Nullable
-	private UrlPathHelper urlPathHelper;
+	private @Nullable UrlPathHelper urlPathHelper;
 
 	private boolean useLastModified = true;
 
-	@Nullable
-	private Function<Resource, String> etagGenerator;
+	private @Nullable Function<Resource, String> etagGenerator;
 
 	private boolean optimizeLocations = false;
 
-	@Nullable
-	private StringValueResolver embeddedValueResolver;
+	private @Nullable StringValueResolver embeddedValueResolver;
 
 
 	public ResourceHttpRequestHandler() {
@@ -193,8 +183,8 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * {@code Resource} locations provided via {@link #setLocations(List) setLocations}.
 	 * <p>Note that the returned list is fully initialized only after
 	 * initialization via {@link #afterPropertiesSet()}.
-	 * <p><strong>Note:</strong> As of 5.3.11 the list of locations may be filtered to
-	 * exclude those that don't actually exist and therefore the list returned from this
+	 * <p><strong>Note:</strong> The list of locations may be filtered to exclude
+	 * those that don't actually exist, and therefore the list returned from this
 	 * method may be a subset of all given locations. See {@link #setOptimizeLocations}.
 	 * @see #setLocationValues
 	 * @see #setLocations
@@ -257,8 +247,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * Return the configured resource converter.
 	 * @since 4.3
 	 */
-	@Nullable
-	public ResourceHttpMessageConverter getResourceHttpMessageConverter() {
+	public @Nullable ResourceHttpMessageConverter getResourceHttpMessageConverter() {
 		return this.resourceHttpMessageConverter;
 	}
 
@@ -275,34 +264,8 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * Return the configured resource region converter.
 	 * @since 4.3
 	 */
-	@Nullable
-	public ResourceRegionHttpMessageConverter getResourceRegionHttpMessageConverter() {
+	public @Nullable ResourceRegionHttpMessageConverter getResourceRegionHttpMessageConverter() {
 		return this.resourceRegionHttpMessageConverter;
-	}
-
-	/**
-	 * Configure a {@code ContentNegotiationManager} to help determine the
-	 * media types for resources being served. If the manager contains a path
-	 * extension strategy it will be checked for registered file extension.
-	 * @since 4.3
-	 * @deprecated as of 5.2.4 in favor of using {@link #setMediaTypes(Map)}
-	 * with mappings possibly obtained from
-	 * {@link ContentNegotiationManager#getMediaTypeMappings()}.
-	 */
-	@Deprecated
-	public void setContentNegotiationManager(@Nullable ContentNegotiationManager contentNegotiationManager) {
-		this.contentNegotiationManager = contentNegotiationManager;
-	}
-
-	/**
-	 * Return the configured content negotiation manager.
-	 * @since 4.3
-	 * @deprecated as of 5.2.4
-	 */
-	@Nullable
-	@Deprecated
-	public ContentNegotiationManager getContentNegotiationManager() {
-		return this.contentNegotiationManager;
 	}
 
 	/**
@@ -341,8 +304,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * Return the specified CORS configuration.
 	 */
 	@Override
-	@Nullable
-	public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+	public @Nullable CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
 		return this.corsConfiguration;
 	}
 
@@ -351,7 +313,11 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * static resources. This helps to derive information about the lookup path
 	 * such as whether it is decoded or not.
 	 * @since 4.3.13
+	 * @deprecated use of {@link PathMatcher} and {@link UrlPathHelper} is deprecated
+	 * for use at runtime in web modules in favor of parsed patterns with
+	 * {@link PathPatternParser}.
 	 */
+	@Deprecated(since = "7.0", forRemoval = true)
 	public void setUrlPathHelper(@Nullable UrlPathHelper urlPathHelper) {
 		this.urlPathHelper = urlPathHelper;
 	}
@@ -359,9 +325,12 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	/**
 	 * The configured {@link UrlPathHelper}.
 	 * @since 4.3.13
+	 * @deprecated use of {@link PathMatcher} and {@link UrlPathHelper} is deprecated
+	 * for use at runtime in web modules in favor of parsed patterns with
+	 * {@link PathPatternParser}.
 	 */
-	@Nullable
-	public UrlPathHelper getUrlPathHelper() {
+	@Deprecated(since = "7.0", forRemoval = true)
+	public @Nullable UrlPathHelper getUrlPathHelper() {
 		return this.urlPathHelper;
 	}
 
@@ -404,8 +373,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * @return the HTTP ETag generator function
 	 * @since 6.1
 	 */
-	@Nullable
-	public Function<Resource, String> getEtagGenerator() {
+	public @Nullable Function<Resource, String> getEtagGenerator() {
 		return this.etagGenerator;
 	}
 
@@ -458,18 +426,6 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 		}
 		if (this.resourceRegionHttpMessageConverter == null) {
 			this.resourceRegionHttpMessageConverter = new ResourceRegionHttpMessageConverter();
-		}
-
-		ContentNegotiationManager manager = getContentNegotiationManager();
-		if (manager != null) {
-			setMediaTypes(manager.getMediaTypeMappings());
-		}
-
-		@SuppressWarnings("deprecation")
-		org.springframework.web.accept.PathExtensionContentNegotiationStrategy strategy =
-				initContentNegotiationStrategy();
-		if (strategy != null) {
-			setMediaTypes(strategy.getMediaTypes());
 		}
 	}
 
@@ -528,6 +484,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * resolvers and set its {@code allowedLocations} property (if empty) to
 	 * match the {@link #setLocations locations} configured on this class.
 	 */
+	@SuppressWarnings("removal")
 	protected void initAllowedLocations() {
 		if (CollectionUtils.isEmpty(getLocations())) {
 			return;
@@ -546,21 +503,6 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 		}
 	}
 
-	/**
-	 * Initialize the strategy to use to determine the media type for a resource.
-	 * @deprecated as of 5.2.4 this method returns {@code null}, and if a
-	 * subclass returns an actual instance, the instance is used only as a
-	 * source of media type mappings, if it contains any. Please, use
-	 * {@link #setMediaTypes(Map)} instead, or if you need to change behavior,
-	 * you can override {@link #getMediaType(HttpServletRequest, Resource)}.
-	 */
-	@Nullable
-	@Deprecated
-	@SuppressWarnings("deprecation")
-	protected org.springframework.web.accept.PathExtensionContentNegotiationStrategy initContentNegotiationStrategy() {
-		return null;
-	}
-
 
 	/**
 	 * Processes a resource request.
@@ -569,7 +511,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * If the resource exists, the request will be checked for the presence of the
 	 * {@code Last-Modified} header, and its value will be compared against the last-modified
 	 * timestamp of the given resource, returning a {@code 304} status code if the
-	 * {@code Last-Modified} value  is greater. If the resource is newer than the
+	 * {@code Last-Modified} value is greater. If the resource is newer than the
 	 * {@code Last-Modified} value, or the header is not present, the content resource
 	 * of the resource will be written to the response with caching headers
 	 * set to expire one year in the future.
@@ -582,7 +524,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 		Resource resource = getResource(request);
 		if (resource == null) {
 			logger.debug("Resource not found");
-			throw new NoResourceFoundException(HttpMethod.valueOf(request.getMethod()), getPath(request));
+			throw new NoResourceFoundException(HttpMethod.valueOf(request.getMethod()), request.getRequestURI(), getPath(request));
 		}
 
 		if (HttpMethod.OPTIONS.matches(request.getMethod())) {
@@ -593,16 +535,16 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 		// Supported methods and required session
 		checkRequest(request);
 
+		// Apply cache settings, if any
+		prepareResponse(response);
+
 		// Header phase
-		String eTagValue = (this.getEtagGenerator() != null) ? this.getEtagGenerator().apply(resource) : null;
-		long lastModified = (this.isUseLastModified()) ? resource.lastModified() : -1;
+		String eTagValue = (getEtagGenerator() != null ? getEtagGenerator().apply(resource) : null);
+		long lastModified = (isUseLastModified() ? resource.lastModified() : -1);
 		if (new ServletWebRequest(request, response).checkNotModified(eTagValue, lastModified)) {
 			logger.trace("Resource not modified");
 			return;
 		}
-
-		// Apply cache settings, if any
-		prepareResponse(response);
 
 		// Check the media type for the resource
 		MediaType mediaType = getMediaType(request, resource);
@@ -631,14 +573,14 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 						HttpRange.toResourceRegions(httpRanges, resource), mediaType, outputMessage);
 			}
 			catch (IllegalArgumentException ex) {
+				response.setContentType(null);
 				response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes */" + resource.contentLength());
 				response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
 			}
 		}
 	}
 
-	@Nullable
-	protected Resource getResource(HttpServletRequest request) throws IOException {
+	protected @Nullable Resource getResource(HttpServletRequest request) throws IOException {
 		String path = getPath(request);
 		path = processPath(path);
 		if (ResourceHandlerUtils.shouldIgnoreInputPath(path) || isInvalidPath(path)) {
@@ -696,8 +638,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * @param resource the resource to check
 	 * @return the corresponding media type, or {@code null} if none found
 	 */
-	@Nullable
-	protected MediaType getMediaType(HttpServletRequest request, Resource resource) {
+	protected @Nullable MediaType getMediaType(HttpServletRequest request, Resource resource) {
 		MediaType result = null;
 		String mimeType = request.getServletContext().getMimeType(resource.getFilename());
 		if (StringUtils.hasText(mimeType)) {
@@ -728,7 +669,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	 * Called for GET requests as well as HEAD requests.
 	 * @param response current servlet response
 	 * @param resource the identified resource (never {@code null})
-	 * @param mediaType the resource's media type (never {@code null})
+	 * @param mediaType the resource's media type
 	 * @throws IOException in case of errors while setting the headers
 	 */
 	protected void setHeaders(HttpServletResponse response, Resource resource, @Nullable MediaType mediaType)

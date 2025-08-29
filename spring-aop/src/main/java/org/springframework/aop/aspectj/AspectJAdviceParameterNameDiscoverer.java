@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.weaver.tools.PointcutParser;
 import org.aspectj.weaver.tools.PointcutPrimitive;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -157,22 +157,19 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 
 
 	/** The pointcut expression associated with the advice, as a simple String. */
-	@Nullable
-	private final String pointcutExpression;
+	private final @Nullable String pointcutExpression;
 
 	private boolean raiseExceptions;
 
 	/** If the advice is afterReturning, and binds the return value, this is the parameter name used. */
-	@Nullable
-	private String returningName;
+	private @Nullable String returningName;
 
 	/** If the advice is afterThrowing, and binds the thrown value, this is the parameter name used. */
-	@Nullable
-	private String throwingName;
+	private @Nullable String throwingName;
 
 	private Class<?>[] argumentTypes = new Class<?>[0];
 
-	private String[] parameterNameBindings = new String[0];
+	private @Nullable String[] parameterNameBindings = new String[0];
 
 	private int numberOfRemainingUnboundArguments;
 
@@ -221,8 +218,7 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 	 * @return the parameter names
 	 */
 	@Override
-	@Nullable
-	public String[] getParameterNames(Method method) {
+	public @Nullable String @Nullable [] getParameterNames(Method method) {
 		this.argumentTypes = method.getParameterTypes();
 		this.numberOfRemainingUnboundArguments = this.argumentTypes.length;
 		this.parameterNameBindings = new String[this.numberOfRemainingUnboundArguments];
@@ -241,7 +237,7 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 
 		try {
 			int algorithmicStep = STEP_JOIN_POINT_BINDING;
-			while ((this.numberOfRemainingUnboundArguments > 0) && algorithmicStep < STEP_FINISHED) {
+			while (this.numberOfRemainingUnboundArguments > 0 && algorithmicStep < STEP_FINISHED) {
 				switch (algorithmicStep++) {
 					case STEP_JOIN_POINT_BINDING -> {
 						if (!maybeBindThisJoinPoint()) {
@@ -289,8 +285,7 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 	 * {@link #setRaiseExceptions(boolean) raiseExceptions} has been set to {@code true}
 	 */
 	@Override
-	@Nullable
-	public String[] getParameterNames(Constructor<?> ctor) {
+	public String @Nullable [] getParameterNames(Constructor<?> ctor) {
 		if (this.raiseExceptions) {
 			throw new UnsupportedOperationException("An advice method can never be a constructor");
 		}
@@ -373,7 +368,8 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 		if (this.returningName != null) {
 			if (this.numberOfRemainingUnboundArguments > 1) {
 				throw new AmbiguousBindingException("Binding of returning parameter '" + this.returningName +
-						"' is ambiguous: there are " + this.numberOfRemainingUnboundArguments + " candidates.");
+						"' is ambiguous: there are " + this.numberOfRemainingUnboundArguments + " candidates. " +
+						"Consider compiling with -parameters in order to make declared parameter names available.");
 			}
 
 			// We're all set... find the unbound parameter, and bind it.
@@ -453,8 +449,7 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 	/**
 	 * If the token starts meets Java identifier conventions, it's in.
 	 */
-	@Nullable
-	private String maybeExtractVariableName(@Nullable String candidateToken) {
+	private @Nullable String maybeExtractVariableName(@Nullable String candidateToken) {
 		if (AspectJProxyUtils.isVariableName(candidateToken)) {
 			return candidateToken;
 		}
@@ -485,8 +480,8 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 	 */
 	private void maybeBindThisOrTargetOrArgsFromPointcutExpression() {
 		if (this.numberOfRemainingUnboundArguments > 1) {
-			throw new AmbiguousBindingException("Still " + this.numberOfRemainingUnboundArguments
-					+ " unbound args at this()/target()/args() binding stage, with no way to determine between them");
+			throw new AmbiguousBindingException("Still " + this.numberOfRemainingUnboundArguments +
+					" unbound args at this()/target()/args() binding stage, with no way to determine between them");
 		}
 
 		List<String> varNames = new ArrayList<>();
@@ -535,8 +530,8 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 
 	private void maybeBindReferencePointcutParameter() {
 		if (this.numberOfRemainingUnboundArguments > 1) {
-			throw new AmbiguousBindingException("Still " + this.numberOfRemainingUnboundArguments
-					+ " unbound args at reference pointcut binding stage, with no way to determine between them");
+			throw new AmbiguousBindingException("Still " + this.numberOfRemainingUnboundArguments +
+					" unbound args at reference pointcut binding stage, with no way to determine between them");
 		}
 
 		List<String> varNames = new ArrayList<>();
@@ -741,7 +736,9 @@ public class AspectJAdviceParameterNameDiscoverer implements ParameterNameDiscov
 	 * Simple record to hold the extracted text from a pointcut body, together
 	 * with the number of tokens consumed in extracting it.
 	 */
-	private record PointcutBody(int numTokensConsumed, @Nullable String text) {}
+	private record PointcutBody(int numTokensConsumed, @Nullable String text) {
+	}
+
 
 	/**
 	 * Thrown in response to an ambiguous binding being detected when

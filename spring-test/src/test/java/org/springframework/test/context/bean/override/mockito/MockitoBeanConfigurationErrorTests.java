@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,10 @@ class MockitoBeanConfigurationErrorTests {
 		assertThatIllegalStateException()
 				.isThrownBy(context::refresh)
 				.withMessage("""
-						Unable to override bean: there is no bean \
-						to replace with name [beanToOverride] and type [java.lang.String].""");
+						Unable to replace bean: there is no bean with name 'beanToOverride' \
+						and type java.lang.String (as required by field 'FailureByNameLookup.example'). \
+						If the bean is defined in a @Bean method, make sure the return type is the most \
+						specific type possible (for example, the concrete implementation type).""");
 	}
 
 	@Test
@@ -53,8 +55,10 @@ class MockitoBeanConfigurationErrorTests {
 		assertThatIllegalStateException()
 				.isThrownBy(context::refresh)
 				.withMessage("""
-						Unable to override bean: there is no bean \
-						to replace with name [beanToOverride] and type [java.lang.String].""");
+						Unable to replace bean: there is no bean with name 'beanToOverride' \
+						and type java.lang.String (as required by field 'FailureByNameLookup.example'). \
+						If the bean is defined in a @Bean method, make sure the return type is the most \
+						specific type possible (for example, the concrete implementation type).""");
 	}
 
 	@Test
@@ -64,9 +68,10 @@ class MockitoBeanConfigurationErrorTests {
 		assertThatIllegalStateException()
 				.isThrownBy(context::refresh)
 				.withMessage("""
-						Unable to override bean: no beans of \
-						type %s (as required by annotated field '%s.example')""".formatted(
-						String.class.getName(), FailureByTypeLookup.class.getSimpleName()));
+						Unable to override bean: there are no beans of \
+						type java.lang.String (as required by field 'FailureByTypeLookup.example'). \
+						If the bean is defined in a @Bean method, make sure the return type is the most \
+						specific type possible (for example, the concrete implementation type).""");
 	}
 
 	@Test
@@ -78,9 +83,9 @@ class MockitoBeanConfigurationErrorTests {
 		assertThatIllegalStateException()
 				.isThrownBy(context::refresh)
 				.withMessage("""
-						Unable to select a bean to override: found 2 beans \
-						of type %s (as required by annotated field '%s.example'): %s""".formatted(
-						String.class.getName(), FailureByTypeLookup.class.getSimpleName(), List.of("bean1", "bean2")));
+						Unable to select a bean to override: found 2 beans of type java.lang.String \
+						(as required by field 'FailureByTypeLookup.example'): %s""",
+						List.of("bean1", "bean2"));
 	}
 
 

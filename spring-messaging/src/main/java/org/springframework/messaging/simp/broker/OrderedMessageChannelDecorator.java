@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -172,8 +172,7 @@ public class OrderedMessageChannelDecorator implements MessageChannel {
 	/**
 	 * Obtain the task to release the next message, if found.
 	 */
-	@Nullable
-	public static Runnable getNextMessageTask(Message<?> message) {
+	public static @Nullable Runnable getNextMessageTask(Message<?> message) {
 		return (Runnable) message.getHeaders().get(OrderedMessageChannelDecorator.NEXT_MESSAGE_TASK_HEADER);
 	}
 
@@ -185,8 +184,7 @@ public class OrderedMessageChannelDecorator implements MessageChannel {
 
 		private final Message<?> message;
 
-		@Nullable
-		private final AtomicInteger handledCount;
+		private final @Nullable AtomicInteger handledCount;
 
 		private PostHandleTask(Message<?> message) {
 			this.message = message;

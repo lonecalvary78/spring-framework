@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.scripting;
 
 import java.io.IOException;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface that defines the source of a script.
@@ -49,7 +49,6 @@ public interface ScriptSource {
 	 * Determine a class name for the underlying script.
 	 * @return the suggested class name, or {@code null} if none available
 	 */
-	@Nullable
-	String suggestedClassName();
+	@Nullable String suggestedClassName();
 
 }

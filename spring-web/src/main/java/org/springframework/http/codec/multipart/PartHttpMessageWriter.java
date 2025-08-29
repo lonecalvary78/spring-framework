@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.http.codec.multipart;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -31,7 +32,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.HttpMessageWriter;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link HttpMessageWriter} for writing with {@link Part}. This can be useful
@@ -94,7 +94,7 @@ public class PartHttpMessageWriter extends MultipartWriterSupport implements Htt
 		HttpHeaders headers = new HttpHeaders(part.headers());
 
 		String name = part.name();
-		if (!headers.containsKey(HttpHeaders.CONTENT_DISPOSITION)) {
+		if (!headers.containsHeader(HttpHeaders.CONTENT_DISPOSITION)) {
 			headers.setContentDispositionFormData(name,
 					(part instanceof FilePart filePart ? filePart.filename() : null));
 		}

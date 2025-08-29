@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Set of method overrides, determining which, if any, methods on a
@@ -87,11 +87,10 @@ public class MethodOverrides {
 
 	/**
 	 * Return the override for the given method, if any.
-	 * @param method method to check for overrides for
+	 * @param method the method to check for overrides for
 	 * @return the method override, or {@code null} if none
 	 */
-	@Nullable
-	public MethodOverride getOverride(Method method) {
+	public @Nullable MethodOverride getOverride(Method method) {
 		MethodOverride match = null;
 		for (MethodOverride candidate : this.overrides) {
 			if (candidate.matches(method)) {

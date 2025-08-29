@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import io.reactivex.rxjava3.core.Completable;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -41,8 +42,8 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.ConcurrentModel;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -84,6 +85,9 @@ class ViewResolutionResultHandlerTests {
 
 		testSupports(on(Handler.class).resolveReturnType(FragmentsRendering.class));
 		testSupports(on(Handler.class).resolveReturnType(Flux.class, Fragment.class));
+		testSupports(on(Handler.class).resolveReturnType(
+				Flux.class, ResolvableType.forClassWithGenerics(ServerSentEvent.class, Fragment.class)));
+
 		testSupports(on(Handler.class).resolveReturnType(List.class, Fragment.class));
 		testSupports(on(Handler.class).resolveReturnType(
 				Mono.class, ResolvableType.forClassWithGenerics(List.class, Fragment.class)));
@@ -457,6 +461,7 @@ class ViewResolutionResultHandlerTests {
 
 		FragmentsRendering fragmentsRendering() { return null; }
 		Flux<Fragment> fragmentFlux() { return null; }
+		Flux<ServerSentEvent<Fragment>> fragmentServerSentEventFlux() { return null; }
 		Mono<List<Fragment>> monoFragmentList() { return null; }
 		List<Fragment> fragmentList() { return null; }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.web.util;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.PropertyPlaceholderHelper;
 import org.springframework.util.SystemPropertyUtils;
 
@@ -99,8 +99,7 @@ public abstract class ServletContextPropertyUtils {
 		}
 
 		@Override
-		@Nullable
-		public String resolvePlaceholder(String placeholderName) {
+		public @Nullable String resolvePlaceholder(String placeholderName) {
 			try {
 				String propVal = this.servletContext.getInitParameter(placeholderName);
 				if (propVal == null) {

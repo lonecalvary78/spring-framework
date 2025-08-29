@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,8 +79,7 @@ class TestAotProcessorTests extends AbstractAotTests {
 		assertThat(findFiles(sourceOutput)).containsExactlyInAnyOrderElementsOf(expectedSourceFiles());
 
 		assertThat(findFiles(resourceOutput.resolve("META-INF/native-image"))).contains(
-				Path.of(groupId, artifactId, "reflect-config.json"),
-				Path.of(groupId, artifactId, "resource-config.json"));
+				Path.of(groupId, artifactId, "reachability-metadata.json"));
 	}
 
 	private void copy(Class<?> testClass, Path destination) {

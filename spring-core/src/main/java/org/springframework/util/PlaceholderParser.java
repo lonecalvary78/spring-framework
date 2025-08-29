@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.PropertyPlaceholderHelper.PlaceholderResolver;
 
 /**
@@ -76,13 +76,11 @@ final class PlaceholderParser {
 
 	private final String simplePrefix;
 
-	@Nullable
-	private final String separator;
+	private final @Nullable String separator;
 
 	private final boolean ignoreUnresolvablePlaceholders;
 
-	@Nullable
-	private final Character escape;
+	private final @Nullable Character escape;
 
 
 	/**
@@ -175,9 +173,8 @@ final class PlaceholderParser {
 	}
 
 	private SimplePlaceholderPart createSimplePlaceholderPart(String text) {
-		String[] keyAndDefault = splitKeyAndDefault(text);
-		return ((keyAndDefault != null) ? new SimplePlaceholderPart(text, keyAndDefault[0], keyAndDefault[1]) :
-				new SimplePlaceholderPart(text, text, null));
+		ParsedSection section = parseSection(text);
+		return new SimplePlaceholderPart(text, section.key(), section.fallback());
 	}
 
 	private NestedPlaceholderPart createNestedPlaceholderPart(String text, List<Part> parts) {
@@ -193,28 +190,32 @@ final class PlaceholderParser {
 			}
 			else {
 				String candidate = part.text();
-				String[] keyAndDefault = splitKeyAndDefault(candidate);
-				if (keyAndDefault != null) {
-					keyParts.add(new TextPart(keyAndDefault[0]));
-					if (keyAndDefault[1] != null) {
-						defaultParts.add(new TextPart(keyAndDefault[1]));
-					}
+				ParsedSection section = parseSection(candidate);
+				keyParts.add(new TextPart(section.key()));
+				if (section.fallback() != null) {
+					defaultParts.add(new TextPart(section.fallback()));
 					defaultParts.addAll(parts.subList(i + 1, parts.size()));
 					return new NestedPlaceholderPart(text, keyParts, defaultParts);
 				}
-				else {
-					keyParts.add(part);
-				}
 			}
 		}
-		// No separator found
-		return new NestedPlaceholderPart(text, parts, null);
+		return new NestedPlaceholderPart(text, keyParts, null);
 	}
 
-	@Nullable
-	private String[] splitKeyAndDefault(String value) {
+	/**
+	 * Parse an input value that may contain a separator character and return a
+	 * {@link ParsedValue}. If a valid separator character has been identified, the
+	 * given {@code value} is split between a {@code key} and a {@code fallback}. If not,
+	 * only the {@code key} is set.
+	 * <p>
+	 * The returned key may be different from the original value as escaped
+	 * separators, if any, are resolved.
+	 * @param value the value to parse
+	 * @return the parsed section
+	 */
+	private ParsedSection parseSection(String value) {
 		if (this.separator == null || !value.contains(this.separator)) {
-			return null;
+			return new ParsedSection(value, null);
 		}
 		int position = 0;
 		int index = value.indexOf(this.separator, position);
@@ -231,11 +232,11 @@ final class PlaceholderParser {
 				buffer.append(value, position, index);
 				String key = buffer.toString();
 				String fallback = value.substring(index + this.separator.length());
-				return new String[] { key, fallback };
+				return new ParsedSection(key, fallback);
 			}
 		}
 		buffer.append(value, position, value.length());
-		return new String[] { buffer.toString(), null };
+		return new ParsedSection(buffer.toString(), null);
 	}
 
 	private static void addText(String value, int start, int end, LinkedList<Part> parts) {
@@ -247,7 +248,7 @@ final class PlaceholderParser {
 			if (!parts.isEmpty()) {
 				Part current = parts.removeLast();
 				if (current instanceof TextPart textPart) {
-					parts.add(new TextPart(textPart.text + text));
+					parts.add(new TextPart(textPart.text() + text));
 				}
 				else {
 					parts.add(current);
@@ -293,6 +294,10 @@ final class PlaceholderParser {
 		return (this.escape != null && index > 0 && value.charAt(index - 1) == this.escape);
 	}
 
+	record ParsedSection(String key, @Nullable String fallback) {
+
+	}
+
 
 	/**
 	 * Provide the necessary context to handle and resolve underlying placeholders.
@@ -309,8 +314,7 @@ final class PlaceholderParser {
 
 		private final PlaceholderResolver resolver;
 
-		@Nullable
-		private Set<String> visitedPlaceholders;
+		private @Nullable Set<String> visitedPlaceholders;
 
 
 		PartResolutionContext(PlaceholderResolver resolver, String prefix, String suffix,
@@ -323,8 +327,7 @@ final class PlaceholderParser {
 		}
 
 		@Override
-		@Nullable
-		public String resolvePlaceholder(String placeholderName) {
+		public @Nullable String resolvePlaceholder(String placeholderName) {
 			String value = this.resolver.resolvePlaceholder(placeholderName);
 			if (value != null && logger.isTraceEnabled()) {
 				logger.trace("Resolved placeholder '" + placeholderName + "'");
@@ -420,51 +423,41 @@ final class PlaceholderParser {
 
 
 	/**
-	 * A {@link Part} implementation that does not contain a valid placeholder.
-	 * @param text the raw (and resolved) text
+	 * A base {@link Part} implementation.
 	 */
-	record TextPart(String text) implements Part {
+	abstract static class AbstractPart implements Part {
+
+		private final String text;
+
+		protected AbstractPart(String text) {
+			this.text = text;
+		}
 
 		@Override
-		public String resolve(PartResolutionContext resolutionContext) {
+		public String text() {
 			return this.text;
 		}
-	}
 
-
-	/**
-	 * A {@link Part} implementation that represents a single placeholder with
-	 * a hard-coded fallback.
-	 * @param text the raw text
-	 * @param key the key of the placeholder
-	 * @param fallback the fallback to use, if any
-	 */
-	record SimplePlaceholderPart(String text, String key, @Nullable String fallback) implements Part {
-
-		@Override
-		public String resolve(PartResolutionContext resolutionContext) {
-			String resolvedValue = resolveToText(resolutionContext, this.key);
+		/**
+		 * Resolve the placeholder with the given {@code key}. If the result of such
+		 * resolution return other placeholders, those are resolved as well until the
+		 * resolution no longer contains any placeholders.
+		 * @param resolutionContext the resolution context to use
+		 * @param key the initial placeholder
+		 * @return the full resolution of the given {@code key} or {@code null} if
+		 * the placeholder has no value to begin with
+		 */
+		protected @Nullable String resolveRecursively(PartResolutionContext resolutionContext, String key) {
+			String resolvedValue = resolutionContext.resolvePlaceholder(key);
 			if (resolvedValue != null) {
-				return resolvedValue;
-			}
-			else if (this.fallback != null) {
-				return this.fallback;
-			}
-			return resolutionContext.handleUnresolvablePlaceholder(this.key, this.text);
-		}
-
-		@Nullable
-		private String resolveToText(PartResolutionContext resolutionContext, String text) {
-			String resolvedValue = resolutionContext.resolvePlaceholder(text);
-			if (resolvedValue != null) {
-				resolutionContext.flagPlaceholderAsVisited(text);
+				resolutionContext.flagPlaceholderAsVisited(key);
 				// Let's check if we need to recursively resolve that value
 				List<Part> nestedParts = resolutionContext.parse(resolvedValue);
 				String value = toText(nestedParts);
 				if (!isTextOnly(nestedParts)) {
 					value = new ParsedValue(resolvedValue, nestedParts).resolve(resolutionContext);
 				}
-				resolutionContext.removePlaceholder(text);
+				resolutionContext.removePlaceholder(key);
 				return value;
 			}
 			// Not found
@@ -484,25 +477,105 @@ final class PlaceholderParser {
 
 
 	/**
+	 * A {@link Part} implementation that does not contain a valid placeholder.
+	 */
+	static class TextPart extends AbstractPart {
+
+		/**
+		 * Create a new instance.
+		 * @param text the raw (and resolved) text
+		 */
+		public TextPart(String text) {
+			super(text);
+		}
+
+		@Override
+		public String resolve(PartResolutionContext resolutionContext) {
+			return text();
+		}
+	}
+
+
+	/**
+	 * A {@link Part} implementation that represents a single placeholder with
+	 * a hard-coded fallback.
+	 */
+	static class SimplePlaceholderPart extends AbstractPart {
+
+		private final String key;
+
+		private final @Nullable String fallback;
+
+		/**
+		 * Create a new instance.
+		 * @param text the raw text
+		 * @param key the key of the placeholder
+		 * @param fallback the fallback to use, if any
+		 */
+		public SimplePlaceholderPart(String text,String key, @Nullable String fallback) {
+			super(text);
+			this.key = key;
+			this.fallback = fallback;
+		}
+
+		@Override
+		public String resolve(PartResolutionContext resolutionContext) {
+			String value = resolveRecursively(resolutionContext);
+			if (value != null) {
+				return value;
+			}
+			else if (this.fallback != null) {
+				return this.fallback;
+			}
+			return resolutionContext.handleUnresolvablePlaceholder(this.key, text());
+		}
+
+		@Nullable
+		private String resolveRecursively(PartResolutionContext resolutionContext) {
+			if (!this.text().equals(this.key)) {
+				String value = resolveRecursively(resolutionContext, this.text());
+				if (value != null) {
+					return value;
+				}
+			}
+			return resolveRecursively(resolutionContext, this.key);
+		}
+	}
+
+
+	/**
 	 * A {@link Part} implementation that represents a single placeholder
 	 * containing nested placeholders.
-	 * @param text the raw text of the root placeholder
-	 * @param keyParts the parts of the key
-	 * @param defaultParts the parts of the fallback, if any
 	 */
-	record NestedPlaceholderPart(String text, List<Part> keyParts, @Nullable List<Part> defaultParts) implements Part {
+	static class NestedPlaceholderPart extends AbstractPart {
+
+		private final List<Part> keyParts;
+
+		private final @Nullable List<Part> defaultParts;
+
+		/**
+		 * Create a new instance.
+		 * @param text the raw text of the root placeholder
+		 * @param keyParts the parts of the key
+		 * @param defaultParts the parts of the fallback, if any
+		 */
+		NestedPlaceholderPart(String text, List<Part> keyParts, @Nullable List<Part> defaultParts) {
+			super(text);
+			this.keyParts = keyParts;
+			this.defaultParts = defaultParts;
+		}
 
 		@Override
 		public String resolve(PartResolutionContext resolutionContext) {
 			String resolvedKey = Part.resolveAll(this.keyParts, resolutionContext);
-			String value = resolutionContext.resolvePlaceholder(resolvedKey);
+			String value = resolveRecursively(resolutionContext, resolvedKey);
 			if (value != null) {
 				return value;
 			}
 			else if (this.defaultParts != null) {
 				return Part.resolveAll(this.defaultParts, resolutionContext);
 			}
-			return resolutionContext.handleUnresolvablePlaceholder(resolvedKey, this.text);
+			return resolutionContext.handleUnresolvablePlaceholder(resolvedKey, text());
 		}
 	}
 

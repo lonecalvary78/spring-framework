@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,12 @@
 package org.springframework.test.json;
 
 import org.json.JSONException;
+import org.jspecify.annotations.Nullable;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.skyscreamer.jsonassert.comparator.DefaultComparator;
 import org.skyscreamer.jsonassert.comparator.JSONComparator;
-
-import org.springframework.lang.Nullable;
 
 /**
  * Useful methods that can be used with {@code org.skyscreamer.jsonassert}.
@@ -41,8 +40,8 @@ public abstract class JsonAssert {
 	 * @see JSONCompareMode#LENIENT
 	 */
 	public static JsonComparator comparator(JsonCompareMode compareMode) {
-		JSONCompareMode jsonAssertCompareMode = (compareMode != JsonCompareMode.LENIENT
-				? JSONCompareMode.STRICT : JSONCompareMode.LENIENT);
+		JSONCompareMode jsonAssertCompareMode = (compareMode != JsonCompareMode.LENIENT ?
+				JSONCompareMode.STRICT : JSONCompareMode.LENIENT);
 		return comparator(jsonAssertCompareMode);
 	}
 
@@ -81,18 +80,14 @@ public abstract class JsonAssert {
 		@Override
 		public JsonComparison compare(@Nullable String expectedJson, @Nullable String actualJson) {
 			if (actualJson == null) {
-				return (expectedJson != null)
-						? JsonComparison.mismatch("Expected null JSON")
-						: JsonComparison.match();
+				return (expectedJson != null) ? JsonComparison.mismatch("Expected null JSON") : JsonComparison.match();
 			}
 			if (expectedJson == null) {
 				return JsonComparison.mismatch("Expected non-null JSON");
 			}
 			try {
 				JSONCompareResult result = JSONCompare.compareJSON(expectedJson, actualJson, this.jsonAssertComparator);
-				return (!result.passed())
-						? JsonComparison.mismatch(result.getMessage())
-						: JsonComparison.match();
+				return (!result.passed()) ? JsonComparison.mismatch(result.getMessage()) : JsonComparison.match();
 			}
 			catch (JSONException ex) {
 				throw new IllegalStateException(ex);

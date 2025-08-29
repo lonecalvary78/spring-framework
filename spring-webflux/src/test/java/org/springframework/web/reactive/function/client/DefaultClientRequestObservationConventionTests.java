@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,18 +52,6 @@ class DefaultClientRequestObservationConventionTests {
 		ClientRequest.Builder request = ClientRequest.create(HttpMethod.GET, URI.create("/test"));
 		assertThat(this.observationConvention.supportsContext(new ClientRequestObservationContext(request))).isTrue();
 		assertThat(this.observationConvention.supportsContext(new Observation.Context())).isFalse();
-	}
-
-	@Test
-	@SuppressWarnings("removal")
-	void shouldAddKeyValuesForNullExchange() {
-		ClientRequestObservationContext context = new ClientRequestObservationContext();
-		assertThat(this.observationConvention.getLowCardinalityKeyValues(context)).hasSize(6)
-				.contains(KeyValue.of("method", "none"), KeyValue.of("uri", "none"), KeyValue.of("status", "CLIENT_ERROR"),
-						KeyValue.of("client.name", "none"),
-						KeyValue.of("exception", "none"), KeyValue.of("outcome", "UNKNOWN"));
-		assertThat(this.observationConvention.getHighCardinalityKeyValues(context)).hasSize(1)
-				.contains(KeyValue.of("http.url", "none"));
 	}
 
 	@Test
@@ -129,6 +117,13 @@ class DefaultClientRequestObservationConventionTests {
 		ClientRequestObservationContext context = createContext(ClientRequest.create(HttpMethod.GET, URI.create("https://example.org/resource/42")));
 		context.setUriTemplate("https://example.org/resource/{id}");
 		assertThat(this.observationConvention.getLowCardinalityKeyValues(context)).contains(KeyValue.of("uri", "/resource/{id}"));
+	}
+
+	@Test
+	void shouldKeepQueryParameterForUriKeyValue() {
+		ClientRequestObservationContext context = createContext(ClientRequest.create(HttpMethod.GET, URI.create("https://example.org/resource/42?queryKey=Query")));
+		context.setUriTemplate("https://example.org/resource/{id}?queryKey={queryValue}");
+		assertThat(this.observationConvention.getLowCardinalityKeyValues(context)).contains(KeyValue.of("uri", "/resource/{id}?queryKey={queryValue}"));
 	}
 
 	private ClientRequestObservationContext createContext(ClientRequest.Builder request) {

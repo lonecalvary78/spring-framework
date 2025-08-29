@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package org.springframework.web.servlet.resource;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 import org.webjars.WebJarVersionLocator;
 
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@code ResourceResolver} that delegates to the chain to locate a resource and then
@@ -49,6 +49,7 @@ public class LiteWebJarsResourceResolver extends AbstractResourceResolver {
 
 	private final WebJarVersionLocator webJarVersionLocator;
 
+
 	/**
 	 * Create a {@code LiteWebJarsResourceResolver} with a default {@code WebJarVersionLocator} instance.
 	 */
@@ -64,9 +65,9 @@ public class LiteWebJarsResourceResolver extends AbstractResourceResolver {
 		this.webJarVersionLocator = webJarVersionLocator;
 	}
 
+
 	@Override
-	@Nullable
-	protected Resource resolveResourceInternal(@Nullable HttpServletRequest request, String requestPath,
+	protected @Nullable Resource resolveResourceInternal(@Nullable HttpServletRequest request, String requestPath,
 			List<? extends Resource> locations, ResourceResolverChain chain) {
 
 		Resource resolved = chain.resolveResource(request, requestPath, locations);
@@ -80,8 +81,7 @@ public class LiteWebJarsResourceResolver extends AbstractResourceResolver {
 	}
 
 	@Override
-	@Nullable
-	protected String resolveUrlPathInternal(String resourceUrlPath,
+	protected @Nullable String resolveUrlPathInternal(String resourceUrlPath,
 			List<? extends Resource> locations, ResourceResolverChain chain) {
 
 		String path = chain.resolveUrlPath(resourceUrlPath, locations);
@@ -94,8 +94,7 @@ public class LiteWebJarsResourceResolver extends AbstractResourceResolver {
 		return path;
 	}
 
-	@Nullable
-	protected String findWebJarResourcePath(String path) {
+	protected @Nullable String findWebJarResourcePath(String path) {
 		int endOffset = path.indexOf('/', 1);
 		if (endOffset != -1) {
 			int startOffset = (path.startsWith("/") ? 1 : 0);

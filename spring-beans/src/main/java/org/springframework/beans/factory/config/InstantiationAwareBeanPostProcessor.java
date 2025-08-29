@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.beans.factory.config;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
-import org.springframework.lang.Nullable;
 
 /**
  * Subinterface of {@link BeanPostProcessor} that adds a before-instantiation callback,
@@ -66,8 +67,7 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @see org.springframework.beans.factory.support.AbstractBeanDefinition#getBeanClass()
 	 * @see org.springframework.beans.factory.support.AbstractBeanDefinition#getFactoryMethodName()
 	 */
-	@Nullable
-	default Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
+	default @Nullable Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
 		return null;
 	}
 
@@ -102,8 +102,7 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 * @since 5.1
 	 */
-	@Nullable
-	default PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName)
+	default @Nullable PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName)
 			throws BeansException {
 
 		return pvs;

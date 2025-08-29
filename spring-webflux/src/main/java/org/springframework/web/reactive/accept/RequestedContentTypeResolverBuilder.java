@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 
 /**
  * Builder for a composite {@link RequestedContentTypeResolver} that delegates
@@ -103,8 +104,7 @@ public class RequestedContentTypeResolverBuilder {
 	}
 
 	private boolean isMediaTypeAll(List<MediaType> mediaTypes) {
-		return mediaTypes.size() == 1
-			&& mediaTypes.get(0).removeQualityValue().equals(MediaType.ALL);
+		return mediaTypes.size() == 1 && mediaTypes.get(0).removeQualityValue().equals(MediaType.ALL);
 	}
 
 
@@ -115,8 +115,7 @@ public class RequestedContentTypeResolverBuilder {
 
 		private final Map<String, MediaType> mediaTypes = new HashMap<>();
 
-		@Nullable
-		private String parameterName;
+		private @Nullable String parameterName;
 
 		/**
 		 * Configure a mapping between a lookup key (extracted from a query

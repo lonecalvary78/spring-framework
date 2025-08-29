@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.BeansException;
@@ -41,7 +43,6 @@ import org.springframework.beans.factory.config.NamedBeanHolder;
 import org.springframework.beans.factory.config.RuntimeBeanNameReference;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -127,8 +128,7 @@ public class BeanDefinitionValueResolver {
 	 * @param value the value object to resolve
 	 * @return the resolved object
 	 */
-	@Nullable
-	public Object resolveValueIfNecessary(Object argName, @Nullable Object value) {
+	public @Nullable Object resolveValueIfNecessary(Object argName, @Nullable Object value) {
 		// We must check each value to see whether it requires a runtime reference
 		// to another bean to be resolved.
 		if (value instanceof RuntimeBeanReference ref) {
@@ -268,8 +268,7 @@ public class BeanDefinitionValueResolver {
 	 * @param value the candidate value (may be an expression)
 	 * @return the resolved value
 	 */
-	@Nullable
-	protected Object evaluate(TypedStringValue value) {
+	protected @Nullable Object evaluate(TypedStringValue value) {
 		Object result = doEvaluate(value.getValue());
 		if (!ObjectUtils.nullSafeEquals(result, value.getValue())) {
 			value.setDynamic();
@@ -282,14 +281,13 @@ public class BeanDefinitionValueResolver {
 	 * @param value the original value (may be an expression)
 	 * @return the resolved value if necessary, or the original value
 	 */
-	@Nullable
-	protected Object evaluate(@Nullable Object value) {
+	protected @Nullable Object evaluate(@Nullable Object value) {
 		if (value instanceof String str) {
 			return doEvaluate(str);
 		}
 		else if (value instanceof String[] values) {
 			boolean actuallyResolved = false;
-			Object[] resolvedValues = new Object[values.length];
+			@Nullable Object[] resolvedValues = new Object[values.length];
 			for (int i = 0; i < values.length; i++) {
 				String originalValue = values[i];
 				Object resolvedValue = doEvaluate(originalValue);
@@ -310,8 +308,7 @@ public class BeanDefinitionValueResolver {
 	 * @param value the original value (may be an expression)
 	 * @return the resolved value if necessary, or the original String value
 	 */
-	@Nullable
-	private Object doEvaluate(@Nullable String value) {
+	private @Nullable Object doEvaluate(@Nullable String value) {
 		return this.beanFactory.evaluateBeanDefinitionString(value, this.beanDefinition);
 	}
 
@@ -322,8 +319,7 @@ public class BeanDefinitionValueResolver {
 	 * @throws ClassNotFoundException if the specified type cannot be resolved
 	 * @see TypedStringValue#resolveTargetType
 	 */
-	@Nullable
-	protected Class<?> resolveTargetType(TypedStringValue value) throws ClassNotFoundException {
+	protected @Nullable Class<?> resolveTargetType(TypedStringValue value) throws ClassNotFoundException {
 		if (value.hasTargetType()) {
 			return value.getTargetType();
 		}
@@ -333,11 +329,11 @@ public class BeanDefinitionValueResolver {
 	/**
 	 * Resolve a reference to another bean in the factory.
 	 */
-	@Nullable
-	private Object resolveReference(Object argName, RuntimeBeanReference ref) {
+	private @Nullable Object resolveReference(Object argName, RuntimeBeanReference ref) {
 		try {
 			Object bean;
 			Class<?> beanType = ref.getBeanType();
+			String resolvedName = String.valueOf(doEvaluate(ref.getBeanName()));
 			if (ref.isToParent()) {
 				BeanFactory parent = this.beanFactory.getParentBeanFactory();
 				if (parent == null) {
@@ -347,21 +343,25 @@ public class BeanDefinitionValueResolver {
 									" in parent factory: no parent factory available");
 				}
 				if (beanType != null) {
-					bean = parent.getBean(beanType);
+					bean = (parent.containsBean(resolvedName) ?
+							parent.getBean(resolvedName, beanType) : parent.getBean(beanType));
 				}
 				else {
-					bean = parent.getBean(String.valueOf(doEvaluate(ref.getBeanName())));
+					bean = parent.getBean(resolvedName);
 				}
 			}
 			else {
-				String resolvedName;
 				if (beanType != null) {
-					NamedBeanHolder<?> namedBean = this.beanFactory.resolveNamedBean(beanType);
-					bean = namedBean.getBeanInstance();
-					resolvedName = namedBean.getBeanName();
+					if (this.beanFactory.containsBean(resolvedName)) {
+						bean = this.beanFactory.getBean(resolvedName, beanType);
+					}
+					else {
+						NamedBeanHolder<?> namedBean = this.beanFactory.resolveNamedBean(beanType);
+						bean = namedBean.getBeanInstance();
+						resolvedName = namedBean.getBeanName();
+					}
 				}
 				else {
-					resolvedName = String.valueOf(doEvaluate(ref.getBeanName()));
 					bean = this.beanFactory.getBean(resolvedName);
 				}
 				this.beanFactory.registerDependentBean(resolvedName, this.beanName);
@@ -385,8 +385,7 @@ public class BeanDefinitionValueResolver {
 	 * @param mbd the merged bean definition for the inner bean
 	 * @return the resolved inner bean instance
 	 */
-	@Nullable
-	private Object resolveInnerBeanValue(Object argName, String innerBeanName, RootBeanDefinition mbd) {
+	private @Nullable Object resolveInnerBeanValue(Object argName, String innerBeanName, RootBeanDefinition mbd) {
 		try {
 			// Check given bean name whether it is unique. If not already unique,
 			// add counter - increasing the counter until the name is unique.
@@ -407,7 +406,8 @@ public class BeanDefinitionValueResolver {
 			Object innerBean = this.beanFactory.createBean(actualInnerBeanName, mbd, null);
 			if (innerBean instanceof FactoryBean<?> factoryBean) {
 				boolean synthetic = mbd.isSynthetic();
-				innerBean = this.beanFactory.getObjectFromFactoryBean(factoryBean, actualInnerBeanName, !synthetic);
+				innerBean = this.beanFactory.getObjectFromFactoryBean(
+						factoryBean, null, actualInnerBeanName, !synthetic);
 			}
 			if (innerBean instanceof NullBean) {
 				innerBean = null;

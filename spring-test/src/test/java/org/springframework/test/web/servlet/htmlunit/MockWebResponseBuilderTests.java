@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ public class MockWebResponseBuilderTests {
 		WebResponse webResponse = this.responseBuilder.build();
 
 		List<NameValuePair> responseHeaders = webResponse.getResponseHeaders();
-		assertThat(responseHeaders).hasSize(1);
+		assertThat(responseHeaders.size()).as("size").isOne();
 		NameValuePair header = responseHeaders.get(0);
 		assertThat(header.getName()).isEqualTo("Set-Cookie");
 		assertThat(header.getValue()).isEqualTo("cookieA=valueA");

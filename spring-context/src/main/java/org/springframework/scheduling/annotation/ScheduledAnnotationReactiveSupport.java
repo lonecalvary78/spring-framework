@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.scheduling.annotation;
 
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -27,6 +28,7 @@ import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -37,7 +39,6 @@ import org.springframework.core.CoroutinesUtils;
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.scheduling.support.DefaultScheduledTaskObservationConvention;
 import org.springframework.scheduling.support.ScheduledTaskObservationContext;
@@ -81,7 +82,7 @@ abstract class ScheduledAnnotationReactiveSupport {
 	 * Kotlin coroutines bridge are not present at runtime
 	 */
 	public static boolean isReactive(Method method) {
-		if (KotlinDetector.isKotlinPresent() && KotlinDetector.isSuspendingFunction(method)) {
+		if (KotlinDetector.isSuspendingFunction(method)) {
 			// Note that suspending functions declared without args have a single Continuation
 			// parameter in reflective inspection
 			Assert.isTrue(method.getParameterCount() == 1,
@@ -123,8 +124,9 @@ abstract class ScheduledAnnotationReactiveSupport {
 		Publisher<?> publisher = getPublisherFor(method, targetBean);
 		Supplier<ScheduledTaskObservationContext> contextSupplier =
 				() -> new ScheduledTaskObservationContext(targetBean, method);
+		String displayName = targetBean.getClass().getName() + "." + method.getName();
 		return new SubscribingRunnable(publisher, shouldBlock, scheduled.scheduler(),
-				subscriptionTrackerRegistry, observationRegistrySupplier, contextSupplier);
+				subscriptionTrackerRegistry, displayName, observationRegistrySupplier, contextSupplier);
 	}
 
 	/**
@@ -137,7 +139,7 @@ abstract class ScheduledAnnotationReactiveSupport {
 	 * to a {@code Flux} with a checkpoint String, allowing for better debugging.
 	 */
 	static Publisher<?> getPublisherFor(Method method, Object bean) {
-		if (KotlinDetector.isKotlinPresent() && KotlinDetector.isSuspendingFunction(method)) {
+		if (KotlinDetector.isSuspendingFunction(method)) {
 			return CoroutinesUtils.invokeSuspendingFunction(method, bean, (Object[]) method.getParameters());
 		}
 
@@ -172,7 +174,7 @@ abstract class ScheduledAnnotationReactiveSupport {
 					"Cannot obtain a Publisher-convertible value from the @Scheduled reactive method",
 					ex.getTargetException());
 		}
-		catch (IllegalAccessException ex) {
+		catch (IllegalAccessException | InaccessibleObjectException ex) {
 			throw new IllegalArgumentException(
 					"Cannot obtain a Publisher-convertible value from the @Scheduled reactive method", ex);
 		}
@@ -192,8 +194,9 @@ abstract class ScheduledAnnotationReactiveSupport {
 
 		final boolean shouldBlock;
 
-		@Nullable
-		private final String qualifier;
+		final String displayName;
+
+		private final @Nullable String qualifier;
 
 		private final List<Runnable> subscriptionTrackerRegistry;
 
@@ -203,11 +206,12 @@ abstract class ScheduledAnnotationReactiveSupport {
 
 		SubscribingRunnable(Publisher<?> publisher, boolean shouldBlock,
 				@Nullable String qualifier, List<Runnable> subscriptionTrackerRegistry,
-				Supplier<ObservationRegistry> observationRegistrySupplier,
+				String displayName, Supplier<ObservationRegistry> observationRegistrySupplier,
 				Supplier<ScheduledTaskObservationContext> contextSupplier) {
 
 			this.publisher = publisher;
 			this.shouldBlock = shouldBlock;
+			this.displayName = displayName;
 			this.qualifier = qualifier;
 			this.subscriptionTrackerRegistry = subscriptionTrackerRegistry;
 			this.observationRegistrySupplier = observationRegistrySupplier;
@@ -215,8 +219,7 @@ abstract class ScheduledAnnotationReactiveSupport {
 		}
 
 		@Override
-		@Nullable
-		public String getQualifier() {
+		public @Nullable String getQualifier() {
 			return this.qualifier;
 		}
 
@@ -232,7 +235,7 @@ abstract class ScheduledAnnotationReactiveSupport {
 					latch.await();
 				}
 				catch (InterruptedException ex) {
-					throw new RuntimeException(ex);
+					Thread.currentThread().interrupt();
 				}
 			}
 			else {
@@ -253,6 +256,11 @@ abstract class ScheduledAnnotationReactiveSupport {
 				this.publisher.subscribe(subscriber);
 			}
 		}
+
+		@Override
+		public String toString() {
+			return this.displayName;
+		}
 	}
 
 
@@ -267,15 +275,13 @@ abstract class ScheduledAnnotationReactiveSupport {
 
 		private final Observation observation;
 
-		@Nullable
-		private final CountDownLatch blockingLatch;
+		private final @Nullable CountDownLatch blockingLatch;
 
 		// Implementation note: since this is created last-minute when subscribing,
 		// there shouldn't be a way to cancel the tracker externally from the
 		// ScheduledAnnotationBeanProcessor before the #setSubscription(Subscription)
 		// method is called.
-		@Nullable
-		private Subscription subscription;
+		private @Nullable Subscription subscription;
 
 		TrackingSubscriber(List<Runnable> subscriptionTrackerRegistry, Observation observation) {
 			this(subscriptionTrackerRegistry, observation, null);

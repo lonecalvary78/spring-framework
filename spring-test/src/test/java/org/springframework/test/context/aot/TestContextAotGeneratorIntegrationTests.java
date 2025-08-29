@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import javax.sql.DataSource;
 import org.assertj.core.util.Arrays;
 import org.easymock.EasyMockSupport;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.aot.AotDetector;
 import org.springframework.aot.generate.DefaultGenerationContext;
@@ -80,6 +79,7 @@ import static org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_METHODS;
 import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.proxies;
 import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.reflection;
 import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.resource;
+import static org.springframework.test.mockito.MockitoAssertions.assertIsMock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -290,7 +290,7 @@ class TestContextAotGeneratorIntegrationTests extends AbstractAotTests {
 		).forEach(type -> assertReflectionRegistered(runtimeHints, type, INVOKE_DECLARED_CONSTRUCTORS));
 
 		// @TestBean(methodName = <fully-qualified method name>)
-		assertThat(reflection().onMethod(GreetingServiceFactory.class, "createEnigmaGreetingService"))
+		assertThat(reflection().onMethodInvocation(GreetingServiceFactory.class, "createEnigmaGreetingService"))
 			.accepts(runtimeHints);
 
 		// GenericApplicationContext.preDetermineBeanTypes() should have registered proxy
@@ -377,8 +377,8 @@ class TestContextAotGeneratorIntegrationTests extends AbstractAotTests {
 		GreetingService greetingService = context.getBean(GreetingService.class);
 		MessageService messageService = context.getBean(MessageService.class);
 
-		assertThat(Mockito.mockingDetails(greetingService).isMock()).as("Mockito mock").isTrue();
-		assertThat(Mockito.mockingDetails(messageService).isMock()).as("Mockito mock").isTrue();
+		assertIsMock(greetingService, "greetingService");
+		assertIsMock(messageService, "messageService");
 	}
 
 	private void assertContextForWebTests(WebApplicationContext wac) throws Exception {

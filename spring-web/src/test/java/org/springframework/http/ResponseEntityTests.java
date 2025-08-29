@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ class ResponseEntityTests {
 
 		assertThat(responseEntity).isNotNull();
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(responseEntity.getHeaders().containsKey(headerName)).isTrue();
+		assertThat(responseEntity.getHeaders().containsHeader(headerName)).isTrue();
 		assertThat(responseEntity.getHeaders().get(headerName)).containsExactly(headerValue1, headerValue2);
 		assertThat(responseEntity.getBody()).isEqualTo(entity);
 	}
@@ -113,7 +113,7 @@ class ResponseEntityTests {
 
 		assertThat(responseEntity).isNotNull();
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		assertThat(responseEntity.getHeaders().containsKey(HttpHeaders.LOCATION)).isTrue();
+		assertThat(responseEntity.getHeaders().containsHeader(HttpHeaders.LOCATION)).isTrue();
 		assertThat(responseEntity.getHeaders().getFirst(HttpHeaders.LOCATION)).isEqualTo(location.toString());
 		assertThat(responseEntity.getBody()).isNull();
 
@@ -166,6 +166,16 @@ class ResponseEntityTests {
 	}
 
 	@Test
+	void unprocessableContent() {
+		ResponseEntity<String> responseEntity = ResponseEntity.unprocessableContent().body("error");
+
+		assertThat(responseEntity).isNotNull();
+		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
+		assertThat(responseEntity.getBody()).isEqualTo("error");
+	}
+
+	@Test
+	@SuppressWarnings("deprecate")
 	void unprocessableEntity() {
 		ResponseEntity<String> responseEntity = ResponseEntity.unprocessableEntity().body("error");
 
@@ -195,7 +205,7 @@ class ResponseEntityTests {
 				location(location).
 				contentLength(contentLength).
 				contentType(contentType).
-				headers(headers -> assertThat(headers).hasSize(5)).
+				headers(headers -> assertThat(headers.size()).isEqualTo(5)).
 				build();
 
 		assertThat(responseEntity).isNotNull();
@@ -236,7 +246,7 @@ class ResponseEntityTests {
 		HttpHeaders responseHeaders = responseEntity.getHeaders();
 
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(responseHeaders).hasSize(1);
+		assertThat(responseHeaders.size()).isOne();
 		assertThat(responseHeaders.get("X-CustomHeader")).hasSize(1);
 		assertThat(responseHeaders.getFirst("X-CustomHeader")).isEqualTo("vale");
 
@@ -250,7 +260,7 @@ class ResponseEntityTests {
 				ResponseEntity.ok().headers((HttpHeaders) null).build();
 
 		assertThat(responseEntityWithEmptyHeaders.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(responseEntityWithEmptyHeaders.getHeaders()).isEmpty();
+		assertThat(responseEntityWithEmptyHeaders.getHeaders().isEmpty()).isTrue();
 		assertThat(responseEntityWithNullHeaders.toString()).isEqualTo(responseEntityWithEmptyHeaders.toString());
 	}
 
@@ -265,7 +275,7 @@ class ResponseEntityTests {
 
 		assertThat(responseEntity).isNotNull();
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(responseEntity.getHeaders().containsKey(HttpHeaders.CACHE_CONTROL)).isFalse();
+		assertThat(responseEntity.getHeaders().containsHeader(HttpHeaders.CACHE_CONTROL)).isFalse();
 		assertThat(responseEntity.getBody()).isEqualTo(entity);
 	}
 
@@ -281,7 +291,7 @@ class ResponseEntityTests {
 
 		assertThat(responseEntity).isNotNull();
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(responseEntity.getHeaders().containsKey(HttpHeaders.CACHE_CONTROL)).isTrue();
+		assertThat(responseEntity.getHeaders().containsHeader(HttpHeaders.CACHE_CONTROL)).isTrue();
 		assertThat(responseEntity.getBody()).isEqualTo(entity);
 		String cacheControlHeader = responseEntity.getHeaders().getCacheControl();
 		assertThat(cacheControlHeader).isEqualTo(
@@ -299,7 +309,7 @@ class ResponseEntityTests {
 
 		assertThat(responseEntity).isNotNull();
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(responseEntity.getHeaders().containsKey(HttpHeaders.CACHE_CONTROL)).isTrue();
+		assertThat(responseEntity.getHeaders().containsHeader(HttpHeaders.CACHE_CONTROL)).isTrue();
 		assertThat(responseEntity.getBody()).isEqualTo(entity);
 
 		String cacheControlHeader = responseEntity.getHeaders().getCacheControl();
@@ -316,12 +326,11 @@ class ResponseEntityTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	void customStatusCode() {
 		Integer entity = 42;
 		ResponseEntity<Integer> responseEntity = ResponseEntity.status(299).body(entity);
 
-		assertThat(responseEntity.getStatusCodeValue()).isEqualTo(299);
+		assertThat(responseEntity.getStatusCode().value()).isEqualTo(299);
 		assertThat(responseEntity.getBody()).isEqualTo(entity);
 	}
 

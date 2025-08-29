@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import java.util.Properties;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 
 /**
- * Subclass of PropertyPlaceholderConfigurer that supports JDK 1.4's
- * Preferences API ({@code java.util.prefs}).
+ * Subclass of {@link PropertyPlaceholderConfigurer} that supports JDK 1.4's
+ * {@link Preferences} API.
  *
  * <p>Tries to resolve placeholders as keys first in the user preferences,
  * then in the system preferences, then in this configurer's properties.
@@ -42,16 +43,15 @@ import org.springframework.lang.Nullable;
  * @see #setSystemTreePath
  * @see #setUserTreePath
  * @see java.util.prefs.Preferences
- * @deprecated as of 5.2, along with {@link PropertyPlaceholderConfigurer}
+ * @deprecated as of 5.2, along with {@link PropertyPlaceholderConfigurer}; to be removed in 8.0
  */
-@Deprecated
+@Deprecated(since = "5.2", forRemoval = true)
+@SuppressWarnings({"deprecation", "removal"})
 public class PreferencesPlaceholderConfigurer extends PropertyPlaceholderConfigurer implements InitializingBean {
 
-	@Nullable
-	private String systemTreePath;
+	private @Nullable String systemTreePath;
 
-	@Nullable
-	private String userTreePath;
+	private @Nullable String userTreePath;
 
 	private Preferences systemPrefs = Preferences.systemRoot();
 
@@ -120,8 +120,7 @@ public class PreferencesPlaceholderConfigurer extends PropertyPlaceholderConfigu
 	 * @param preferences the Preferences to resolve against
 	 * @return the value for the placeholder, or {@code null} if none found
 	 */
-	@Nullable
-	protected String resolvePlaceholder(@Nullable String path, String key, Preferences preferences) {
+	protected @Nullable String resolvePlaceholder(@Nullable String path, String key, Preferences preferences) {
 		if (path != null) {
 			// Do not create the node if it does not exist...
 			try {

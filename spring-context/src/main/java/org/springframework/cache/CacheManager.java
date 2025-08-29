@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.cache;
 
 import java.util.Collection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Spring's central cache manager SPI.
@@ -39,8 +39,7 @@ public interface CacheManager {
 	 * @return the associated cache, or {@code null} if such a cache
 	 * does not exist or could be not created
 	 */
-	@Nullable
-	Cache getCache(String name);
+	@Nullable Cache getCache(String name);
 
 	/**
 	 * Get a collection of the cache names known by this manager.

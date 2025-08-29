@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2024 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface that abstracts potentially database-specific creation of large binary
@@ -73,7 +73,7 @@ public interface LobCreator extends Closeable {
 	 * @throws SQLException if thrown by JDBC methods
 	 * @see java.sql.PreparedStatement#setBytes
 	 */
-	void setBlobAsBytes(PreparedStatement ps, int paramIndex, @Nullable byte[] content)
+	void setBlobAsBytes(PreparedStatement ps, int paramIndex, byte @Nullable [] content)
 			throws SQLException;
 
 	/**
